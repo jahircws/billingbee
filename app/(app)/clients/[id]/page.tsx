@@ -7,6 +7,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import InviteClientButton from "./InviteClientButton"
 import PipelineTimeline from "./PipelineTimeline"
+import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Client" }
 export const dynamic = "force-dynamic"
@@ -60,7 +61,9 @@ export default async function ClientPage({ params }: Props) {
 
   if (!client) notFound()
 
-  const fmt = (n: unknown) => `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const currency = org?.currency ?? "INR"
+  const fmt = (n: unknown) => fmtCurrency(Number(n), currency)
 
   const totalBilled = client.invoices.reduce((s, i) => s + Number(i.total), 0)
   const totalPaid = client.invoices.reduce((s, i) => s + Number(i.amountPaid), 0)

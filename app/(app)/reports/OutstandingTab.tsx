@@ -12,9 +12,12 @@ interface Invoice {
   dueDate: string | null
 }
 
+import { fmtCurrency } from "@/lib/currency"
+
 interface Props {
   invoices: Invoice[]
   totalOutstanding: number
+  currency: string
 }
 
 const statusColor: Record<string, string> = {
@@ -22,9 +25,8 @@ const statusColor: Record<string, string> = {
   OVERDUE: "bg-red-100 text-red-700",
 }
 
-const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
-
-export default function OutstandingTab({ invoices, totalOutstanding }: Props) {
+export default function OutstandingTab({ invoices, totalOutstanding, currency }: Props) {
+  const fmt = (n: number) => fmtCurrency(n, currency)
   const now = new Date()
 
   return (

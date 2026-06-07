@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Plus, FileText } from "lucide-react"
+import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Invoices" }
 export const dynamic = "force-dynamic"
@@ -44,8 +45,10 @@ export default async function InvoicesPage({ searchParams }: Props) {
     take: 100,
   })
 
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const currency = org?.currency ?? "INR"
   const total = invoices.reduce((s, i) => s + Number(i.total), 0)
-  const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: number) => fmtCurrency(n, currency)
 
   const statuses = ["DRAFT", "UNPAID", "PAID", "OVERDUE"]
 

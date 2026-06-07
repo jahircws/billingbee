@@ -1,11 +1,11 @@
 "use client"
 
+import { fmtCurrency } from "@/lib/currency"
+
 interface TaxRow {
   rate: number
   taxAmount: number
 }
-
-const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
 
 function handleExport(taxData: TaxRow[]) {
   const rows = [
@@ -22,7 +22,8 @@ function handleExport(taxData: TaxRow[]) {
   URL.revokeObjectURL(url)
 }
 
-export default function TaxTab({ taxData }: { taxData: TaxRow[] }) {
+export default function TaxTab({ taxData, currency }: { taxData: TaxRow[]; currency: string }) {
+  const fmt = (n: number) => fmtCurrency(n, currency)
   const total = taxData.reduce((s, d) => s + d.taxAmount, 0)
 
   return (

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, Plus, Bell } from "lucide-react"
+import { signOut } from "next-auth/react"
+import { Search, Plus, Bell, LogOut, Settings } from "lucide-react"
 
 interface Props {
   title: string
@@ -11,7 +12,17 @@ interface Props {
 
 export function Topbar({ title }: Props) {
   const [query, setQuery] = useState("")
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -42,7 +53,7 @@ export function Topbar({ title }: Props) {
       {/* Right actions */}
       <div className="flex items-center gap-2 shrink-0">
         <Link
-          href="/dashboard/invoices/new"
+          href="/invoices/new"
           className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
         >
           <Plus size={14} />
@@ -51,9 +62,34 @@ export function Topbar({ title }: Props) {
         <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors" title="Notifications">
           <Bell size={16} />
         </button>
-        {/* Avatar placeholder — real one would come from session */}
-        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs cursor-pointer select-none">
-          B
+        {/* Avatar + dropdown */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs cursor-pointer select-none hover:bg-emerald-200 transition-colors"
+          >
+            B
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-10 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-50">
+              <Link
+                href="/settings"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Settings size={14} className="text-gray-400" />
+                Settings
+              </Link>
+              <hr className="my-1 border-gray-100" />
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut size={14} />
+                Log out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

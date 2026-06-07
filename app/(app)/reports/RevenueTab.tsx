@@ -10,14 +10,14 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import Link from "next/link"
+import { fmtCurrencyShort, getCurrencySymbol } from "@/lib/currency"
 
 interface Props {
   monthlyData: { month: string; revenue: number }[]
   topClients: { name: string; revenue: number }[]
   totalRevenue: number
+  currency: string
 }
-
-const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`
 
 function handleExport(monthlyData: Props["monthlyData"]) {
   const rows = [
@@ -34,7 +34,9 @@ function handleExport(monthlyData: Props["monthlyData"]) {
   URL.revokeObjectURL(url)
 }
 
-export default function RevenueTab({ monthlyData, topClients, totalRevenue }: Props) {
+export default function RevenueTab({ monthlyData, topClients, totalRevenue, currency }: Props) {
+  const fmt = (n: number) => fmtCurrencyShort(n, currency)
+  const sym = getCurrencySymbol(currency)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -60,7 +62,7 @@ export default function RevenueTab({ monthlyData, topClients, totalRevenue }: Pr
               tick={{ fontSize: 11, fill: "#9ca3af" }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+              tickFormatter={(v) => `${sym}${(Number(v) / 1000).toFixed(0)}k`}
             />
             <Tooltip
               formatter={(v) => [fmt(Number(v)), "Revenue"]}

@@ -6,6 +6,7 @@ import prisma from "@/lib/db"
 import { scheduleCollections } from "@/app/actions/collections"
 import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 import { format, addDays } from "date-fns"
+import { sendInvoiceSentEmail } from "@/lib/email"
 
 interface LineItemInput {
   description: string
@@ -260,4 +261,45 @@ export async function duplicateInvoice(invoiceId: string) {
     },
   })
   return { invoice }
+}
+
+export async function sendInvoice(invoiceId: string, paymentUrl?: string) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId, orgId },
+    include: {
+      client: true,
+      items: { orderBy: { sortOrder: "asc" } },
+    },
+  })
+  if (!invoice) return { error: "Not found" }
+  if (!invoice.client.email) return { error: "Client has no email address" }
+
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { name: true } })
+  const url = paymentUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"}/pay/${invoiceId}`
+
+  sendInvoiceSentEmail(
+    {
+      invoiceNumber: invoice.invoiceNumber,
+      orgName: org?.name ?? "Your business",
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      total: Number(invoice.total),
+      currency: invoice.currency,
+      items: invoice.items.map((i) => ({
+        description: i.description,
+        quantity: Number(i.quantity),
+        unitPrice: Number(i.unitPrice),
+        total: Number(i.total),
+      })),
+    },
+    invoice.client.name,
+    invoice.client.email,
+    url,
+  ).catch(() => {})
+
+  return { success: true }
 }

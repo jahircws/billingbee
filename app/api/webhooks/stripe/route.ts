@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import prisma from "@/lib/db"
+import { sendPaymentReceivedEmail, sendPaymentReceiptEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
@@ -25,10 +26,11 @@ export async function POST(req: NextRequest) {
           select: { status: true, amountDue: true, currency: true, clientId: true },
         })
         if (inv && inv.status !== "PAID") {
-          await prisma.$transaction([
+          const [updatedInvoice] = await prisma.$transaction([
             prisma.invoice.update({
               where: { id: invoiceId },
               data: { status: "PAID", paidAt: new Date(), amountPaid: inv.amountDue, amountDue: 0 },
+              include: { client: true },
             }),
             prisma.payment.create({
               data: {
@@ -44,6 +46,24 @@ export async function POST(req: NextRequest) {
               },
             }),
           ])
+
+          // Fire payment emails (non-blocking)
+          const org = await prisma.organization.findUnique({
+            where: { id: orgId },
+            select: { name: true, email: true, orgUsers: { where: { role: "OWNER" }, select: { user: { select: { email: true } } }, take: 1 } },
+          })
+          const staffEmail = org?.email ?? org?.orgUsers[0]?.user?.email
+          const amount = Number(inv.amountDue)
+          const currency = String(inv.currency)
+          const invoiceNum = (updatedInvoice as unknown as { invoiceNumber: string }).invoiceNumber ?? invoiceId
+          const clientData = (updatedInvoice as unknown as { client: { name: string; email: string | null } }).client
+
+          if (staffEmail) {
+            sendPaymentReceivedEmail(invoiceNum, clientData.name, amount, currency, staffEmail, org?.name ?? "BillingBee").catch(() => {})
+          }
+          if (clientData.email) {
+            sendPaymentReceiptEmail(invoiceNum, org?.name ?? "BillingBee", amount, currency, clientData.name, clientData.email).catch(() => {})
+          }
         }
       }
       break

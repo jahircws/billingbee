@@ -35,7 +35,7 @@ export default async function SettingsPage({ searchParams }: Props) {
 
   const [org, user, taxes, items] = await Promise.all([
     prisma.organization.findUnique({ where: { id: orgId } }),
-    prisma.user.findUnique({ where: { id: session.user.id! } }),
+    prisma.user.findUnique({ where: { id: session.user.userId! } }),
     prisma.tax.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.item.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
   ])

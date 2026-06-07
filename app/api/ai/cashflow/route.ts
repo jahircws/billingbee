@@ -18,23 +18,28 @@ export async function POST(req: NextRequest) {
     const avgMonthly = paymentHistory.length
       ? paymentHistory.reduce((s, p) => s + p.received, 0) / paymentHistory.length
       : 0
+    const recentMonths = paymentHistory.slice(-3)
+    const recentAvg = recentMonths.length
+      ? recentMonths.reduce((s, p) => s + p.received, 0) / recentMonths.length
+      : avgMonthly
 
-    const prompt = `You are a financial analyst. Analyze this business cashflow data and provide a forecast.
+    const prompt = `You are a financial analyst for a small business. Analyze this cashflow data.
 
-Payment history (last 6 months):
+12-month payment history:
 ${paymentHistory.map((p) => `${p.month}: ₹${p.received.toLocaleString()}`).join("\n")}
 
 Outstanding invoices (total ₹${totalUnpaid.toLocaleString()}):
-${unpaidInvoices.slice(0, 10).map((i) => `- ${i.clientName}: ₹${i.amount.toLocaleString()} due ${i.dueDate}`).join("\n")}
+${unpaidInvoices.slice(0, 8).map((i) => `- ${i.clientName}: ₹${i.amount.toLocaleString()} due ${i.dueDate}`).join("\n")}
 
 Monthly expenses: ₹${monthlyExpenses.toLocaleString()}
-Average monthly revenue: ₹${avgMonthly.toLocaleString()}
+12-month average revenue: ₹${Math.round(avgMonthly).toLocaleString()}
+Recent 3-month average: ₹${Math.round(recentAvg).toLocaleString()}
 
-Respond with ONLY valid JSON (no markdown):
+Respond with ONLY valid JSON (no markdown, no explanation):
 {
-  "expectedNextMonth": <number, realistic revenue forecast for next month in INR>,
+  "expectedNextMonth": <realistic number in INR, based on trend>,
   "latePaymentRisk": <"low"|"medium"|"high">,
-  "narrative": "<2-3 sentence plain English analysis with specific numbers>"
+  "narrative": "<2-3 sentences, specific numbers, plain English — mention trend direction and biggest risk>"
 }`
 
     const message = await client.messages.create({
@@ -45,7 +50,6 @@ Respond with ONLY valid JSON (no markdown):
 
     const text = (message.content[0] as { type: string; text: string }).text.trim()
     const json = JSON.parse(text)
-
     return NextResponse.json(json)
   } catch (err) {
     console.error("cashflow AI error", err)

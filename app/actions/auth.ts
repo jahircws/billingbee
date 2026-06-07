@@ -6,6 +6,7 @@ import { AuthError } from "next-auth"
 import { signIn, signOut } from "@/auth"
 import prisma from "@/lib/db"
 import DOMPurify from "isomorphic-dompurify"
+import { sendWelcomeEmail } from "@/lib/email"
 
 function sanitize(value: unknown): string {
   if (typeof value !== "string") return ""
@@ -41,10 +42,11 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     if (slugTaken) return { error: "Slug already taken" }
 
     const passwordHash = await hash(password, 12)
+    const acquisitionSource = sanitize(formData.get("acquisitionSource")) || undefined
 
     await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name: orgName, slug: orgSlug },
+        data: { name: orgName, slug: orgSlug, ...(acquisitionSource ? { acquisitionSource } : {}) },
       })
       const user = await tx.user.create({
         data: { email, name, passwordHash },
@@ -53,6 +55,9 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
         data: { orgId: org.id, userId: user.id, role: "OWNER" },
       })
     })
+
+    // Fire-and-forget welcome email
+    sendWelcomeEmail(name, email, orgName).catch(() => {})
   } catch {
     return { error: "Registration failed. Please try again." }
   }

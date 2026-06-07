@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Plus, FileText } from "lucide-react"
+import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Quotes" }
 export const dynamic = "force-dynamic"
@@ -46,8 +47,10 @@ export default async function QuotesPage({ searchParams }: Props) {
     take: 100,
   })
 
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const currency = org?.currency ?? "INR"
   const total = quotes.reduce((s, q) => s + Number(q.total), 0)
-  const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: number) => fmtCurrency(n, currency)
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

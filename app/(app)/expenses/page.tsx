@@ -6,6 +6,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Receipt } from "lucide-react"
 import NewExpenseButton from "./NewExpenseButton"
+import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Expenses" }
 export const dynamic = "force-dynamic"
@@ -40,8 +41,10 @@ export default async function ExpensesPage({ searchParams }: Props) {
     prisma.category.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
   ])
 
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const currency = org?.currency ?? "INR"
   const total = expenses.reduce((s, e) => s + Number(e.amount), 0)
-  const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: number) => fmtCurrency(n, currency)
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

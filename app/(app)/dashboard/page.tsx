@@ -20,6 +20,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { format, addDays } from "date-fns"
+import { fmtCurrencyShort } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Dashboard" }
 export const dynamic = "force-dynamic"
@@ -30,7 +31,7 @@ async function getAttentionData(orgId: string) {
   const now = new Date()
   const soon = addDays(now, 7)
 
-  const [overdueInvoices, dueSoonInvoices, draftInvoices, lastPayment, activeCollections, lastSentEvent] = await Promise.all([
+  const [overdueInvoices, dueSoonInvoices, draftInvoices, lastPayment] = await Promise.all([
     prisma.invoice.findMany({
       where: { orgId, status: "OVERDUE" },
       select: { amountDue: true },
@@ -43,15 +44,6 @@ async function getAttentionData(orgId: string) {
     prisma.payment.findFirst({
       where: { invoice: { orgId } },
       orderBy: { createdAt: "desc" },
-      include: { invoice: { include: { client: { select: { name: true } } } } },
-    }),
-    // Count invoices with active PENDING collection events
-    prisma.invoice.count({
-      where: { orgId, status: { in: ["UNPAID", "OVERDUE"] }, collectionEvents: { some: { status: "PENDING" } } },
-    }),
-    prisma.collectionEvent.findFirst({
-      where: { orgId, status: "SENT" },
-      orderBy: { sentAt: "desc" },
       include: { invoice: { include: { client: { select: { name: true } } } } },
     }),
   ])
@@ -70,12 +62,6 @@ async function getAttentionData(orgId: string) {
           date: format(lastPayment.createdAt, "d MMM"),
         }
       : null,
-    collections: {
-      active: activeCollections,
-      lastSent: lastSentEvent
-        ? { client: lastSentEvent.invoice.client.name, date: format(lastSentEvent.sentAt!, "d MMM") }
-        : null,
-    },
   }
 }
 
@@ -132,13 +118,15 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const orgId = session.user.orgId
   const { upgraded } = await searchParams
 
-  const [attention, lastClient, healthScore] = await Promise.all([
+  const [attention, lastClient, healthScore, org] = await Promise.all([
     getAttentionData(orgId),
     getLastClientUsed(orgId),
     calculateHealthScore(orgId),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
   ])
 
-  const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
+  const currency = org?.currency ?? "INR"
+  const fmt = (n: number) => fmtCurrencyShort(n, currency)
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -189,25 +177,6 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           />
         </div>
 
-        {/* AI Collections card */}
-        {attention.collections.active > 0 && (
-          <div className="bg-white rounded-xl border-l-4 border-purple-400 p-4 flex items-center gap-4">
-            <Sparkles size={16} className="text-purple-500 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">
-                AI is chasing {attention.collections.active} invoice{attention.collections.active !== 1 ? "s" : ""}
-              </p>
-              {attention.collections.lastSent && (
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Last reminder sent {attention.collections.lastSent.date} · {attention.collections.lastSent.client}
-                </p>
-              )}
-            </div>
-            <a href="/dashboard/invoices?filter=overdue" className="text-xs text-purple-600 hover:underline shrink-0">
-              View →
-            </a>
-          </div>
-        )}
 
         {/* Copilot — dominant center feature */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" style={{ height: "460px" }}>

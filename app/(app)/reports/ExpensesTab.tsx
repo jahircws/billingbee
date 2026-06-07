@@ -13,16 +13,20 @@ import {
   CartesianGrid,
 } from "recharts"
 
+import { fmtCurrencyShort, getCurrencySymbol } from "@/lib/currency"
+
 interface Props {
   byCategory: { name: string; color: string | null; amount: number }[]
   monthlyData: { month: string; amount: number }[]
   totalExpenses: number
+  currency: string
 }
 
 const COLORS = ["#059669", "#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"]
-const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`
 
-export default function ExpensesTab({ byCategory, monthlyData, totalExpenses }: Props) {
+export default function ExpensesTab({ byCategory, monthlyData, totalExpenses, currency }: Props) {
+  const fmt = (n: number) => fmtCurrencyShort(n, currency)
+  const sym = getCurrencySymbol(currency)
   const pieData = byCategory.map((c, i) => ({
     name: c.name,
     value: c.amount,
@@ -73,7 +77,7 @@ export default function ExpensesTab({ byCategory, monthlyData, totalExpenses }: 
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false}
-                tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
+                tickFormatter={(v) => `${sym}${(Number(v) / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(v) => [fmt(Number(v)), "Expenses"]} contentStyle={{ borderRadius: "8px", fontSize: "12px" }} />
               <Bar dataKey="amount" fill="#6ee7b7" radius={[4, 4, 0, 0]} />
             </BarChart>

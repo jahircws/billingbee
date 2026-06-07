@@ -112,6 +112,9 @@ export default async function ReportsPage({ searchParams }: Props) {
   const totalOutstanding = outstanding.reduce((s, i) => s + Number(i.amountDue), 0)
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0)
 
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const currency = org?.currency ?? "INR"
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="Reports" />
@@ -139,6 +142,7 @@ export default async function ReportsPage({ searchParams }: Props) {
             monthlyData={monthlyData}
             topClients={topClients}
             totalRevenue={totalRevenue}
+            currency={currency}
           />
         )}
         {tab === "outstanding" && (
@@ -149,16 +153,17 @@ export default async function ReportsPage({ searchParams }: Props) {
             amountDue: Number(i.amountDue),
             status: i.status,
             dueDate: i.dueDate?.toISOString() ?? null,
-          }))} totalOutstanding={totalOutstanding} />
+          }))} totalOutstanding={totalOutstanding} currency={currency} />
         )}
         {tab === "expenses" && (
           <ExpensesTab
             byCategory={expByCategory}
             monthlyData={expMonthlyData}
             totalExpenses={totalExpenses}
+            currency={currency}
           />
         )}
-        {tab === "tax" && <TaxTab taxData={taxData} />}
+        {tab === "tax" && <TaxTab taxData={taxData} currency={currency} />}
       </div>
     </div>
   )

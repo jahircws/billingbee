@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import ConvertQuoteButton from "./ConvertQuoteButton"
+import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Quote" }
 export const dynamic = "force-dynamic"
@@ -40,7 +41,9 @@ export default async function QuotePage({ params }: Props) {
 
   if (!quote) notFound()
 
-  const fmt = (n: unknown) => `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const currency = org?.currency ?? "INR"
+  const fmt = (n: unknown) => fmtCurrency(Number(n), currency)
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
