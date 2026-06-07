@@ -28,7 +28,7 @@ async function getAttentionData(orgId: string) {
   const now = new Date()
   const soon = addDays(now, 7)
 
-  const [overdueInvoices, dueSoonInvoices, draftInvoices, lastPayment] = await Promise.all([
+  const [overdueInvoices, dueSoonInvoices, draftInvoices, lastPayment, activeCollections, lastSentEvent] = await Promise.all([
     prisma.invoice.findMany({
       where: { orgId, status: "OVERDUE" },
       select: { amountDue: true },
@@ -41,6 +41,15 @@ async function getAttentionData(orgId: string) {
     prisma.payment.findFirst({
       where: { invoice: { orgId } },
       orderBy: { createdAt: "desc" },
+      include: { invoice: { include: { client: { select: { name: true } } } } },
+    }),
+    // Count invoices with active PENDING collection events
+    prisma.invoice.count({
+      where: { orgId, status: { in: ["UNPAID", "OVERDUE"] }, collectionEvents: { some: { status: "PENDING" } } },
+    }),
+    prisma.collectionEvent.findFirst({
+      where: { orgId, status: "SENT" },
+      orderBy: { sentAt: "desc" },
       include: { invoice: { include: { client: { select: { name: true } } } } },
     }),
   ])
@@ -59,6 +68,12 @@ async function getAttentionData(orgId: string) {
           date: format(lastPayment.createdAt, "d MMM"),
         }
       : null,
+    collections: {
+      active: activeCollections,
+      lastSent: lastSentEvent
+        ? { client: lastSentEvent.invoice.client.name, date: format(lastSentEvent.sentAt!, "d MMM") }
+        : null,
+    },
   }
 }
 
@@ -123,7 +138,7 @@ export default async function DashboardPage() {
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">
         {/* Attention cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-4">
           <AttentionCard
             icon={AlertCircle}
             label="Overdue"
@@ -154,6 +169,26 @@ export default async function DashboardPage() {
             href="/dashboard/invoices?filter=paid"
           />
         </div>
+
+        {/* AI Collections card */}
+        {attention.collections.active > 0 && (
+          <div className="bg-white rounded-xl border-l-4 border-purple-400 p-4 flex items-center gap-4">
+            <Sparkles size={16} className="text-purple-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">
+                AI is chasing {attention.collections.active} invoice{attention.collections.active !== 1 ? "s" : ""}
+              </p>
+              {attention.collections.lastSent && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Last reminder sent {attention.collections.lastSent.date} · {attention.collections.lastSent.client}
+                </p>
+              )}
+            </div>
+            <a href="/dashboard/invoices?filter=overdue" className="text-xs text-purple-600 hover:underline shrink-0">
+              View →
+            </a>
+          </div>
+        )}
 
         {/* Copilot — dominant center feature */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" style={{ height: "460px" }}>

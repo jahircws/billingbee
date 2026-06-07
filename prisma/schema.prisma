@@ -20,6 +20,21 @@ enum OrgRole {
   VIEWER
 }
 
+enum CollectionTone {
+  FRIENDLY
+  REMINDER
+  FIRM
+  ESCALATE
+}
+
+enum CollectionStatus {
+  PENDING
+  SENT
+  SKIPPED
+  CANCELLED
+  FAILED
+}
+
 enum InvoiceStatus {
   DRAFT
   UNPAID
@@ -99,6 +114,7 @@ model Organization {
   expenses             Expense[]
   payments             Payment[]
   paymentGatewayConfig PaymentGatewayConfig[]
+  collectionEvents     CollectionEvent[]
 }
 
 // ---------------------------------------------------------------------------
@@ -250,14 +266,16 @@ model Invoice {
   reminderSentAt  DateTime?
   isRecurring     Boolean       @default(false)
   recurringCron   String?
+  autoFollowUp    Boolean       @default(false)
   aiPrompt        String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  org      Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  client   Client        @relation(fields: [clientId], references: [id])
-  items    InvoiceItem[]
-  payments Payment[]
+  org              Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client           Client            @relation(fields: [clientId], references: [id])
+  items            InvoiceItem[]
+  payments         Payment[]
+  collectionEvents CollectionEvent[]
 
   @@unique([orgId, invoiceNumber])
   @@index([orgId])
@@ -549,4 +567,32 @@ model AdminLog {
 
   @@index([adminId])
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// CollectionEvent — AI-driven autonomous invoice follow-up
+// ---------------------------------------------------------------------------
+
+model CollectionEvent {
+  id          String           @id @default(cuid())
+  orgId       String
+  invoiceId   String
+  dayNumber   Int              // days after dueDate (1, 7, 15, 30, 45, 90)
+  tone        CollectionTone
+  status      CollectionStatus @default(PENDING)
+  scheduledAt DateTime
+  sentAt      DateTime?
+  subject     String?
+  htmlBody    String?          @db.Text
+  textBody    String?          @db.Text
+  errorMsg    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  org     Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invoice Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+  @@index([orgId])
+  @@index([invoiceId])
 }
