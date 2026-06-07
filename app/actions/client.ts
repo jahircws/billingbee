@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { checkClientLimit, invalidatePlanCache } from "@/lib/plan"
 
 interface ClientInput {
   name: string
@@ -74,6 +75,11 @@ export async function createClient(data: ClientInput) {
 
   if (!data.name?.trim()) return { error: "Name is required" }
 
+  const limit = await checkClientLimit(orgId)
+  if (!limit.allowed) {
+    return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
+  }
+
   const client = await prisma.client.create({
     data: {
       orgId,
@@ -91,6 +97,7 @@ export async function createClient(data: ClientInput) {
       notes: data.notes || null,
     },
   })
+  invalidatePlanCache(orgId)
   return { client }
 }
 

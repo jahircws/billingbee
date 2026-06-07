@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { scheduleCollections } from "@/app/actions/collections"
+import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 import { format, addDays } from "date-fns"
 
 interface LineItemInput {
@@ -27,6 +28,11 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const session = await auth()
   const orgId = session?.user?.orgId
   if (!orgId) redirect("/login")
+
+  const limit = await checkInvoiceLimit(orgId)
+  if (!limit.allowed) {
+    return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
+  }
 
   // Sequential invoice number
   const count = await prisma.invoice.count({ where: { orgId } })
@@ -87,6 +93,7 @@ export async function createInvoice(input: CreateInvoiceInput) {
     await scheduleCollections(orgId, invoice.id, dueDate)
   }
 
+  invalidatePlanCache(orgId)
   return { invoiceId: invoice.id, invoiceNumber }
 }
 

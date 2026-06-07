@@ -6,6 +6,7 @@ import { Plus, Trash2, ChevronDown } from "lucide-react"
 import { createInvoice } from "@/app/actions/invoices"
 import { createQuote } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
+import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Client {
   id: string
@@ -46,6 +47,7 @@ export default function InvoiceForm({ type = "invoice", clients, defaultClientId
   ])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
   // Create new client inline
   const [showNewClient, setShowNewClient] = useState(false)
@@ -150,8 +152,14 @@ export default function InvoiceForm({ type = "invoice", clients, defaultClientId
 
     setSubmitting(false)
 
-    if ("error" in result && result.error) {
-      setError(String(result.error))
+    if ("error" in result) {
+      const r = result as { error?: unknown; current?: unknown; limit?: unknown }
+      if (r.error === "LIMIT_REACHED") {
+        setLimitReached({ current: r.current as number, limit: r.limit as number })
+        setSubmitting(false)
+        return
+      }
+      setError(String(r.error ?? "Error"))
       return
     }
 
@@ -165,6 +173,15 @@ export default function InvoiceForm({ type = "invoice", clients, defaultClientId
   }
 
   return (
+    <>
+    {limitReached && (
+      <UpgradeModal
+        current={limitReached.current}
+        limit={limitReached.limit}
+        type="invoice"
+        onClose={() => setLimitReached(null)}
+      />
+    )}
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-lg">
@@ -379,5 +396,6 @@ export default function InvoiceForm({ type = "invoice", clients, defaultClientId
         </button>
       </div>
     </form>
+    </>
   )
 }

@@ -6,6 +6,8 @@ import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import Copilot from "@/components/ai/Copilot"
 import { privateMetadata } from "@/lib/metadata"
+import HealthCard from "@/components/dashboard/HealthCard"
+import { calculateHealthScore } from "@/lib/health"
 import {
   AlertCircle,
   Clock,
@@ -119,15 +121,21 @@ function AttentionCard({
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
-export default async function DashboardPage() {
+interface DashboardProps {
+  searchParams: Promise<{ upgraded?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: DashboardProps) {
   const session = await auth()
   if (!session?.user?.orgId) redirect("/login")
 
   const orgId = session.user.orgId
+  const { upgraded } = await searchParams
 
-  const [attention, lastClient] = await Promise.all([
+  const [attention, lastClient, healthScore] = await Promise.all([
     getAttentionData(orgId),
     getLastClientUsed(orgId),
+    calculateHealthScore(orgId),
   ])
 
   const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
@@ -137,6 +145,17 @@ export default async function DashboardPage() {
       <Topbar title="Dashboard" />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">
+        {/* Pro upgrade success banner */}
+        {upgraded === "true" && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-xl">🎉</span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-800">Welcome to Pro! You&apos;re all set.</p>
+              <p className="text-xs text-emerald-600">Unlimited invoices, AI collections, and payment links are now active.</p>
+            </div>
+          </div>
+        )}
+
         {/* Attention cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-4">
           <AttentionCard
@@ -203,6 +222,9 @@ export default async function DashboardPage() {
             </Suspense>
           </div>
         </div>
+
+        {/* Business Health */}
+        <HealthCard score={healthScore} />
 
         {/* Quick actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

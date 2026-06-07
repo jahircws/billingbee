@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 import { createClient } from "@/app/actions/client"
+import UpgradeModal from "@/components/billing/UpgradeModal"
 
 export default function NewClientButton() {
   const router = useRouter()
@@ -13,6 +14,7 @@ export default function NewClientButton() {
   const [phone, setPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -22,6 +24,11 @@ export default function NewClientButton() {
     const result = await createClient({ name, email: email || undefined, phone: phone || undefined })
     setLoading(false)
     if ("error" in result) {
+      if (result.error === "LIMIT_REACHED" && "current" in result) {
+        setOpen(false)
+        setLimitReached({ current: result.current as number, limit: result.limit as number })
+        return
+      }
       setError(result.error ?? "Failed")
       return
     }
@@ -35,6 +42,14 @@ export default function NewClientButton() {
 
   return (
     <>
+      {limitReached && (
+        <UpgradeModal
+          current={limitReached.current}
+          limit={limitReached.limit}
+          type="client"
+          onClose={() => setLimitReached(null)}
+        />
+      )}
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
