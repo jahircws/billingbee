@@ -21,6 +21,7 @@ const limiters = {
   pdf: makeRateLimit(5, "1 h"),
   extract: makeRateLimit(10, "1 h"),       // public IP-based (anon /generate)
   extractOrg: makeRateLimit(10, "1 d"),    // authenticated org-based (/dashboard)
+  ai: makeRateLimit(30, "1 h"),            // copilot — per org
 }
 
 export async function checkRateLimit(
