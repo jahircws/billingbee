@@ -82,9 +82,10 @@ model Organization {
   logo        String?
   currency    Currency @default(INR)
   timezone    String   @default("Asia/Kolkata")
-  plan        String   @default("free")
-  planExpiry  DateTime?
-  isActive    Boolean  @default(true)
+  plan             String    @default("free")
+  planExpiry       DateTime?
+  stripeCustomerId String?   @unique
+  isActive         Boolean   @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
