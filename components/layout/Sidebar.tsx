@@ -10,12 +10,14 @@ import {
   Receipt,
   BarChart3,
   Settings,
+  Sparkles,
 } from "lucide-react"
 
 const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/invoices", icon: FileText, label: "Invoices" },
   { href: "/quotes", icon: Quote, label: "Quotes" },
+  { href: "/proposals", icon: Sparkles, label: "Proposals" },
   { href: "/clients", icon: Users, label: "Clients" },
   { href: "/expenses", icon: Receipt, label: "Expenses" },
   { href: "/reports", icon: BarChart3, label: "Reports" },

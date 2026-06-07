@@ -75,5 +75,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       },
     }),
+    Credentials({
+      id: "client-password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        orgSlug: { label: "OrgSlug", type: "text" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email
+        const password = credentials?.password
+        const orgSlug = credentials?.orgSlug
+        if (typeof email !== "string" || typeof password !== "string") return null
+
+        const org = orgSlug
+          ? await prisma.organization.findUnique({ where: { slug: orgSlug as string } })
+          : null
+
+        const portalUser = await prisma.clientPortalUser.findFirst({
+          where: {
+            email: email.toLowerCase().trim(),
+            ...(org ? { client: { orgId: org.id } } : {}),
+          },
+          include: { client: true },
+          orderBy: { createdAt: "desc" },
+        })
+
+        if (!portalUser?.passwordHash) return null
+        const valid = await compare(password, portalUser.passwordHash)
+        if (!valid) return null
+
+        return {
+          id: portalUser.id,
+          clientId: portalUser.clientId,
+          orgId: portalUser.client.orgId,
+          email: portalUser.email,
+          userType: "CLIENT" as const,
+        }
+      },
+    }),
   ],
 })

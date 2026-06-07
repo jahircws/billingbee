@@ -5,6 +5,8 @@ import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
+import InviteClientButton from "./InviteClientButton"
+import PipelineTimeline from "./PipelineTimeline"
 
 export const metadata = { ...privateMetadata, title: "Client" }
 export const dynamic = "force-dynamic"
@@ -43,6 +45,16 @@ export default async function ClientPage({ params }: Props) {
           dueDate: true,
         },
       },
+      proposals: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, title: true, status: true, createdAt: true },
+        take: 1,
+      },
+      contracts: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, title: true, status: true, signedAt: true },
+        take: 1,
+      },
     },
   })
 
@@ -68,14 +80,24 @@ export default async function ClientPage({ params }: Props) {
               {client.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
               {client.address && <p className="text-sm text-gray-400 mt-1">{client.address}</p>}
             </div>
+            <div className="flex gap-2 flex-wrap">
+            {client.email && <InviteClientButton clientId={client.id} />}
             <Link
               href={`/invoices/new?clientId=${client.id}`}
               className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
             >
               + Invoice
             </Link>
+            </div>
           </div>
         </div>
+
+        {/* Pipeline timeline */}
+        <PipelineTimeline
+          proposal={client.proposals[0] ?? null}
+          contract={client.contracts[0] ?? null}
+          invoices={client.invoices}
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">

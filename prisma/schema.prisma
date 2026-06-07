@@ -77,6 +77,20 @@ enum AdminRole {
   BILLING
 }
 
+enum ProposalStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  SIGNED
+}
+
 // ---------------------------------------------------------------------------
 // Organization (tenant root)
 // ---------------------------------------------------------------------------
@@ -115,6 +129,8 @@ model Organization {
   payments             Payment[]
   paymentGatewayConfig PaymentGatewayConfig[]
   collectionEvents     CollectionEvent[]
+  proposals            Proposal[]
+  contracts            Contract[]
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +228,7 @@ model Client {
   id          String   @id @default(cuid())
   orgId       String
   name        String
+  slug        String?
   email       String?
   phone       String?
   company     String?
@@ -233,9 +250,12 @@ model Client {
   quotes       Quote[]
   payments     Payment[]
   portalUsers  ClientPortalUser[]
+  proposals    Proposal[]
+  contracts    Contract[]
 
   @@index([orgId])
   @@index([orgId, email])
+  @@index([orgId, slug])
 }
 
 // ---------------------------------------------------------------------------
@@ -495,18 +515,20 @@ model Payment {
 // ---------------------------------------------------------------------------
 
 model ClientPortalUser {
-  id        String   @id @default(cuid())
-  clientId  String
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
+  id           String    @id @default(cuid())
+  clientId     String
+  email        String
+  token        String    @unique
+  passwordHash String?
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
 
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([token])
+  @@index([email])
 }
 
 // ---------------------------------------------------------------------------
@@ -595,4 +617,58 @@ model CollectionEvent {
   @@index([status, scheduledAt])
   @@index([orgId])
   @@index([invoiceId])
+}
+
+// ---------------------------------------------------------------------------
+// Proposal
+// ---------------------------------------------------------------------------
+
+model Proposal {
+  id         String         @id @default(cuid())
+  orgId      String
+  clientId   String
+  title      String
+  status     ProposalStatus @default(DRAFT)
+  sections   Json           @default("[]")
+  pricing    Json?
+  timeline   String?
+  aiPrompt   String?        @db.Text
+  sentAt     DateTime?
+  acceptedAt DateTime?
+  rejectedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client   Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  contract Contract?
+
+  @@index([orgId])
+  @@index([clientId])
+}
+
+// ---------------------------------------------------------------------------
+// Contract
+// ---------------------------------------------------------------------------
+
+model Contract {
+  id         String         @id @default(cuid())
+  orgId      String
+  clientId   String
+  proposalId String?        @unique
+  title      String
+  status     ContractStatus @default(DRAFT)
+  content    String         @db.Text
+  signedAt   DateTime?
+  signedBy   String?
+  ipAddress  String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client   Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  proposal Proposal?    @relation(fields: [proposalId], references: [id])
+
+  @@index([orgId])
+  @@index([clientId])
 }
