@@ -1,0 +1,383 @@
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { Plus, Trash2, ChevronDown } from "lucide-react"
+import { createInvoice } from "@/app/actions/invoices"
+import { createQuote } from "@/app/actions/quote"
+import { createClient } from "@/app/actions/client"
+
+interface Client {
+  id: string
+  name: string
+  email?: string | null
+}
+
+interface LineItem {
+  description: string
+  quantity: number
+  unitPrice: number
+  taxRate: number
+}
+
+interface Props {
+  type?: "invoice" | "quote"
+  clients: Client[]
+  defaultClientId?: string
+  isPro?: boolean
+}
+
+const DRAFT_KEY = "billingbee_draft_invoice"
+
+function calcItem(item: LineItem) {
+  const subtotal = item.quantity * item.unitPrice
+  return subtotal + subtotal * (item.taxRate / 100)
+}
+
+export default function InvoiceForm({ type = "invoice", clients, defaultClientId, isPro = false }: Props) {
+  const router = useRouter()
+  const [clientId, setClientId] = useState(defaultClientId ?? "")
+  const [dueDate, setDueDate] = useState("")
+  const [notes, setNotes] = useState("")
+  const [terms, setTerms] = useState("")
+  const [autoFollowUp, setAutoFollowUp] = useState(isPro)
+  const [items, setItems] = useState<LineItem[]>([
+    { description: "", quantity: 1, unitPrice: 0, taxRate: 0 },
+  ])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState("")
+
+  // Create new client inline
+  const [showNewClient, setShowNewClient] = useState(false)
+  const [newClientName, setNewClientName] = useState("")
+  const [newClientEmail, setNewClientEmail] = useState("")
+  const [creatingClient, setCreatingClient] = useState(false)
+  const [localClients, setLocalClients] = useState(clients)
+
+  const total = items.reduce((s, i) => s + calcItem(i), 0)
+  const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+
+  // Auto-save draft to localStorage
+  const saveDraft = useCallback(() => {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ clientId, dueDate, notes, terms, items }))
+  }, [clientId, dueDate, notes, terms, items])
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY)
+    if (saved && !defaultClientId) {
+      try {
+        const d = JSON.parse(saved)
+        if (d.items?.length) {
+          setClientId(d.clientId ?? "")
+          setDueDate(d.dueDate ?? "")
+          setNotes(d.notes ?? "")
+          setTerms(d.terms ?? "")
+          setItems(d.items)
+        }
+      } catch {}
+    }
+  }, [defaultClientId])
+
+  useEffect(() => {
+    const timer = setInterval(saveDraft, 30000)
+    return () => clearInterval(timer)
+  }, [saveDraft])
+
+  function addItem() {
+    setItems((prev) => [...prev, { description: "", quantity: 1, unitPrice: 0, taxRate: 0 }])
+  }
+
+  function removeItem(idx: number) {
+    setItems((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  function updateItem(idx: number, field: keyof LineItem, value: string | number) {
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === idx ? { ...item, [field]: field === "description" ? value : Number(value) } : item
+      )
+    )
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent, idx: number) {
+    if (e.key === "Enter" && idx === items.length - 1) {
+      e.preventDefault()
+      addItem()
+    }
+  }
+
+  async function handleCreateClient() {
+    if (!newClientName.trim()) return
+    setCreatingClient(true)
+    const result = await createClient({ name: newClientName.trim(), email: newClientEmail || undefined })
+    setCreatingClient(false)
+    if ("error" in result) {
+      setError(result.error ?? "Failed to create client")
+      return
+    }
+    setLocalClients((prev) => [...prev, result.client])
+    setClientId(result.client.id)
+    setShowNewClient(false)
+    setNewClientName("")
+    setNewClientEmail("")
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!clientId) { setError("Select a client"); return }
+    if (items.some((i) => !i.description.trim())) { setError("All items need a description"); return }
+
+    setSubmitting(true)
+    setError("")
+
+    const payload = {
+      clientId,
+      dueDate: dueDate || undefined,
+      notes: notes || undefined,
+      terms: terms || undefined,
+      autoFollowUp,
+      items: items.map((i) => ({
+        description: i.description,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        taxRate: i.taxRate,
+      })),
+    }
+
+    const result = type === "invoice"
+      ? await createInvoice(payload)
+      : await createQuote(payload)
+
+    setSubmitting(false)
+
+    if ("error" in result && result.error) {
+      setError(String(result.error))
+      return
+    }
+
+    localStorage.removeItem(DRAFT_KEY)
+
+    if (type === "invoice" && "invoiceId" in result) {
+      router.push(`/invoices/${result.invoiceId}`)
+    } else if (type === "quote" && "quote" in result) {
+      router.push(`/quotes/${result.quote.id}`)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Client */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Client</h3>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <select
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              <option value="">Select client…</option>
+              {localClients.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowNewClient(!showNewClient)}
+            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium px-3 py-2 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors whitespace-nowrap"
+          >
+            + New
+          </button>
+        </div>
+
+        {showNewClient && (
+          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            <input
+              value={newClientName}
+              onChange={(e) => setNewClientName(e.target.value)}
+              placeholder="Client name *"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <input
+              value={newClientEmail}
+              onChange={(e) => setNewClientEmail(e.target.value)}
+              placeholder="Email (optional)"
+              type="email"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <button
+              type="button"
+              onClick={handleCreateClient}
+              disabled={creatingClient || !newClientName.trim()}
+              className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors"
+            >
+              {creatingClient ? "Creating…" : "Create client"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Details */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">
+              {type === "quote" ? "Expiry date" : "Due date"}
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder="Notes to client…"
+            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Terms</label>
+          <textarea
+            value={terms}
+            onChange={(e) => setTerms(e.target.value)}
+            rows={2}
+            placeholder="Payment terms…"
+            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+          />
+        </div>
+      </div>
+
+      {/* Line items */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-700">Items</h3>
+
+        <div className="space-y-2">
+          {items.map((item, idx) => (
+            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+              <input
+                className="col-span-5 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Description"
+                value={item.description}
+                onChange={(e) => updateItem(idx, "description", e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, idx)}
+              />
+              <input
+                className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                type="number"
+                min="0"
+                step="0.001"
+                placeholder="Qty"
+                value={item.quantity}
+                onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+              />
+              <input
+                className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Rate"
+                value={item.unitPrice}
+                onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+              />
+              <input
+                className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="Tax%"
+                value={item.taxRate}
+                onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => removeItem(idx)}
+                disabled={items.length === 1}
+                className="col-span-1 flex justify-center text-gray-300 hover:text-red-400 disabled:opacity-20 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
+          <button
+            type="button"
+            onClick={addItem}
+            className="flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Add item
+          </button>
+          <div className="text-sm font-bold text-gray-900">
+            Total: {fmt(total)}
+          </div>
+        </div>
+      </div>
+
+      {/* Auto follow-up (invoice only) */}
+      {type === "invoice" && (
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <label className="flex items-center justify-between gap-4 cursor-pointer">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Auto follow-up</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {isPro
+                  ? "AI will send collection emails automatically"
+                  : "Upgrade to Pro to enable auto follow-ups"}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoFollowUp}
+              disabled={!isPro}
+              onClick={() => setAutoFollowUp(!autoFollowUp)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-40 ${
+                autoFollowUp ? "bg-emerald-600" : "bg-gray-200"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoFollowUp ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </label>
+        </div>
+      )}
+
+      {/* Submit */}
+      <div className="flex gap-3 pb-6">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
+        >
+          {submitting
+            ? "Creating…"
+            : type === "invoice"
+            ? "Create invoice"
+            : "Create quote"}
+        </button>
+      </div>
+    </form>
+  )
+}

@@ -14,15 +14,15 @@ import {
 
 const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/invoices", icon: FileText, label: "Invoices" },
-  { href: "/dashboard/quotes", icon: Quote, label: "Quotes" },
-  { href: "/dashboard/clients", icon: Users, label: "Clients" },
-  { href: "/dashboard/expenses", icon: Receipt, label: "Expenses" },
-  { href: "/dashboard/reports", icon: BarChart3, label: "Reports" },
+  { href: "/invoices", icon: FileText, label: "Invoices" },
+  { href: "/quotes", icon: Quote, label: "Quotes" },
+  { href: "/clients", icon: Users, label: "Clients" },
+  { href: "/expenses", icon: Receipt, label: "Expenses" },
+  { href: "/reports", icon: BarChart3, label: "Reports" },
 ]
 
 const BOTTOM = [
-  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ]
 
 function NavItem({ href, icon: Icon, label, active }: { href: string; icon: React.ElementType; label: string; active: boolean }) {
