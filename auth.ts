@@ -2,9 +2,10 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
 import prisma from "@/lib/db"
+import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: { strategy: "jwt" },
+  ...authConfig,
   providers: [
     Credentials({
       id: "staff",
@@ -75,31 +76,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.userId = user.userId
-        token.orgId = user.orgId
-        token.orgName = user.orgName
-        token.orgSlug = user.orgSlug
-        token.role = user.role
-        token.userType = user.userType
-        token.clientId = user.clientId
-      }
-      return token
-    },
-    session({ session, token }) {
-      session.user.userId = token.userId as string | undefined
-      session.user.orgId = token.orgId as string | undefined
-      session.user.orgName = token.orgName as string | undefined
-      session.user.orgSlug = token.orgSlug as string | undefined
-      session.user.role = token.role as string | undefined
-      session.user.userType = token.userType as "STAFF" | "CLIENT" | undefined
-      session.user.clientId = token.clientId as string | undefined
-      return session
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
 })

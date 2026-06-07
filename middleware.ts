@@ -1,18 +1,11 @@
-import { auth } from "@/auth"
+import NextAuth from "next-auth"
+import { authConfig } from "@/auth.config"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
-const PUBLIC_PATHS = [
-  "/",
-  "/login",
-  "/register",
-]
+const { auth } = NextAuth(authConfig)
 
-const PUBLIC_PREFIXES = [
-  "/pay/",
-  "/blog/",
-  "/api/webhooks/",
-]
+const PUBLIC_PATHS = ["/", "/login", "/register"]
+const PUBLIC_PREFIXES = ["/pay/", "/blog/", "/api/webhooks/"]
 
 function isPublic(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true

@@ -12,7 +12,7 @@ function sanitize(value: unknown): string {
   return DOMPurify.sanitize(value.trim())
 }
 
-export async function registerOrg(formData: FormData) {
+export async function registerOrg(_prevState: unknown, formData: FormData) {
   const orgName = sanitize(formData.get("orgName"))
   const orgSlug = sanitize(formData.get("orgSlug"))
     .toLowerCase()
@@ -56,7 +56,7 @@ export async function registerOrg(formData: FormData) {
   redirect("/login")
 }
 
-export async function loginStaff(formData: FormData) {
+export async function loginStaff(_prevState: unknown, formData: FormData) {
   const email = sanitize(formData.get("email")).toLowerCase()
   const password = sanitize(formData.get("password"))
 
@@ -70,7 +70,7 @@ export async function loginStaff(formData: FormData) {
   }
 }
 
-export async function loginClient(formData: FormData) {
+export async function loginClient(_prevState: unknown, formData: FormData) {
   const token = sanitize(formData.get("token"))
 
   try {
