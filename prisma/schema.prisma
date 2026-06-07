@@ -1,0 +1,551 @@
+// BillingBee v2.0 — Prisma Schema
+// Every tenant model carries orgId for strict row-level isolation.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum OrgRole {
+  OWNER
+  MEMBER
+  VIEWER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  STRIPE
+  PAYPAL
+  BANK_TRANSFER
+  CASH
+  CHEQUE
+  OTHER
+}
+
+enum Currency {
+  INR
+  USD
+  EUR
+  GBP
+  AUD
+  CAD
+  SGD
+  AED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  SUPPORT
+  BILLING
+}
+
+// ---------------------------------------------------------------------------
+// Organization (tenant root)
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  country     String   @default("IN")
+  pincode     String?
+  gstin       String?
+  pan         String?
+  logo        String?
+  currency    Currency @default(INR)
+  timezone    String   @default("Asia/Kolkata")
+  plan        String   @default("free")
+  planExpiry  DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orgUsers             OrgUser[]
+  clients              Client[]
+  invoices             Invoice[]
+  quotes               Quote[]
+  taxes                Tax[]
+  categories           Category[]
+  items                Item[]
+  expenses             Expense[]
+  payments             Payment[]
+  paymentGatewayConfig PaymentGatewayConfig[]
+}
+
+// ---------------------------------------------------------------------------
+// User (auth identity — org-agnostic)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  passwordHash  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orgUsers OrgUser[]
+
+  // NextAuth v5 relations
+  accounts Account[]
+  sessions Session[]
+}
+
+// ---------------------------------------------------------------------------
+// OrgUser — membership pivot (tenant-scoped user)
+// ---------------------------------------------------------------------------
+
+model OrgUser {
+  id        String   @id @default(cuid())
+  orgId     String
+  userId    String
+  role      OrgRole  @default(MEMBER)
+  isActive  Boolean  @default(true)
+  invitedAt DateTime @default(now())
+  joinedAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([orgId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// NextAuth v5 support models
+// ---------------------------------------------------------------------------
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Client
+// ---------------------------------------------------------------------------
+
+model Client {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  email       String?
+  phone       String?
+  company     String?
+  gstin       String?
+  pan         String?
+  address     String?
+  city        String?
+  state       String?
+  country     String   @default("IN")
+  pincode     String?
+  currency    Currency @default(INR)
+  notes       String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org          Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+  quotes       Quote[]
+  payments     Payment[]
+  portalUsers  ClientPortalUser[]
+
+  @@index([orgId])
+  @@index([orgId, email])
+}
+
+// ---------------------------------------------------------------------------
+// Invoice
+// ---------------------------------------------------------------------------
+
+model Invoice {
+  id              String        @id @default(cuid())
+  orgId           String
+  clientId        String
+  invoiceNumber   String
+  status          InvoiceStatus @default(DRAFT)
+  issueDate       DateTime      @default(now())
+  dueDate         DateTime?
+  currency        Currency      @default(INR)
+  subtotal        Decimal       @db.Decimal(12, 2) @default(0)
+  taxAmount       Decimal       @db.Decimal(12, 2) @default(0)
+  discountAmount  Decimal       @db.Decimal(12, 2) @default(0)
+  total           Decimal       @db.Decimal(12, 2) @default(0)
+  amountPaid      Decimal       @db.Decimal(12, 2) @default(0)
+  amountDue       Decimal       @db.Decimal(12, 2) @default(0)
+  notes           String?       @db.Text
+  terms           String?       @db.Text
+  pdfUrl          String?
+  sentAt          DateTime?
+  paidAt          DateTime?
+  viewedAt        DateTime?
+  reminderSentAt  DateTime?
+  isRecurring     Boolean       @default(false)
+  recurringCron   String?
+  aiPrompt        String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  org      Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client   Client        @relation(fields: [clientId], references: [id])
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@unique([orgId, invoiceNumber])
+  @@index([orgId])
+  @@index([orgId, status])
+  @@index([orgId, clientId])
+  @@index([dueDate])
+}
+
+// ---------------------------------------------------------------------------
+// InvoiceItem
+// ---------------------------------------------------------------------------
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal  @db.Decimal(10, 3) @default(1)
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  taxRate     Decimal  @db.Decimal(5, 2)  @default(0)
+  taxAmount   Decimal  @db.Decimal(12, 2) @default(0)
+  discount    Decimal  @db.Decimal(5, 2)  @default(0)
+  total       Decimal  @db.Decimal(12, 2)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+// ---------------------------------------------------------------------------
+// Quote
+// ---------------------------------------------------------------------------
+
+model Quote {
+  id            String      @id @default(cuid())
+  orgId         String
+  clientId      String
+  quoteNumber   String
+  status        QuoteStatus @default(DRAFT)
+  issueDate     DateTime    @default(now())
+  expiryDate    DateTime?
+  currency      Currency    @default(INR)
+  subtotal      Decimal     @db.Decimal(12, 2) @default(0)
+  taxAmount     Decimal     @db.Decimal(12, 2) @default(0)
+  discountAmount Decimal    @db.Decimal(12, 2) @default(0)
+  total         Decimal     @db.Decimal(12, 2) @default(0)
+  notes         String?     @db.Text
+  terms         String?     @db.Text
+  pdfUrl        String?
+  sentAt        DateTime?
+  acceptedAt    DateTime?
+  rejectedAt    DateTime?
+  aiPrompt      String?     @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client Client       @relation(fields: [clientId], references: [id])
+  items  QuoteItem[]
+
+  @@unique([orgId, quoteNumber])
+  @@index([orgId])
+  @@index([orgId, clientId])
+}
+
+// ---------------------------------------------------------------------------
+// QuoteItem
+// ---------------------------------------------------------------------------
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  description String
+  quantity    Decimal  @db.Decimal(10, 3) @default(1)
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  taxRate     Decimal  @db.Decimal(5, 2)  @default(0)
+  taxAmount   Decimal  @db.Decimal(12, 2) @default(0)
+  discount    Decimal  @db.Decimal(5, 2)  @default(0)
+  total       Decimal  @db.Decimal(12, 2)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+}
+
+// ---------------------------------------------------------------------------
+// Tax
+// ---------------------------------------------------------------------------
+
+model Tax {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  rate        Decimal  @db.Decimal(5, 2)
+  description String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+// ---------------------------------------------------------------------------
+// Category (for expenses and items)
+// ---------------------------------------------------------------------------
+
+model Category {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  color     String?
+  icon      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  expenses Expense[]
+  items    Item[]
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+// ---------------------------------------------------------------------------
+// Item (product/service catalog)
+// ---------------------------------------------------------------------------
+
+model Item {
+  id          String   @id @default(cuid())
+  orgId       String
+  categoryId  String?
+  name        String
+  description String?  @db.Text
+  unitPrice   Decimal  @db.Decimal(12, 2) @default(0)
+  unit        String?
+  taxRate     Decimal  @db.Decimal(5, 2)  @default(0)
+  hsn         String?
+  sku         String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  category Category?    @relation(fields: [categoryId], references: [id])
+
+  @@index([orgId])
+}
+
+// ---------------------------------------------------------------------------
+// Expense
+// ---------------------------------------------------------------------------
+
+model Expense {
+  id          String   @id @default(cuid())
+  orgId       String
+  categoryId  String?
+  title       String
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    Currency @default(INR)
+  date        DateTime
+  vendor      String?
+  receiptUrl  String?
+  notes       String?  @db.Text
+  isBillable  Boolean  @default(false)
+  isReimbursed Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  category Category?    @relation(fields: [categoryId], references: [id])
+
+  @@index([orgId])
+  @@index([orgId, date])
+}
+
+// ---------------------------------------------------------------------------
+// Payment
+// ---------------------------------------------------------------------------
+
+model Payment {
+  id              String        @id @default(cuid())
+  orgId           String
+  invoiceId       String
+  clientId        String
+  amount          Decimal       @db.Decimal(12, 2)
+  currency        Currency      @default(INR)
+  method          PaymentMethod
+  gatewayPaymentId String?
+  gatewayOrderId  String?
+  gatewaySignature String?
+  status          String        @default("pending")
+  paidAt          DateTime?
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  org     Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invoice Invoice      @relation(fields: [invoiceId], references: [id])
+  client  Client       @relation(fields: [clientId], references: [id])
+
+  @@index([orgId])
+  @@index([invoiceId])
+  @@index([gatewayPaymentId])
+}
+
+// ---------------------------------------------------------------------------
+// ClientPortalUser — unauthenticated portal access via magic link
+// ---------------------------------------------------------------------------
+
+model ClientPortalUser {
+  id        String   @id @default(cuid())
+  clientId  String
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([token])
+}
+
+// ---------------------------------------------------------------------------
+// PaymentGatewayConfig — encrypted per-org gateway credentials
+// ---------------------------------------------------------------------------
+
+model PaymentGatewayConfig {
+  id              String        @id @default(cuid())
+  orgId           String
+  gateway         PaymentMethod
+  isActive        Boolean       @default(false)
+  // Stored encrypted (AES-256-GCM via lib/crypto.ts)
+  encryptedConfig String        @db.Text
+  webhookSecret   String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, gateway])
+  @@index([orgId])
+}
+
+// ---------------------------------------------------------------------------
+// AdminUser — internal BillingBee staff
+// ---------------------------------------------------------------------------
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  role         AdminRole @default(SUPPORT)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  logs AdminLog[]
+}
+
+// ---------------------------------------------------------------------------
+// AdminLog — audit trail for admin actions
+// ---------------------------------------------------------------------------
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  target    String?
+  targetId  String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  admin AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([createdAt])
+}
