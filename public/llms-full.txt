@@ -1,0 +1,134 @@
+# BillingBee — Full Product Reference
+
+> BillingBee is an AI-powered invoicing SaaS built for Indian freelancers and small businesses.
+
+## Product Overview
+
+BillingBee lets you create, send, and manage professional invoices using natural language commands. Designed specifically for the Indian market with GST compliance, INR support, and Razorpay integration — while also supporting global payments via Stripe and PayPal.
+
+## Full Feature List
+
+### AI & Natural Language
+- Natural language invoice creation ("Create invoice for Acme Corp for ₹50,000")
+- AI-powered client data extraction and auto-fill
+- Conversational invoice editing and updates
+- Smart payment reminder suggestions
+- Natural language financial queries ("How much did I earn this quarter?")
+
+### Invoicing
+- GST-compliant invoices (CGST, SGST, IGST support)
+- Multi-currency invoicing (INR, USD, EUR, GBP, AUD, CAD, SGD, AED)
+- Recurring invoice automation
+- Invoice templates with custom branding
+- Logo and color customization
+- PDF generation and email delivery
+- Invoice status tracking (Draft, Sent, Viewed, Paid, Overdue)
+- Credit notes and partial payments
+- Bulk invoice actions
+
+### Client Management
+- Unlimited client profiles
+- Client portal for self-serve payment
+- Client-level payment history
+- Automatic GST number validation (GSTIN)
+- Contact management with billing addresses
+
+### Payments
+- Razorpay (UPI, Net Banking, Cards, Wallets — India-first)
+- Stripe (international cards)
+- PayPal (global)
+- Manual payment recording
+- Partial payment support
+- Automatic payment reconciliation
+
+### Reminders & Automation
+- Automated overdue reminders (configurable cadence)
+- Payment receipt emails
+- Invoice viewed notifications
+- Webhook support for payment events
+
+### Analytics & Reporting
+- Monthly and yearly revenue dashboards
+- Outstanding amount tracking
+- Top clients by revenue
+- Tax collected reports (GST summary)
+- Export to CSV
+
+### Team & Collaboration (Business plan)
+- Multiple team members with role-based access
+- White-label client portal with custom domain
+- Priority support
+
+## Pricing Plans
+
+### Free
+- Price: $0/month
+- Clients: Up to 5
+- Invoices: Up to 10/month
+- Features: Basic invoicing, PDF download, manual payment recording
+
+### Pro
+- Price: $9.99/month (billed monthly) or $7.99/month (billed annually)
+- Clients: Unlimited
+- Invoices: Unlimited
+- Features: All Free features + Razorpay/Stripe/PayPal integrations, automated reminders, client portal, recurring invoices, analytics, GST reports, custom branding
+
+### Business
+- Price: $24.99/month (billed monthly) or $19.99/month (billed annually)
+- Clients: Unlimited
+- Invoices: Unlimited
+- Team members: Up to 10
+- Features: All Pro features + white-labeling, custom domain for client portal, advanced analytics, priority support, dedicated account manager
+
+## Supported Payment Gateways
+
+| Gateway   | Regions       | Methods                                      |
+|-----------|---------------|----------------------------------------------|
+| Razorpay  | India         | UPI, Net Banking, Credit/Debit Cards, Wallets, EMI |
+| Stripe    | 40+ countries | Credit/Debit Cards, Apple Pay, Google Pay    |
+| PayPal    | 200+ countries| PayPal balance, Cards, Bank transfers        |
+
+## Natural Language Command Examples
+
+### Creating Invoices
+- "Create invoice for Acme Corp for ₹50,000 for web design services"
+- "Invoice Rahul Sharma ₹15,000 for logo design, due in 30 days"
+- "Create a GST invoice for TechStartup Pvt Ltd for ₹1,00,000"
+
+### Querying Status
+- "Show unpaid invoices"
+- "Which clients have overdue payments?"
+- "How much did I earn this month?"
+- "What's my total outstanding amount?"
+- "Show invoices for Acme Corp"
+
+### Taking Actions
+- "Send reminder to clients with overdue invoices"
+- "Mark invoice #42 as paid"
+- "Resend invoice to rahul@example.com"
+- "Create a recurring monthly invoice for RetainerClient"
+
+### Reports
+- "Show my revenue for Q1 2025"
+- "How much GST did I collect last month?"
+- "Who are my top 5 clients by revenue?"
+
+## Technical Details
+
+- Platform: Web app (billingbee.co), PWA-enabled
+- Authentication: Secure multi-tenant with org-level isolation
+- Data residency: India (primary), with global CDN
+- API: Available on Business plan
+- Integrations: Razorpay, Stripe, PayPal, GST portal (read)
+
+## Links
+
+- Website: https://billingbee.co
+- Pricing: https://billingbee.co/plans-price
+- Free Invoice Generator: https://billingbee.co/free-invoice-generator
+- Free Invoice Resources: https://billingbee.co/free-invoice-resources
+- Blog: https://billingbee.co/blog
+- FAQ: https://billingbee.co/faq
+- Contact: https://billingbee.co/contact
+- Privacy Policy: https://billingbee.co/privacy-policy
+- Terms of Service: https://billingbee.co/terms-service

@@ -1,0 +1,38 @@
+# BillingBee
+
+> BillingBee is an AI-powered invoicing SaaS built for Indian freelancers and small businesses.
+
+## Product
+
+BillingBee lets you create, send, and manage invoices using natural language commands. No forms, no friction — just describe what you need and the AI handles the rest.
+
+## Key Features
+
+- Natural language invoice creation
+- GST-compliant invoices for Indian businesses
+- Client portal for online payments
+- Multi-currency support
+- Payment integrations: Razorpay, Stripe, PayPal
+- Automated payment reminders
+- Revenue and earnings analytics
+- PDF invoice generation
+
+## Pricing
+
+- Free: Basic invoicing, up to 5 clients
+- Pro: $9.99/month — unlimited clients, payment integrations, reminders
+- Business: $24.99/month — team members, advanced analytics, white-labeling
+
+## Natural Language Commands
+
+- "Create invoice for Acme Corp for ₹50,000 for web design"
+- "Show unpaid invoices"
+- "How much did I earn this month?"
+- "Send reminder to clients with overdue invoices"
+- "Mark invoice #42 as paid"
+
+## Links
+
+- Website: https://billingbee.co
+- Pricing: https://billingbee.co/plans-price
+- Free Invoice Generator: https://billingbee.co/free-invoice-generator
