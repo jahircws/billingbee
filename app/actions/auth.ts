@@ -14,19 +14,23 @@ function sanitize(value: unknown): string {
 
 export async function registerOrg(_prevState: unknown, formData: FormData) {
   const orgName = sanitize(formData.get("orgName"))
-  const orgSlug = sanitize(formData.get("orgSlug"))
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
+  const orgSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
   const email = sanitize(formData.get("email")).toLowerCase()
   const password = sanitize(formData.get("password"))
   const name = sanitize(formData.get("name"))
 
-  if (!orgName || !email || !password || orgSlug.length < 2) {
+  const confirmPassword = sanitize(formData.get("confirmPassword"))
+
+  if (!orgName || !email || !password || !name || orgSlug.length < 2) {
     return { error: "Missing required fields" }
   }
 
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters" }
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match" }
   }
 
   try {
