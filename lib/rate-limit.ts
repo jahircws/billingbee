@@ -2,7 +2,9 @@ import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 import { NextRequest, NextResponse } from "next/server"
 
-function makeRateLimit(requests: number, window: "1 h") {
+type Window = "1 h" | "1 d"
+
+function makeRateLimit(requests: number, window: Window) {
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return null
   }
@@ -17,17 +19,20 @@ const limiters = {
   generate: makeRateLimit(10, "1 h"),
   suggest: makeRateLimit(20, "1 h"),
   pdf: makeRateLimit(5, "1 h"),
+  extract: makeRateLimit(10, "1 h"),       // public IP-based (anon /generate)
+  extractOrg: makeRateLimit(10, "1 d"),    // authenticated org-based (/dashboard)
 }
 
 export async function checkRateLimit(
   req: NextRequest,
-  type: keyof typeof limiters
+  type: keyof typeof limiters,
+  customKey?: string,
 ): Promise<NextResponse | null> {
   const limiter = limiters[type]
   if (!limiter) return null
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1"
-  const { success } = await limiter.limit(ip)
+  const key = customKey ?? (req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1")
+  const { success } = await limiter.limit(key)
   if (!success) {
     return NextResponse.json({ error: "Rate limit exceeded. Try again later." }, { status: 429 })
   }

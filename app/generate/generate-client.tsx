@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { format, addDays } from "date-fns"
-import { Sparkles, X, Plus, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { Sparkles, X, Plus, ChevronDown, ChevronUp, Loader2, Paperclip } from "lucide-react"
+import UploadToInvoice, { type ExtractionResult } from "@/components/ai/UploadToInvoice"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -292,6 +293,7 @@ export default function GenerateClient() {
   const [suggestions, setSuggestions] = useState<Record<string, string[]>>({})
   const [mobilePreview, setMobilePreview] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
 
   const previewDebounce = useRef<NodeJS.Timeout | null>(null)
   const [previewForm, setPreviewForm] = useState<FormState>(form)
@@ -447,6 +449,21 @@ export default function GenerateClient() {
 
     // Remember from details
     localStorage.setItem("bb_me", JSON.stringify({ fromName: form.fromName, fromEmail: form.fromEmail }))
+  }
+
+  function handleExtracted(data: ExtractionResult) {
+    setForm((f) => ({
+      ...f,
+      toName: data.clientName ?? f.toName,
+      toEmail: data.clientEmail ?? f.toEmail,
+      toCompany: data.clientCompany ?? f.toCompany,
+      items: data.items.length
+        ? data.items.map((i) => ({ ...i, id: crypto.randomUUID() }))
+        : f.items,
+      notes: data.notes ?? f.notes,
+      dueDate: data.dueDate ?? f.dueDate,
+    }))
+    setShowUpload(false)
   }
 
   async function handleDownloadPDF() {
@@ -828,6 +845,28 @@ export default function GenerateClient() {
                 ✨ Generate with AI
               </button>
               <p className="text-center text-xs text-gray-400">Preview updates as you type</p>
+
+              {/* Upload toggle */}
+              <div>
+                <button
+                  onClick={() => setShowUpload((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-emerald-700 mx-auto transition-colors"
+                >
+                  <Paperclip size={12} />
+                  {showUpload ? "Close upload" : "Upload a doc instead"}
+                </button>
+                {showUpload && (
+                  <div className="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-3">
+                      Drop a WhatsApp screenshot, email, PDF or text file — AI will fill the form for you.
+                    </p>
+                    <UploadToInvoice
+                      endpoint="/api/generate/extract"
+                      onExtracted={handleExtracted}
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Mobile preview toggle */}
               <button
