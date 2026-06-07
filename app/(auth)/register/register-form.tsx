@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,17 @@ import { registerOrg } from "@/app/actions/auth"
 
 export function RegisterForm() {
   const [state, action, pending] = useActionState(registerOrg, undefined)
+  const acqRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("bb_acquisition")
+      if (raw && acqRef.current) {
+        const { source, campaign, from } = JSON.parse(raw)
+        acqRef.current.value = campaign || from || source || ""
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -28,6 +39,7 @@ export function RegisterForm() {
       </div>
 
       <form action={action} className="space-y-5">
+        <input ref={acqRef} type="hidden" name="acquisitionSource" />
         <div className="space-y-1.5">
           <Label htmlFor="orgName" className="text-sm font-medium text-gray-700">
             Business name

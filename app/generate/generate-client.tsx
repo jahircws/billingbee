@@ -305,8 +305,21 @@ export default function GenerateClient() {
     const template = params.get("template") || ""
     const from = params.get("from") || ""
 
-    if (from) localStorage.setItem("bb_from", from)
     if (type !== "invoice") setUrlTypeLocked(true)
+
+    // Acquisition tracking
+    const utmSource = params.get("utm_source") || (from ? "seo" : "")
+    const utmCampaign = params.get("utm_campaign") || from || ""
+    if (utmSource || utmCampaign || from) {
+      try {
+        localStorage.setItem("bb_acquisition", JSON.stringify({
+          source: utmSource || from || "direct",
+          campaign: utmCampaign,
+          from,
+          landedAt: new Date().toISOString(),
+        }))
+      } catch { /* ignore */ }
+    }
 
     // Check for draft
     try {

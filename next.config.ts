@@ -62,6 +62,16 @@ const nextConfig: NextConfig = {
         destination: "/:path+",
         permanent: true,
       },
+      {
+        source: "/register-now",
+        destination: "/generate",
+        permanent: true,
+      },
+      {
+        source: "/login-now",
+        destination: "/login",
+        permanent: true,
+      },
     ];
   },
 

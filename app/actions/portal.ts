@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
-import { sendEmail } from "@/lib/email"
+import { sendPortalInviteEmail } from "@/lib/email"
 import { randomBytes } from "crypto"
 import { hash } from "bcryptjs"
 import { addDays } from "date-fns"
@@ -54,16 +54,7 @@ export async function inviteClient(clientId: string) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
   const inviteUrl = `${base}/portal/${client.org.slug}/accept?token=${token}`
 
-  await sendEmail({
-    to: client.email,
-    subject: `${client.org.name} has invited you to their client portal`,
-    html: `
-      <p>Hi ${client.name},</p>
-      <p>${client.org.name} has invited you to access your invoices and documents through their client portal.</p>
-      <p><a href="${inviteUrl}" style="background:#059669;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Accept invitation</a></p>
-      <p>This link expires in 7 days.</p>
-    `,
-  })
+  await sendPortalInviteEmail(client.name, client.email, client.org.name, inviteUrl)
 
   return { success: true }
 }
