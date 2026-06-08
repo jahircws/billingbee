@@ -1,4 +1,5 @@
 import prisma from "@/lib/db"
+import { cacheGet, cacheSet, cacheDel } from "@/lib/redis-cache"
 
 const FREE_LIMITS = { invoices: 5, clients: 3 }
 
@@ -23,16 +24,26 @@ function setCached(key: string, value: number) {
   cache.set(key, { value, expiresAt: Date.now() + TTL_MS })
 }
 
+const PLAN_CACHE_TTL = 300 // 5 minutes
+
 export async function getActivePlan(orgId: string): Promise<"free" | "pro"> {
+  const cacheKey = `plan:${orgId}`
+
+  // Check Redis / in-memory cache first
+  const cached = await cacheGet<"free" | "pro">(cacheKey)
+  if (cached !== null) return cached
+
   const org = await prisma.organization.findUnique({
     where: { id: orgId },
     select: { plan: true, planExpiry: true },
   })
   if (!org) return "free"
-  if (org.plan === "pro") {
-    if (!org.planExpiry || org.planExpiry > new Date()) return "pro"
-  }
-  return "free"
+
+  const active: "free" | "pro" =
+    org.plan === "pro" && (!org.planExpiry || org.planExpiry > new Date()) ? "pro" : "free"
+
+  await cacheSet(cacheKey, active, PLAN_CACHE_TTL)
+  return active
 }
 
 export async function checkInvoiceLimit(orgId: string): Promise<LimitCheck> {
@@ -70,6 +81,9 @@ export async function checkClientLimit(orgId: string): Promise<LimitCheck> {
 }
 
 export function invalidatePlanCache(orgId: string) {
+  // In-memory fallback cache
   cache.delete(`inv_count:${orgId}`)
   cache.delete(`client_count:${orgId}`)
+  // Redis plan cache (fire-and-forget)
+  cacheDel(`plan:${orgId}`).catch(() => {})
 }

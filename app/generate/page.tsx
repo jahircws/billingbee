@@ -2,6 +2,9 @@ import type { Metadata } from "next"
 import { generatePageMetadata } from "@/lib/metadata"
 import GenerateClient from "./generate-client"
 
+// Cache at CDN edge for 1 hour (no DB queries, no session, pure client component)
+export const revalidate = 3600
+
 export function generateMetadata(): Metadata {
   const meta = generatePageMetadata(
     "Free Invoice Generator — Create & Download in 60 Seconds | BillingBee",

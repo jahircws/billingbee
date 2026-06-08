@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { verifyPaymentToken } from "@/lib/payment-token"
 import { getConfiguredGateways } from "@/lib/gateway-config"
 import prisma from "@/lib/db"
+import { cacheGetOrSet } from "@/lib/redis-cache"
 import { generatePageMetadata } from "@/lib/metadata"
 import type { Metadata } from "next"
 import { format } from "date-fns"
@@ -45,17 +46,24 @@ export default async function PayPage({ params }: Props) {
     notFound()
   }
 
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: invoiceId, orgId },
-    include: {
-      client: true,
-      items: true,
-      org: { select: { name: true, email: true, address: true, gstin: true } },
-    },
-  })
+  // Cache invoice data for 5 minutes — safe since payment status is checked separately
+  const invoice = await cacheGetOrSet(
+    `pay_invoice:${invoiceId}`,
+    () =>
+      prisma.invoice.findUnique({
+        where: { id: invoiceId, orgId },
+        include: {
+          client: true,
+          items: true,
+          org: { select: { name: true, email: true, address: true, gstin: true } },
+        },
+      }),
+    300,
+  )
 
   if (!invoice) notFound()
 
+  // Fetch gateways + QR in parallel
   const [gateways, qrDataUrl] = await Promise.all([
     getConfiguredGateways(orgId),
     QRCode.toDataURL(

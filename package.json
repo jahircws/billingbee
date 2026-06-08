@@ -11,7 +11,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "migrate:dry": "ts-node --project tsconfig.scripts.json scripts/migrate.ts --dry-run",
-    "migrate:run": "ts-node --project tsconfig.scripts.json scripts/migrate.ts"
+    "migrate:run": "ts-node --project tsconfig.scripts.json scripts/migrate.ts",
+    "beta:seed:dry": "ts-node --project tsconfig.scripts.json scripts/create-beta-users.ts --dry-run",
+    "beta:seed": "ts-node --project tsconfig.scripts.json scripts/create-beta-users.ts",
+    "load-test": "k6 run scripts/load-test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",

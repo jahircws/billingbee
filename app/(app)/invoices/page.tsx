@@ -38,14 +38,15 @@ export default async function InvoicesPage({ searchParams }: Props) {
     ]
   }
 
-  const invoices = await prisma.invoice.findMany({
-    where,
-    include: { client: { select: { name: true } } },
-    orderBy: { issueDate: "desc" },
-    take: 100,
-  })
-
-  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const [invoices, org] = await Promise.all([
+    prisma.invoice.findMany({
+      where,
+      include: { client: { select: { name: true } } },
+      orderBy: { issueDate: "desc" },
+      take: 100,
+    }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
+  ])
   const currency = org?.currency ?? "INR"
   const total = invoices.reduce((s, i) => s + Number(i.total), 0)
   const fmt = (n: number) => fmtCurrency(n, currency)

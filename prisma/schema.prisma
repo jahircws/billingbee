@@ -133,6 +133,9 @@ model Organization {
   proposals            Proposal[]
   contracts            Contract[]
   aiUsageLogs          AIUsageLog[]
+
+  @@index([plan])
+  @@index([createdAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -303,6 +306,8 @@ model Invoice {
   @@index([orgId])
   @@index([orgId, status])
   @@index([orgId, clientId])
+  @@index([orgId, createdAt])
+  @@index([orgId, issueDate])
   @@index([dueDate])
 }
 
