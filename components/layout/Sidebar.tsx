@@ -11,6 +11,7 @@ import {
   BarChart3,
   Settings,
   Sparkles,
+  Calculator,
 } from "lucide-react"
 
 const NAV = [
@@ -21,6 +22,7 @@ const NAV = [
   { href: "/clients", icon: Users, label: "Clients" },
   { href: "/expenses", icon: Receipt, label: "Expenses" },
   { href: "/reports", icon: BarChart3, label: "Reports" },
+  { href: "/tax", icon: Calculator, label: "GST" },
 ]
 
 const BOTTOM = [

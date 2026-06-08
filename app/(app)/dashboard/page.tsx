@@ -8,6 +8,7 @@ import Copilot from "@/components/ai/Copilot"
 import { privateMetadata } from "@/lib/metadata"
 import HealthCard from "@/components/dashboard/HealthCard"
 import { calculateHealthScore } from "@/lib/health"
+import TrialBanner from "@/components/dashboard/TrialBanner"
 import {
   AlertCircle,
   Clock,
@@ -122,15 +123,24 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     getAttentionData(orgId),
     getLastClientUsed(orgId),
     calculateHealthScore(orgId),
-    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true, plan: true, planExpiry: true } }),
   ])
 
   const currency = org?.currency ?? "INR"
   const fmt = (n: number) => fmtCurrencyShort(n, currency)
 
+  // Trial banner data
+  const isTrial = org?.plan === "pro" && org?.planExpiry != null
+  const trialDaysLeft = isTrial && org.planExpiry
+    ? Math.max(0, Math.ceil((org.planExpiry.getTime() - Date.now()) / 86400000))
+    : 0
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="Dashboard" />
+      {isTrial && trialDaysLeft > 0 && (
+        <TrialBanner daysLeft={trialDaysLeft} planExpiry={org!.planExpiry!.toISOString()} />
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">
         {/* Pro upgrade success banner */}
