@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "migrate:dry": "ts-node --project tsconfig.scripts.json scripts/migrate.ts --dry-run",
+    "migrate:run": "ts-node --project tsconfig.scripts.json scripts/migrate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
