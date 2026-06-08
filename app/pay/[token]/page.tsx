@@ -23,14 +23,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       where: { id: invoiceId },
       select: { invoiceNumber: true, total: true },
     })
-    if (!inv) return {}
-    return generatePageMetadata(
-      `Pay Invoice ${inv.invoiceNumber} — BillingBee`,
-      `Securely pay invoice ${inv.invoiceNumber} online.`,
-      `/pay/${token}`
-    )
+    if (!inv) return { robots: { index: false, follow: false } }
+    return {
+      title: `Pay Invoice ${inv.invoiceNumber} — BillingBee`,
+      description: `Securely pay invoice ${inv.invoiceNumber} online.`,
+      robots: { index: false, follow: false },
+    }
   } catch {
-    return {}
+    return { robots: { index: false, follow: false } }
   }
 }
 
