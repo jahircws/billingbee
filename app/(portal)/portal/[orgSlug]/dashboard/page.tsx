@@ -31,7 +31,7 @@ export default async function PortalDashboardPage({ params }: Props) {
 
   const clientId = session.user.clientId
 
-  const [client, invoices, quotes, contracts] = await Promise.all([
+  const [client, invoices, quotes, proposals, contracts] = await Promise.all([
     prisma.client.findUnique({ where: { id: clientId }, select: { name: true } }),
     prisma.invoice.findMany({
       where: { clientId },
@@ -42,6 +42,11 @@ export default async function PortalDashboardPage({ params }: Props) {
       where: { clientId },
       orderBy: { issueDate: "desc" },
       select: { id: true, quoteNumber: true, status: true, total: true, expiryDate: true, issueDate: true },
+    }),
+    prisma.proposal.findMany({
+      where: { clientId, status: { in: ["SENT", "ACCEPTED", "REJECTED"] } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, status: true, createdAt: true },
     }),
     prisma.contract.findMany({
       where: { clientId },
@@ -143,6 +148,34 @@ export default async function PortalDashboardPage({ params }: Props) {
         </section>
       )}
 
+      {/* Proposals */}
+      {proposals.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">
+            Proposals
+            {proposals.some((p) => p.status === "SENT") && (
+              <span className="ml-2 text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+                Action required
+              </span>
+            )}
+          </h2>
+          <div className="space-y-2">
+            {proposals.map((p) => (
+              <Link key={p.id} href={`/portal/${orgSlug}/proposal/${p.id}`}
+                className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-4 hover:border-blue-200 transition-colors">
+                <div>
+                  <p className="font-medium text-gray-800 text-sm">{p.title}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{format(p.createdAt, "d MMM yyyy")}</p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[p.status] ?? "bg-gray-100 text-gray-600"}`}>
+                  {p.status === "SENT" ? "Awaiting response" : p.status}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Contracts */}
       {contracts.length > 0 && (
         <section>
@@ -166,7 +199,7 @@ export default async function PortalDashboardPage({ params }: Props) {
         </section>
       )}
 
-      {invoices.length === 0 && quotes.length === 0 && contracts.length === 0 && (
+      {invoices.length === 0 && quotes.length === 0 && proposals.length === 0 && contracts.length === 0 && (
         <div className="text-center py-16">
           <p className="text-gray-500">No documents yet.</p>
         </div>

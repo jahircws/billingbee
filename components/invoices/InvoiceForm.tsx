@@ -54,6 +54,7 @@ export default function InvoiceForm({
   const [dueDate, setDueDate] = useState(defaultDueDate ?? "")
   const [notes, setNotes] = useState("")
   const [terms, setTerms] = useState("")
+  const [showNotesTerms, setShowNotesTerms] = useState(false)
   const [autoFollowUp, setAutoFollowUp] = useState(isPro)
   const [items, setItems] = useState<LineItem[]>([
     {
@@ -92,6 +93,7 @@ export default function InvoiceForm({
           setDueDate(d.dueDate ?? "")
           setNotes(d.notes ?? "")
           setTerms(d.terms ?? "")
+          if (d.notes || d.terms) setShowNotesTerms(true)
           setItems(d.items)
         }
       } catch {}
@@ -276,26 +278,38 @@ export default function InvoiceForm({
             />
           </div>
         </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">Notes</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-            placeholder="Notes to client…"
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">Terms</label>
-          <textarea
-            value={terms}
-            onChange={(e) => setTerms(e.target.value)}
-            rows={2}
-            placeholder="Payment terms…"
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-          />
-        </div>
+        {!showNotesTerms ? (
+          <button
+            type="button"
+            onClick={() => setShowNotesTerms(true)}
+            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+          >
+            + Add notes &amp; terms
+          </button>
+        ) : (
+          <>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                placeholder="Notes to client…"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Terms</label>
+              <textarea
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
+                rows={2}
+                placeholder="Payment terms…"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Line items */}

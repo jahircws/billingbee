@@ -14,15 +14,17 @@ function sanitize(value: unknown): string {
 }
 
 export async function registerOrg(_prevState: unknown, formData: FormData) {
-  const orgName = sanitize(formData.get("orgName"))
-  const orgSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+  const rawOrgName = sanitize(formData.get("orgName"))
   const email = sanitize(formData.get("email")).toLowerCase()
   const password = sanitize(formData.get("password"))
   const name = sanitize(formData.get("name"))
+  const orgName = rawOrgName || name
+
+  const baseSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
 
   const confirmPassword = sanitize(formData.get("confirmPassword"))
 
-  if (!orgName || !email || !password || !name || orgSlug.length < 2) {
+  if (!email || !password || !name || baseSlug.length < 2) {
     return { error: "Missing required fields" }
   }
 
@@ -38,8 +40,11 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) return { error: "Email already in use" }
 
+    let orgSlug = baseSlug
     const slugTaken = await prisma.organization.findUnique({ where: { slug: orgSlug } })
-    if (slugTaken) return { error: "Slug already taken" }
+    if (slugTaken) {
+      orgSlug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`
+    }
 
     const passwordHash = await hash(password, 12)
     const acquisitionSource = sanitize(formData.get("acquisitionSource")) || undefined

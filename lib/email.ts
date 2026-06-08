@@ -546,3 +546,29 @@ BillingBee · AI-powered invoicing
 Unsubscribe: https://billingbee.co/unsubscribe`,
   })
 }
+
+// ── sendProposalEmail ──────────────────────────────────────────────────────
+
+export async function sendProposalEmail(
+  clientName: string,
+  clientEmail: string,
+  orgName: string,
+  proposalTitle: string,
+  proposalUrl: string,
+) {
+  const body = `
+    ${h1(`${orgName} sent you a proposal`)}
+    ${p(`Hi ${clientName}, <strong>${orgName}</strong> has prepared a proposal for you. Please review it and let them know if you\'d like to proceed.`)}
+    ${divider()}
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Proposal</p>
+    <p style="margin:0 0 20px;font-size:16px;font-weight:600;color:#111827;">${proposalTitle}</p>
+    ${btn("Review & respond →", proposalUrl)}
+    ${divider()}
+    ${p(`You can accept or decline directly from the link above. Questions? Reply to this email.`)}
+  `
+  return sendEmail({
+    to: clientEmail,
+    subject: `${orgName} sent you a proposal — ${proposalTitle}`,
+    html: layout(body, `${orgName} has sent you a proposal. Click to review and respond.`),
+  })
+}

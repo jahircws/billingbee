@@ -41,16 +41,18 @@ export function RegisterForm() {
       <form action={action} className="space-y-5">
         <input ref={acqRef} type="hidden" name="acquisitionSource" />
         <div className="space-y-1.5">
-          <Label htmlFor="orgName" className="text-sm font-medium text-gray-700">
-            Business name
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="orgName" className="text-sm font-medium text-gray-700">
+              Business name
+            </Label>
+            <span className="text-xs text-gray-400">Optional</span>
+          </div>
           <Input
             id="orgName"
             name="orgName"
             type="text"
             autoComplete="organization"
-            placeholder="Acme Consulting"
-            required
+            placeholder="Leave blank if you don't have a business name"
             className="h-11 text-base"
           />
         </div>

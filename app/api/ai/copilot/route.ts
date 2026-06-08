@@ -163,14 +163,46 @@ export async function POST(req: NextRequest) {
   const limited = await checkRateLimit(req, "ai", `ai:${orgId}`)
   if (limited) return limited
 
-  const { message, history = [] } = await req.json() as { message: string; history: ChatMessage[] }
+  let body: { message: string; history: ChatMessage[] }
+  try {
+    body = await req.json() as { message: string; history: ChatMessage[] }
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+  }
+  const { message, history = [] } = body
   if (!message?.trim()) return NextResponse.json({ error: "Empty message" }, { status: 400 })
 
-  // Parallel: intent classification + org context
-  const [intent, ctx] = await Promise.all([
-    classifyIntent(message, history),
-    fetchOrgContext(orgId),
-  ])
+  // Org context (DB queries) — retry once on connection drop
+  let ctx: Awaited<ReturnType<typeof fetchOrgContext>>
+  try {
+    ctx = await fetchOrgContext(orgId)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    const isConnErr = /server has closed|connection terminated|connection reset|ECONNRESET|ECONNREFUSED/i.test(msg)
+    if (isConnErr) {
+      console.warn("[AI Copilot] DB connection drop — retrying once:", msg)
+      try {
+        ctx = await fetchOrgContext(orgId)
+      } catch (retryErr) {
+        const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr)
+        console.error("[AI Copilot] DB retry failed:", retryErr)
+        return NextResponse.json({ error: `Database error: ${retryMsg}` }, { status: 503 })
+      }
+    } else {
+      console.error("[AI Copilot] DB error:", err)
+      return NextResponse.json({ error: `Database error: ${msg}` }, { status: 503 })
+    }
+  }
+
+  // Intent classification (Anthropic API)
+  let intent: IntentResult
+  try {
+    intent = await classifyIntent(message, history)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error("[AI Copilot] intent error:", err)
+    return NextResponse.json({ error: `AI error: ${msg}` }, { status: 503 })
+  }
 
   // ── ACTION intents — return JSON, no streaming ─────────────────────────────
 
@@ -263,12 +295,17 @@ Rules: be concise, direct, use ₹ for INR amounts. Use bullet points for lists.
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const chunk of stream) {
-        if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
-          controller.enqueue(encoder.encode(chunk.delta.text))
+      try {
+        for await (const chunk of stream) {
+          if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+            controller.enqueue(encoder.encode(chunk.delta.text))
+          }
         }
+      } catch (err) {
+        console.error("[AI Copilot] stream error:", err)
+      } finally {
+        controller.close()
       }
-      controller.close()
     },
     cancel() {
       stream.controller.abort()

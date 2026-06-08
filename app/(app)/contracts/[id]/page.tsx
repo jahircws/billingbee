@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import CreateInvoiceFromContractButton from "./CreateInvoiceFromContractButton"
+import ContractActions from "./ContractActions"
 
 export const metadata = { ...privateMetadata, title: "Contract" }
 export const dynamic = "force-dynamic"
@@ -42,8 +43,9 @@ export default async function ContractPage({ params }: Props) {
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title={contract.title} />
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{contract.title}</h2>
             <p className="text-sm text-gray-500">{contract.client.name}</p>
@@ -57,6 +59,8 @@ export default async function ContractPage({ params }: Props) {
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[contract.status] ?? "bg-gray-100 text-gray-600"}`}>
               {contract.status}
             </span>
+            {/* Print / Copy actions */}
+            <ContractActions content={contract.content} title={contract.title} />
             {contract.status === "SIGNED" && (
               <CreateInvoiceFromContractButton
                 contractId={contract.id}
@@ -68,7 +72,7 @@ export default async function ContractPage({ params }: Props) {
         </div>
 
         {contract.proposal && (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 mb-4">
             From proposal:{" "}
             <Link href={`/proposals/${contract.proposal.id}`} className="text-emerald-600 hover:underline">
               {contract.proposal.title}
@@ -76,14 +80,14 @@ export default async function ContractPage({ params }: Props) {
           </div>
         )}
 
-        {/* Contract content */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="text-sm text-gray-700 whitespace-pre-wrap font-mono text-xs leading-relaxed max-h-[60vh] overflow-y-auto">
+        {/* Full contract content — no height cap */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 md:p-8 print:border-0 print:p-0">
+          <div className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
             {contract.content}
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">Created {format(contract.createdAt, "d MMMM yyyy")}</p>
+        <p className="text-xs text-gray-400 mt-4">Created {format(contract.createdAt, "d MMMM yyyy")}</p>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { addDays } from "date-fns"
 
 interface LineItemInput {
@@ -103,7 +104,7 @@ export async function createQuote(input: QuoteInput) {
     },
   })
 
-  return { quote }
+  return { quote: serialize(quote) }
 }
 
 export async function updateQuote(quoteId: string, data: Partial<QuoteInput> & { status?: string }) {
@@ -124,7 +125,7 @@ export async function updateQuote(quoteId: string, data: Partial<QuoteInput> & {
       ...(data.status ? { status: data.status as never } : {}),
     },
   })
-  return { quote }
+  return { quote: serialize(quote) }
 }
 
 export async function deleteQuote(quoteId: string) {
@@ -195,5 +196,5 @@ export async function convertToInvoice(quoteId: string) {
     data: { status: "CONVERTED" as never },
   })
 
-  return { invoice }
+  return { invoice: serialize(invoice) }
 }

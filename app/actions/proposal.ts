@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import Anthropic from "@anthropic-ai/sdk"
+import { sendProposalEmail } from "@/lib/email"
 
 const anthropic = new Anthropic()
 
@@ -77,7 +79,7 @@ Return ONLY valid JSON in this exact format:
     {"title": "Timeline", "content": "..."},
     {"title": "Terms & Conditions", "content": "..."}
   ],
-  "pricing": {"description": "...", "total": 0},
+  "pricing": {"description": "...", "total": 0, "currency": "INR"},
   "timeline": "X weeks"
 }`
 
@@ -108,7 +110,7 @@ Return ONLY valid JSON in this exact format:
     },
   })
 
-  return { proposal }
+  return { proposal: serialize(proposal) }
 }
 
 export async function createProposal(data: ProposalData) {
@@ -127,7 +129,7 @@ export async function createProposal(data: ProposalData) {
       aiPrompt: data.aiPrompt,
     },
   })
-  return { proposal }
+  return { proposal: serialize(proposal) }
 }
 
 export async function convertToContract(proposalId: string) {
@@ -171,12 +173,60 @@ Write a complete contract with: parties, scope of work, payment terms, timeline,
     },
   })
 
-  await prisma.proposal.update({
-    where: { id: proposalId },
-    data: { status: "ACCEPTED" },
-  })
+  return { contract: serialize(contract) }
+}
 
-  return { contract }
+export async function sendProposalToClient(proposalId: string) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const proposal = await prisma.proposal.findUnique({
+    where: { id: proposalId, orgId },
+    include: {
+      client: { include: { org: { select: { slug: true, name: true } } } },
+    },
+  })
+  if (!proposal) return { error: "Proposal not found" }
+  if (!proposal.client.email) return { error: "Client has no email address. Add one in Clients first." }
+
+  // Mark as SENT
+  await prisma.proposal.update({ where: { id: proposalId }, data: { status: "SENT" } })
+
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
+  const orgSlug = proposal.client.org.slug
+  const proposalUrl = `${base}/portal/${orgSlug}/proposal/${proposalId}`
+
+  // Fire-and-forget email
+  sendProposalEmail(
+    proposal.client.name,
+    proposal.client.email,
+    proposal.client.org.name,
+    proposal.title,
+    proposalUrl,
+  ).catch(() => {})
+
+  return { success: true }
+}
+
+// Called from client portal — no org auth, uses clientId from session
+export async function respondToProposal(proposalId: string, response: "ACCEPTED" | "REJECTED") {
+  const session = await auth()
+  if (!session?.user?.clientId || session.user.userType !== "CLIENT") {
+    return { error: "Unauthorized" }
+  }
+
+  const proposal = await prisma.proposal.findUnique({
+    where: { id: proposalId, clientId: session.user.clientId },
+  })
+  if (!proposal) return { error: "Proposal not found" }
+  if (proposal.status !== "SENT") return { error: "This proposal is no longer open for response" }
+
+  const updated = await prisma.proposal.update({
+    where: { id: proposalId },
+    data: { status: response },
+  })
+  return { proposal: serialize(updated) }
 }
 
 export async function updateProposalStatus(proposalId: string, status: string) {
@@ -188,7 +238,7 @@ export async function updateProposalStatus(proposalId: string, status: string) {
     where: { id: proposalId, orgId },
     data: { status: status as never },
   })
-  return { proposal }
+  return { proposal: serialize(proposal) }
 }
 
 export async function signContract(contractId: string) {
@@ -204,5 +254,5 @@ export async function signContract(contractId: string) {
       signedBy: session.user.name ?? session.user.email ?? "Staff",
     },
   })
-  return { contract }
+  return { contract: serialize(contract) }
 }

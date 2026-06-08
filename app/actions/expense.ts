@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 
 interface ExpenseInput {
   title: string
@@ -71,7 +72,7 @@ export async function createExpense(data: ExpenseInput) {
       isBillable: data.isBillable ?? false,
     },
   })
-  return { expense }
+  return { expense: serialize(expense) }
 }
 
 export async function updateExpense(expenseId: string, data: Partial<ExpenseInput>) {
@@ -95,7 +96,7 @@ export async function updateExpense(expenseId: string, data: Partial<ExpenseInpu
       ...(data.isBillable !== undefined ? { isBillable: data.isBillable } : {}),
     },
   })
-  return { expense }
+  return { expense: serialize(expense) }
 }
 
 export async function deleteExpense(expenseId: string) {

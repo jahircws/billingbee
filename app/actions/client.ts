@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { checkClientLimit, invalidatePlanCache } from "@/lib/plan"
 
 interface ClientInput {
@@ -98,7 +99,7 @@ export async function createClient(data: ClientInput) {
     },
   })
   invalidatePlanCache(orgId)
-  return { client }
+  return { client: serialize(client) }
 }
 
 export async function updateClient(clientId: string, data: Partial<ClientInput>) {
@@ -125,7 +126,7 @@ export async function updateClient(clientId: string, data: Partial<ClientInput>)
       ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
     },
   })
-  return { client }
+  return { client: serialize(client) }
 }
 
 export async function deleteClient(clientId: string) {

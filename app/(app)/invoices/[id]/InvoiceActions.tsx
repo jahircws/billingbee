@@ -18,12 +18,22 @@ interface Props {
   invoiceNumber: string
   status: string
   clientEmail: string | null
-  payLink: string
 }
 
-export default function InvoiceActions({ invoiceId, invoiceNumber, status, clientEmail, payLink }: Props) {
+export default function InvoiceActions({ invoiceId, invoiceNumber, status, clientEmail }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
+
+  async function openPayLink() {
+    setLoading("paylink")
+    try {
+      const res = await fetch(`/api/invoice/${invoiceId}/pay-link`)
+      const data = await res.json()
+      if (data.url) window.open(data.url, "_blank", "noopener")
+    } finally {
+      setLoading(null)
+    }
+  }
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -93,16 +103,15 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
       </a>
 
       {/* Pay link */}
-      <a
-        href={payLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-sm bg-white hover:bg-gray-50 active:scale-95 text-gray-700 border border-gray-200 font-medium px-3 py-2 rounded-lg transition-all"
+      <button
+        onClick={openPayLink}
+        disabled={!!loading}
+        className="flex items-center gap-1.5 text-sm bg-white hover:bg-gray-50 active:scale-95 text-gray-700 border border-gray-200 font-medium px-3 py-2 rounded-lg transition-all disabled:opacity-50"
         title="Open payment page"
       >
         <ExternalLink className="w-3.5 h-3.5" />
-        Pay link
-      </a>
+        {loading === "paylink" ? "Loading…" : "Pay link"}
+      </button>
 
       {/* More menu */}
       <div className="relative">
@@ -127,7 +136,7 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
               </a>
               <button
                 onClick={() => run("duplicate", () => duplicateInvoice(invoiceId).then((r) => {
-                  if ("invoice" in r) router.push(`/invoices/${r.invoice.id}`)
+                  if ("invoice" in r && r.invoice) router.push(`/invoices/${r.invoice.id}`)
                   return r
                 }))}
                 disabled={!!loading}

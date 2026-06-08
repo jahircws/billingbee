@@ -168,6 +168,26 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           </div>
         )}
 
+        {/* AI Revenue Copilot — hero feature */}
+        <div className="rounded-2xl overflow-hidden shadow-md border border-emerald-100" style={{ height: "520px" }}>
+          {/* Gradient header */}
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Sparkles size={16} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white leading-tight">AI Revenue Copilot</p>
+              <p className="text-xs text-emerald-100 leading-tight">Ask anything — create invoices, chase payments, analyse revenue</p>
+            </div>
+            <span className="text-[10px] font-medium text-emerald-100 bg-white/15 px-2 py-1 rounded-full shrink-0">Powered by Claude</span>
+          </div>
+          <div className="bg-white h-[calc(100%-72px)]">
+            <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading copilot...</div>}>
+              <Copilot lastClientUsed={lastClient ?? undefined} isOnboarding={isNewUser} />
+            </Suspense>
+          </div>
+        </div>
+
         {/* Attention cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-4">
           <AttentionCard
@@ -201,21 +221,6 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           />
         </div>
 
-
-        {/* Copilot — dominant center feature */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" style={{ height: "460px" }}>
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
-            <Sparkles size={15} className="text-emerald-600" />
-            <span className="text-sm font-semibold text-gray-800">AI Revenue Copilot</span>
-            <span className="ml-auto text-xs text-gray-400">Powered by Claude</span>
-          </div>
-          <div className="h-[calc(100%-49px)]">
-            <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading copilot...</div>}>
-              <Copilot lastClientUsed={lastClient ?? undefined} isOnboarding={isNewUser} />
-            </Suspense>
-          </div>
-        </div>
-
         {/* Business Health */}
         <HealthCard score={healthScore} />
 
@@ -223,7 +228,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { href: "/invoices/new", icon: Plus, label: "New Invoice", cls: "bg-emerald-600 hover:bg-emerald-700 text-white" },
-            { href: "/generate", icon: Paperclip, label: "From Upload", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
+            { href: "/invoices/new", icon: Paperclip, label: "From Upload", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
             { href: "/clients", icon: Users, label: "New Client", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
             { href: "/reports", icon: BarChart3, label: "Reports", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
           ].map(({ href, icon: Icon, label, cls }) => (

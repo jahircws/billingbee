@@ -17,8 +17,8 @@ export function LoginForm() {
         <p className="text-gray-500 text-sm">Sign in to your BillingBee account</p>
       </div>
 
-      <form action={action} className="space-y-5">
-        <div className="space-y-1.5">
+      <form action={action} className="space-y-5" suppressHydrationWarning>
+        <div className="space-y-1.5" suppressHydrationWarning>
           <Label htmlFor="email" className="text-sm font-medium text-gray-700">
             Email address
           </Label>

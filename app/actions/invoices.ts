@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { scheduleCollections } from "@/app/actions/collections"
 import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 import { format, addDays } from "date-fns"
@@ -181,7 +182,7 @@ export async function updateInvoice(invoiceId: string, data: Partial<CreateInvoi
       ...(data.status ? { status: data.status as never } : {}),
     },
   })
-  return { invoice: updated }
+  return { invoice: serialize(updated) }
 }
 
 export async function deleteInvoice(invoiceId: string) {
@@ -211,7 +212,7 @@ export async function updateInvoiceStatus(invoiceId: string, status: string) {
       ...(status === "PAID" ? { amountPaid: existing.total, amountDue: 0 } : {}),
     },
   })
-  return { invoice }
+  return { invoice: serialize(invoice) }
 }
 
 export async function duplicateInvoice(invoiceId: string) {
@@ -260,7 +261,7 @@ export async function duplicateInvoice(invoiceId: string) {
       },
     },
   })
-  return { invoice }
+  return { invoice: serialize(invoice) }
 }
 
 export async function sendInvoice(invoiceId: string, paymentUrl?: string) {

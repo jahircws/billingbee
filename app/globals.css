@@ -136,3 +136,11 @@
     @apply font-sans;
   }
 }
+@media print {
+  /* Hide everything except the contract content */
+  nav, aside, header, [data-topbar], .print\:hidden { display: none !important; }
+  body { background: white !important; }
+  /* Make the content area fill the page */
+  .flex-col.h-full { height: auto !important; overflow: visible !important; }
+  .flex-1.overflow-y-auto { overflow: visible !important; }
+}

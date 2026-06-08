@@ -1,5 +1,6 @@
 import { PrismaClient } from "./generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -7,9 +8,24 @@ declare global {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({
-    connectionString: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL,
+  // Prefer DATABASE_URL (PgBouncer / connection pooler) for app queries.
+  // DIRECT_DATABASE_URL bypasses the pooler and is only needed for migrations.
+  const connectionString = process.env.DATABASE_URL ?? process.env.DIRECT_DATABASE_URL;
+
+  const pool = new Pool({
+    connectionString,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
+    keepAlive: true,
   });
+
+  // Log pool errors so they don't crash the process silently
+  pool.on("error", (err) => {
+    console.error("[pg pool] idle client error:", err.message);
+  });
+
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log:

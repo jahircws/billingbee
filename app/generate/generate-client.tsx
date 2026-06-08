@@ -575,7 +575,7 @@ export default function GenerateClient() {
             )}
 
             {/* Your details */}
-            <section>
+            <section suppressHydrationWarning>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Your details</h3>
               <div className="space-y-3">
                 <input

@@ -166,9 +166,14 @@ export default function Copilot({
       })
 
       if (!res.ok) {
+        let errMsg = "Something went wrong. Please try again."
+        try {
+          const errData = await res.json()
+          if (errData?.error) errMsg = errData.error
+        } catch { /* ignore */ }
         setMessages((prev) => [
           ...prev,
-          { id: assistantId, role: "assistant", content: "Something went wrong. Please try again.", type: "text" },
+          { id: assistantId, role: "assistant", content: errMsg, type: "text" },
         ])
         return
       }

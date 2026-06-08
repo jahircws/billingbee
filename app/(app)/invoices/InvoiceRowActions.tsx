@@ -16,6 +16,18 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
+
+  async function openPayLink() {
+    setOpen(false)
+    setLoading("paylink")
+    try {
+      const res = await fetch(`/api/invoice/${invoiceId}/pay-link`)
+      const data = await res.json()
+      if (data.url) window.open(data.url, "_blank", "noopener")
+    } finally {
+      setLoading(null)
+    }
+  }
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function run(key: string, fn: () => Promise<unknown>) {
@@ -69,19 +81,16 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
                   Mark as paid
                 </button>
               )}
-              <a
-                href={`/pay/${invoiceId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
+              <button
+                onClick={openPayLink}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 Pay link
-              </a>
+              </button>
               <button
                 onClick={() => run("dup", () => duplicateInvoice(invoiceId).then((r) => {
-                  if ("invoice" in r) router.push(`/invoices/${r.invoice.id}`)
+                  if ("invoice" in r && r.invoice) router.push(`/invoices/${r.invoice.id}`)
                   return r
                 }))}
                 className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"

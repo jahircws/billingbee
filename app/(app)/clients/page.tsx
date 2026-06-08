@@ -64,11 +64,11 @@ export default async function ClientsPage({ searchParams }: Props) {
             <p className="text-gray-500 font-medium">No clients yet</p>
             <p className="text-sm text-gray-400 mt-1 mb-5">Upload a chat screenshot or email to extract client details instantly</p>
             <a
-              href="/generate"
+              href="/invoices/new"
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
             >
               <Plus className="w-4 h-4" />
-              Upload a chat or email
+              Create your first invoice
             </a>
             <p className="text-xs text-gray-400 mt-3">AI extracts name, email, and project details automatically</p>
           </div>

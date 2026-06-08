@@ -77,7 +77,6 @@ export default async function InvoicePage({ params, searchParams }: Props) {
             invoiceNumber={invoice.invoiceNumber}
             status={invoice.status}
             clientEmail={invoice.client.email}
-            payLink={`/pay/${invoice.id}`}
           />
         </div>
 
