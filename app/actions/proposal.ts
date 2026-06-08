@@ -65,12 +65,8 @@ export async function generateProposal(clientId: string, prompt: string) {
   }).join("\n")
 
   const systemPrompt = `You are an expert proposal writer for a professional services business.
-Generate a comprehensive, professional proposal.
-Client: ${client.name}
-Previous work history: ${history || "No previous work"}
-Request: ${prompt}
-
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON with no markdown, no code fences, no explanation — just the raw JSON object.
+Use this exact format:
 {
   "title": "Proposal title",
   "sections": [
@@ -83,17 +79,24 @@ Return ONLY valid JSON in this exact format:
   "timeline": "X weeks"
 }`
 
+  const userMessage = `Client: ${client.name}
+Previous work history: ${history || "No previous work"}
+Request: ${prompt}`
+
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 2000,
-    messages: [{ role: "user", content: systemPrompt }],
+    system: systemPrompt,
+    messages: [{ role: "user", content: userMessage }],
   })
 
   const text = message.content[0].type === "text" ? message.content[0].text : ""
   let parsed: { title: string; sections: Section[]; pricing: unknown; timeline: string }
   try {
-    const match = text.match(/\{[\s\S]*\}/)
-    parsed = JSON.parse(match?.[0] ?? text)
+    // Strip markdown code fences if present, then extract JSON object
+    const stripped = text.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim()
+    const match = stripped.match(/\{[\s\S]*\}/)
+    parsed = JSON.parse(match?.[0] ?? stripped)
   } catch {
     return { error: "Failed to parse AI response" }
   }

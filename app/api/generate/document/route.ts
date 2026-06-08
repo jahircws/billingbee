@@ -29,7 +29,9 @@ export async function POST(req: NextRequest) {
 
   const text = message.content[0].type === "text" ? message.content[0].text : ""
   try {
-    const parsed = JSON.parse(text)
+    const stripped = text.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim()
+    const match = stripped.match(/\{[\s\S]*\}/)
+    const parsed = JSON.parse(match?.[0] ?? stripped)
     return NextResponse.json(parsed)
   } catch {
     return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 })
