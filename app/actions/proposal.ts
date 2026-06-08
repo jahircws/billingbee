@@ -5,7 +5,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
 import Anthropic from "@anthropic-ai/sdk"
-import { sendProposalEmail } from "@/lib/email"
+import { sendProposalEmail, sendContractEmail } from "@/lib/email"
+import { headers } from "next/headers"
 
 const anthropic = new Anthropic()
 
@@ -142,7 +143,7 @@ export async function convertToContract(proposalId: string) {
 
   const proposal = await prisma.proposal.findUnique({
     where: { id: proposalId, orgId },
-    include: { client: true },
+    include: { client: { include: { org: { select: { slug: true, name: true } } } } },
   })
   if (!proposal) return { error: "Proposal not found" }
 
@@ -175,6 +176,20 @@ Write a complete contract with: parties, scope of work, payment terms, timeline,
       content,
     },
   })
+
+  // Phase 3 — notify client that a contract is ready to sign
+  if (proposal.client.email) {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
+    const orgSlug = proposal.client.org.slug
+    const contractUrl = `${base}/portal/${orgSlug}/contract/${contract.id}`
+    sendContractEmail(
+      proposal.client.name,
+      proposal.client.email,
+      proposal.client.org.name,
+      contract.title,
+      contractUrl,
+    ).catch(() => {})
+  }
 
   return { contract: serialize(contract) }
 }
@@ -221,14 +236,68 @@ export async function respondToProposal(proposalId: string, response: "ACCEPTED"
 
   const proposal = await prisma.proposal.findUnique({
     where: { id: proposalId, clientId: session.user.clientId },
+    include: { client: { include: { org: { select: { slug: true, name: true } } } } },
   })
   if (!proposal) return { error: "Proposal not found" }
   if (proposal.status !== "SENT") return { error: "This proposal is no longer open for response" }
 
   const updated = await prisma.proposal.update({
     where: { id: proposalId },
-    data: { status: response },
+    data: { status: response, ...(response === "ACCEPTED" ? { acceptedAt: new Date() } : { rejectedAt: new Date() }) },
   })
+
+  // Phase 4 — auto-generate contract + notify client when proposal is accepted
+  if (response === "ACCEPTED") {
+    try {
+      const sections = proposal.sections as unknown as Section[]
+      const scopeSection = sections.find((s) => s.title.toLowerCase().includes("scope")) ?? sections[0]
+
+      const aiPrompt = `Convert this proposal into a formal legal contract with proper legal language.
+Client: ${proposal.client.name}
+Proposal title: ${proposal.title}
+Scope: ${scopeSection?.content ?? ""}
+Timeline: ${proposal.timeline ?? "As agreed"}
+Pricing: ${JSON.stringify(proposal.pricing ?? {})}
+
+Write a complete contract with: parties, scope of work, payment terms, timeline, IP rights, confidentiality, termination clause, and signature blocks.`
+
+      const message = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 3000,
+        messages: [{ role: "user", content: aiPrompt }],
+      })
+
+      const content = message.content[0].type === "text" ? message.content[0].text : ""
+
+      const contract = await prisma.contract.create({
+        data: {
+          orgId: proposal.orgId,
+          clientId: proposal.clientId,
+          proposalId: proposal.id,
+          title: `Contract — ${proposal.title}`,
+          content,
+          status: "SENT",
+        },
+      })
+
+      // Email client the contract link
+      if (proposal.client.email) {
+        const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
+        const orgSlug = proposal.client.org.slug
+        const contractUrl = `${base}/portal/${orgSlug}/contract/${contract.id}`
+        sendContractEmail(
+          proposal.client.name,
+          proposal.client.email,
+          proposal.client.org.name,
+          contract.title,
+          contractUrl,
+        ).catch(() => {})
+      }
+    } catch {
+      // Auto-contract generation failing should not block the acceptance response
+    }
+  }
+
   return { proposal: serialize(updated) }
 }
 
@@ -246,7 +315,34 @@ export async function updateProposalStatus(proposalId: string, status: string) {
 
 export async function signContract(contractId: string) {
   const session = await auth()
-  const orgId = session?.user?.orgId
+  if (!session?.user) redirect("/login")
+
+  // Phase 2 — capture client IP from request headers
+  const headersList = await headers()
+  const ip =
+    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headersList.get("x-real-ip") ??
+    null
+
+  // Phase 1 — support both CLIENT (portal) and STAFF sessions
+  if (session.user.userType === "CLIENT") {
+    const clientId = session.user.clientId
+    if (!clientId) redirect("/login")
+
+    const contract = await prisma.contract.update({
+      where: { id: contractId, clientId },
+      data: {
+        status: "SIGNED",
+        signedAt: new Date(),
+        signedBy: session.user.name ?? session.user.email ?? "Client",
+        ipAddress: ip,
+      },
+    })
+    return { contract: serialize(contract) }
+  }
+
+  // Staff signing
+  const orgId = session.user.orgId
   if (!orgId) redirect("/login")
 
   const contract = await prisma.contract.update({
@@ -255,6 +351,7 @@ export async function signContract(contractId: string) {
       status: "SIGNED",
       signedAt: new Date(),
       signedBy: session.user.name ?? session.user.email ?? "Staff",
+      ipAddress: ip,
     },
   })
   return { contract: serialize(contract) }

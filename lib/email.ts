@@ -547,6 +547,32 @@ Unsubscribe: https://billingbee.co/unsubscribe`,
   })
 }
 
+// ── sendContractEmail ──────────────────────────────────────────────────────
+
+export async function sendContractEmail(
+  clientName: string,
+  clientEmail: string,
+  orgName: string,
+  contractTitle: string,
+  contractUrl: string,
+) {
+  const body = `
+    ${h1(`${orgName} sent you a contract to sign`)}
+    ${p(`Hi ${clientName}, <strong>${orgName}</strong> has prepared a contract for you to review and sign electronically.`)}
+    ${divider()}
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Contract</p>
+    <p style="margin:0 0 20px;font-size:16px;font-weight:600;color:#111827;">${contractTitle}</p>
+    ${btn("Review & sign →", contractUrl)}
+    ${divider()}
+    ${p(`Your electronic signature is legally binding. Questions? Reply to this email.`)}
+  `
+  return sendEmail({
+    to: clientEmail,
+    subject: `${orgName} sent you a contract to sign — ${contractTitle}`,
+    html: layout(body, `${orgName} has sent you a contract. Click to review and sign.`),
+  })
+}
+
 // ── sendProposalEmail ──────────────────────────────────────────────────────
 
 export async function sendProposalEmail(
