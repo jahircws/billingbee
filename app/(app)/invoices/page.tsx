@@ -108,13 +108,17 @@ export default async function InvoicesPage({ searchParams }: Props) {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FileText className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No invoices yet</p>
-            <p className="text-sm text-gray-400 mt-1">Create your first invoice to get started</p>
+            <p className="text-sm text-gray-400 mt-1 mb-5">Your AI assistant can create one for you in seconds</p>
             <Link
-              href="/invoices/new"
-              className="mt-4 text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+              href="/dashboard"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
             >
-              Create invoice →
+              <Plus className="w-4 h-4" />
+              Ask AI to create one
             </Link>
+            <p className="text-xs text-gray-400 mt-3">
+              Try: <em>&quot;Invoice Acme Corp ₹10,000 for design work&quot;</em>
+            </p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">

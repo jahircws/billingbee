@@ -106,12 +106,28 @@ function Message({
 
 // ── Main Copilot component ────────────────────────────────────────────────────
 
-export default function Copilot({ lastClientUsed }: { lastClientUsed?: string }) {
+const ONBOARDING_MESSAGE =
+  "Hi! I'm your BillingBee AI assistant.\n\nTell me about your first client and I'll create your first invoice — or just say:\n\n\"Invoice Acme Corp ₹10,000 for design work\""
+
+const DEFAULT_WELCOME =
+  "Hi! I'm your BillingBee Copilot. Ask me anything about your invoices, clients, or revenue — or just say \"create invoice\" to get started."
+
+export default function Copilot({
+  lastClientUsed,
+  initialMessage,
+  isOnboarding = false,
+}: {
+  lastClientUsed?: string
+  initialMessage?: string
+  isOnboarding?: boolean
+}) {
+  const welcomeContent = initialMessage ?? (isOnboarding ? ONBOARDING_MESSAGE : DEFAULT_WELCOME)
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: "Hi! I'm your BillingBee Copilot. Ask me anything about your invoices, clients, or revenue — or just say \"create invoice\" to get started.",
+      content: welcomeContent,
       type: "text",
     },
   ])
@@ -247,12 +263,18 @@ export default function Copilot({ lastClientUsed }: { lastClientUsed?: string })
     }
   }
 
-  const suggestions = [
-    "Who owes me money?",
-    lastClientUsed ? `Create invoice for ${lastClientUsed}` : "Create invoice for new client",
-    "How much did I earn this month?",
-    "Show overdue invoices",
-  ]
+  const suggestions = isOnboarding
+    ? [
+        "Invoice Acme Corp ₹10,000 for design work",
+        "Invoice TechCorp ₹25,000 for consulting",
+        "Invoice my client ₹5,000 for content writing",
+      ]
+    : [
+        "Who owes me money?",
+        lastClientUsed ? `Create invoice for ${lastClientUsed}` : "Create invoice for new client",
+        "How much did I earn this month?",
+        "Show overdue invoices",
+      ]
 
   const showSuggestions = messages.length <= 1
 

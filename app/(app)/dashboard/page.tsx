@@ -9,6 +9,8 @@ import { privateMetadata } from "@/lib/metadata"
 import HealthCard from "@/components/dashboard/HealthCard"
 import { calculateHealthScore } from "@/lib/health"
 import TrialBanner from "@/components/dashboard/TrialBanner"
+import EmailVerifyBanner from "@/components/dashboard/EmailVerifyBanner"
+import GenerateSignupBanner from "@/components/dashboard/GenerateSignupBanner"
 import {
   AlertCircle,
   Clock,
@@ -119,11 +121,16 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const orgId = session.user.orgId
   const { upgraded } = await searchParams
 
-  const [attention, lastClient, healthScore, org] = await Promise.all([
+  const userId = session.user.userId
+
+  const [attention, lastClient, healthScore, org, invoiceCount, clientCount, userRecord] = await Promise.all([
     getAttentionData(orgId),
     getLastClientUsed(orgId),
     calculateHealthScore(orgId),
     prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true, plan: true, planExpiry: true } }),
+    prisma.invoice.count({ where: { orgId } }),
+    prisma.client.count({ where: { orgId } }),
+    userId ? prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } }) : Promise.resolve(null),
   ])
 
   const currency = org?.currency ?? "INR"
@@ -135,12 +142,19 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     ? Math.max(0, Math.ceil((org.planExpiry.getTime() - Date.now()) / 86400000))
     : 0
 
+  // Onboarding: new user with no data yet
+  const isNewUser = invoiceCount === 0 && clientCount === 0
+  // Email unverified
+  const emailUnverified = !userRecord?.emailVerified
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="Dashboard" />
       {isTrial && trialDaysLeft > 0 && (
         <TrialBanner daysLeft={trialDaysLeft} planExpiry={org!.planExpiry!.toISOString()} />
       )}
+      {emailUnverified && <EmailVerifyBanner />}
+      <GenerateSignupBanner />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">
         {/* Pro upgrade success banner */}
@@ -197,7 +211,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           </div>
           <div className="h-[calc(100%-49px)]">
             <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading copilot...</div>}>
-              <Copilot lastClientUsed={lastClient ?? undefined} />
+              <Copilot lastClientUsed={lastClient ?? undefined} isOnboarding={isNewUser} />
             </Suspense>
           </div>
         </div>
