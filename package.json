@@ -14,7 +14,9 @@
     "migrate:run": "ts-node --project tsconfig.scripts.json scripts/migrate.ts",
     "beta:seed:dry": "ts-node --project tsconfig.scripts.json scripts/create-beta-users.ts --dry-run",
     "beta:seed": "ts-node --project tsconfig.scripts.json scripts/create-beta-users.ts",
-    "load-test": "k6 run scripts/load-test.js"
+    "load-test": "k6 run scripts/load-test.js",
+    "email:segments": "ts-node --project tsconfig.scripts.json scripts/prepare-email-segments.ts",
+    "email:test": "ts-node --project tsconfig.scripts.json scripts/send-test-emails.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",

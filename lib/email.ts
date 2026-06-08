@@ -365,3 +365,184 @@ export async function sendTrialExpiryEmail(
     html: layout(body, `Pro trial ending ${urgency}. Keep unlimited invoices for $9.99/month.`),
   })
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RELAUNCH CAMPAIGN EMAILS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Segment A — 695 verified users (3 months Pro free) ────────────────────────
+
+export async function sendRelaunchiSegmentA(
+  firstName: string,
+  email: string,
+  loginUrl = "https://billingbee.co/login?utm_source=relaunch&utm_campaign=segment-a&utm_medium=email",
+) {
+  const name = firstName || "there"
+  const preheader = "The old version wasn't good enough. Here's what's new."
+
+  const body = `
+    <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">A note from the founder</p>
+    ${h1(`Hey ${name},`)}
+    ${p(`I'm Amit, founder of BillingBee.`)}
+    ${p(`I want to be honest with you — <strong>the old version wasn't good enough.</strong><br/>
+    The AI promised on the pricing page didn't work.<br/>
+    The UI was frustrating. I know.`)}
+    ${p(`We spent the last 3 months rebuilding everything from scratch.`)}
+    ${divider()}
+    <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Here's what's new</p>
+    <ul style="margin:0 0 20px;padding-left:20px;font-size:15px;color:#374151;line-height:1.9;">
+      <li>Upload any WhatsApp chat or email → instant invoice</li>
+      <li>AI chases late payments automatically — you never have to follow up again</li>
+      <li>Create invoices by typing naturally: <em>"Invoice Acme ₹25,000 for design"</em></li>
+      <li>Works perfectly on mobile</li>
+      <li>Razorpay, Stripe, and PayPal in one place</li>
+    </ul>
+    ${divider()}
+    ${p(`Your account is ready. No credit card needed.<br/>
+    <strong>You get 3 months of Pro free</strong> — our apology for the wait.`)}
+    ${btn("→ Log in and try it", loginUrl)}
+    ${p(`Thank you for sticking with us.`)}
+    <p style="margin:0;font-size:15px;color:#374151;">— Amit, BillingBee</p>
+  `
+
+  return sendEmail({
+    to: email,
+    from: "Amit from BillingBee <amit@billingbee.co>",
+    subject: "We rebuilt BillingBee from scratch — 3 months Pro free",
+    html: layout(body, preheader),
+    text: `Hey ${name},
+
+I'm Amit, founder of BillingBee.
+
+I want to be honest with you — the old version wasn't good enough.
+The AI promised on the pricing page didn't work.
+The UI was frustrating. I know.
+
+We spent the last 3 months rebuilding everything from scratch.
+
+Here's what's new:
+• Upload any WhatsApp chat or email → instant invoice
+• AI chases late payments automatically (you never have to follow up again)
+• Create invoices by typing naturally: "Invoice Acme ₹25,000 for design"
+• Works perfectly on mobile
+• Razorpay, Stripe, and PayPal in one place
+
+Your account is ready. No credit card needed.
+You get 3 months of Pro free — our apology for the wait.
+
+→ Log in and try it: ${loginUrl}
+
+Thank you for sticking with us.
+— Amit, BillingBee
+
+---
+BillingBee · AI-powered invoicing
+Unsubscribe: https://billingbee.co/unsubscribe`,
+  })
+}
+
+// ── Segment B — 4,230 auto-deactivated users (60 days Pro free) ───────────────
+
+export async function sendRelaunchSegmentB(
+  firstName: string,
+  email: string,
+  reactivateUrl = "https://billingbee.co/login?utm_source=relaunch&utm_campaign=segment-b&utm_medium=email",
+) {
+  const name = firstName || "there"
+  const preheader = "We've completely rebuilt the product. 60 days Pro free to try it."
+
+  const body = `
+    ${h1(`Your BillingBee account is back`)}
+    ${p(`Hi ${name},`)}
+    ${p(`Your BillingBee account was paused after 6 months of inactivity.`)}
+    ${p(`We've completely rebuilt the product. New AI features, new UI, new payment options. Much better than before.`)}
+    ${divider()}
+    <ul style="margin:0 0 20px;padding-left:20px;font-size:15px;color:#374151;line-height:1.9;">
+      <li>AI creates invoices from natural language in seconds</li>
+      <li>Upload WhatsApp screenshots → instant invoice</li>
+      <li>Auto payment reminders — stop chasing clients</li>
+      <li>Razorpay UPI + Stripe in every invoice</li>
+      <li>GST-compliant PDFs, tax exports for your CA</li>
+    </ul>
+    ${divider()}
+    ${p(`<strong>You get 60 days of Pro free</strong> to try the new version.`)}
+    ${btn("→ Reactivate your account", reactivateUrl)}
+    ${p(`No credit card needed. Cancel anytime.`)}
+  `
+
+  return sendEmail({
+    to: email,
+    from: "BillingBee <hello@billingbee.co>",
+    subject: "Your BillingBee account is back — we rebuilt everything",
+    html: layout(body, preheader),
+    text: `Hi ${name},
+
+Your BillingBee account was paused after 6 months of inactivity.
+
+We've completely rebuilt the product. New AI features, new UI,
+new payment options. Much better than before.
+
+You get 60 days of Pro free to try the new version.
+
+→ Reactivate your account: ${reactivateUrl}
+
+No credit card needed. Cancel anytime.
+
+---
+BillingBee · AI-powered invoicing
+Unsubscribe: https://billingbee.co/unsubscribe`,
+  })
+}
+
+// ── Segment C — 3,899 unverified / never-activated (cold re-engagement) ───────
+
+export async function sendRelaunchSegmentC(
+  email: string,
+  generateUrl = "https://billingbee.co/generate?utm_source=relaunch&utm_campaign=segment-c&utm_medium=email",
+) {
+  const preheader = "Upload a screenshot → get an invoice. No account needed."
+
+  const body = `
+    ${h1(`Create your first invoice in 60 seconds`)}
+    ${p(`BillingBee AI is live.`)}
+    <table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px;background:#f0fdf4;border-radius:10px;border:1px solid #d1fae5;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 10px;font-size:15px;color:#374151;">
+            📱 <strong>Upload a WhatsApp screenshot</strong> → get an invoice
+          </p>
+          <p style="margin:0 0 10px;font-size:15px;color:#374151;">
+            💬 Or type: <em>"Invoice [client] ₹[amount] for [work]"</em>
+          </p>
+          <p style="margin:0;font-size:15px;color:#374151;">
+            📄 <strong>No signup needed</strong> to start. Download your first invoice free.
+          </p>
+        </td>
+      </tr>
+    </table>
+    ${btn("→ Try it at billingbee.co/generate", generateUrl)}
+    ${divider()}
+    <p style="margin:0;font-size:13px;color:#9ca3af;text-align:center;">Free forever · No credit card · GST-compliant PDFs</p>
+  `
+
+  return sendEmail({
+    to: email,
+    from: "BillingBee <hello@billingbee.co>",
+    subject: "Create your first invoice in 60 seconds — no account needed",
+    html: layout(body, preheader),
+    text: `BillingBee AI is live.
+
+Upload a WhatsApp screenshot → get an invoice.
+Or just type: "Invoice [client] ₹[amount] for [work]"
+
+No signup needed to start. Download your first invoice free.
+
+→ Try it: ${generateUrl}
+
+Free forever. No credit card. GST-compliant PDFs.
+
+---
+BillingBee · AI-powered invoicing
+Unsubscribe: https://billingbee.co/unsubscribe`,
+  })
+}

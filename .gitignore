@@ -38,3 +38,7 @@ next-env.d.ts
 prisma/migrations/
 
 /lib/generated/prisma
+
+# Email campaign CSVs — contain PII, never commit
+scripts/email-segments/
+*.segment-*.csv
