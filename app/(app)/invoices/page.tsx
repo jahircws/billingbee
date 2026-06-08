@@ -7,6 +7,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Plus, FileText } from "lucide-react"
 import { fmtCurrency } from "@/lib/currency"
+import InvoiceRowActions from "./InvoiceRowActions"
 
 export const metadata = { ...privateMetadata, title: "Invoices" }
 export const dynamic = "force-dynamic"
@@ -41,7 +42,7 @@ export default async function InvoicesPage({ searchParams }: Props) {
   const [invoices, org] = await Promise.all([
     prisma.invoice.findMany({
       where,
-      include: { client: { select: { name: true } } },
+      include: { client: { select: { name: true, email: true } } },
       orderBy: { issueDate: "desc" },
       take: 100,
     }),
@@ -132,6 +133,7 @@ export default async function InvoicesPage({ searchParams }: Props) {
                     <th className="py-3 px-4 text-center text-xs text-gray-400 font-medium">Status</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Due</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden lg:table-cell">Issued</th>
+                    <th className="py-3 px-4 w-8" />
                   </tr>
                 </thead>
                 <tbody>
@@ -164,6 +166,14 @@ export default async function InvoicesPage({ searchParams }: Props) {
                       </td>
                       <td className="py-3 px-4 text-right text-gray-400 hidden lg:table-cell">
                         {format(invoice.issueDate, "d MMM yyyy")}
+                      </td>
+                      <td className="py-3 px-2 text-right">
+                        <InvoiceRowActions
+                          invoiceId={invoice.id}
+                          invoiceNumber={invoice.invoiceNumber}
+                          status={invoice.status}
+                          clientEmail={invoice.client.email ?? null}
+                        />
                       </td>
                     </tr>
                   ))}

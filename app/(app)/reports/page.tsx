@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { startOfMonth, subMonths, format } from "date-fns"

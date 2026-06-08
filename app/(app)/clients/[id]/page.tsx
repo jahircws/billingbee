@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
@@ -30,7 +31,7 @@ export default async function ClientPage({ params }: Props) {
 
   const { id } = await params
 
-  const client = await prisma.client.findUnique({
+  const client = serialize(await prisma.client.findUnique({
     where: { id, orgId },
     include: {
       invoices: {
@@ -57,7 +58,7 @@ export default async function ClientPage({ params }: Props) {
         take: 1,
       },
     },
-  })
+  }))
 
   if (!client) notFound()
 

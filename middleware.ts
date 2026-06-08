@@ -17,6 +17,7 @@ export default auth((req) => {
   const session = req.auth
 
   if (pathname.startsWith("/admin/")) {
+    if (pathname === "/admin/login") return NextResponse.next()
     const adminCookie = req.cookies.get("admin_session")
     if (!adminCookie?.value) {
       return NextResponse.redirect(new URL("/admin/login", req.url))
@@ -25,6 +26,7 @@ export default auth((req) => {
   }
 
   if (pathname.startsWith("/portal/")) {
+    if (pathname === "/portal/login") return NextResponse.next()
     if (!session || session.user?.userType !== "CLIENT") {
       return NextResponse.redirect(new URL("/portal/login", req.url))
     }

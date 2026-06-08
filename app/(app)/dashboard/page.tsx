@@ -175,21 +175,21 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
             label="Overdue"
             value={attention.overdue.count > 0 ? `${attention.overdue.count} invoice${attention.overdue.count !== 1 ? "s" : ""} · ${fmt(attention.overdue.amount)}` : "All clear"}
             colorClass={attention.overdue.count > 0 ? "border-red-400" : "border-gray-200"}
-            href="/dashboard/invoices?filter=overdue"
+            href="/invoices?filter=overdue"
           />
           <AttentionCard
             icon={Clock}
             label="Due soon"
             value={attention.dueSoon.count > 0 ? `${attention.dueSoon.count} due this week · ${fmt(attention.dueSoon.amount)}` : "Nothing due soon"}
             colorClass={attention.dueSoon.count > 0 ? "border-amber-400" : "border-gray-200"}
-            href="/dashboard/invoices?filter=due-soon"
+            href="/invoices?filter=due-soon"
           />
           <AttentionCard
             icon={FileText}
             label="Unsent drafts"
             value={attention.drafts > 0 ? `${attention.drafts} draft${attention.drafts !== 1 ? "s" : ""} ready to send` : "No drafts"}
             colorClass={attention.drafts > 0 ? "border-blue-400" : "border-gray-200"}
-            href="/dashboard/invoices?filter=draft"
+            href="/invoices?filter=draft"
           />
           <AttentionCard
             icon={CheckCircle}
@@ -197,7 +197,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
             value={attention.lastPayment ? `${attention.lastPayment.client} paid ${fmt(attention.lastPayment.amount)}` : "No payments yet"}
             sub={attention.lastPayment ? attention.lastPayment.date : undefined}
             colorClass={attention.lastPayment ? "border-emerald-400" : "border-gray-200"}
-            href="/dashboard/invoices?filter=paid"
+            href="/invoices?filter=paid"
           />
         </div>
 
@@ -222,10 +222,10 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         {/* Quick actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { href: "/dashboard/invoices/new", icon: Plus, label: "New Invoice", cls: "bg-emerald-600 hover:bg-emerald-700 text-white" },
+            { href: "/invoices/new", icon: Plus, label: "New Invoice", cls: "bg-emerald-600 hover:bg-emerald-700 text-white" },
             { href: "/generate", icon: Paperclip, label: "From Upload", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
-            { href: "/dashboard/clients/new", icon: Users, label: "New Client", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
-            { href: "/dashboard/reports", icon: BarChart3, label: "Reports", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
+            { href: "/clients", icon: Users, label: "New Client", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
+            { href: "/reports", icon: BarChart3, label: "Reports", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
           ].map(({ href, icon: Icon, label, cls }) => (
             <Link
               key={href}

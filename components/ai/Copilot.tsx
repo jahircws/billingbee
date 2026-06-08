@@ -242,11 +242,11 @@ export default function Copilot({
       if (d.description) params.set("description", String(d.description))
       if (d.dueDate) params.set("dueDate", String(d.dueDate))
       if (d.currency) params.set("currency", String(d.currency))
-      router.push(`/dashboard/invoices/new?${params.toString()}&source=copilot`)
+      router.push(`/invoices/new?${params.toString()}&source=copilot`)
     } else if (payload.action === "DUPLICATE_INVOICE") {
-      router.push(`/dashboard/invoices/${String(payload.data.invoiceId)}/duplicate`)
+      router.push(`/invoices/${String(payload.data.invoiceId)}/duplicate`)
     } else if (payload.action === "SEND_REMINDER") {
-      router.push("/dashboard/invoices?filter=overdue&action=remind")
+      router.push("/invoices?filter=overdue&action=remind")
     }
   }
 

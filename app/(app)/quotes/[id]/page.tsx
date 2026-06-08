@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
@@ -31,13 +32,13 @@ export default async function QuotePage({ params }: Props) {
 
   const { id } = await params
 
-  const quote = await prisma.quote.findUnique({
+  const quote = serialize(await prisma.quote.findUnique({
     where: { id, orgId },
     include: {
       client: true,
       items: { orderBy: { sortOrder: "asc" } },
     },
-  })
+  }))
 
   if (!quote) notFound()
 

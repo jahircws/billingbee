@@ -25,6 +25,10 @@ interface Props {
   type?: "invoice" | "quote"
   clients: Client[]
   defaultClientId?: string
+  defaultClientName?: string
+  defaultAmount?: number
+  defaultDescription?: string
+  defaultDueDate?: string
   isPro?: boolean
 }
 
@@ -35,23 +39,37 @@ function calcItem(item: LineItem) {
   return subtotal + subtotal * (item.taxRate / 100)
 }
 
-export default function InvoiceForm({ type = "invoice", clients, defaultClientId, isPro = false }: Props) {
+export default function InvoiceForm({
+  type = "invoice",
+  clients,
+  defaultClientId,
+  defaultClientName,
+  defaultAmount,
+  defaultDescription,
+  defaultDueDate,
+  isPro = false,
+}: Props) {
   const router = useRouter()
   const [clientId, setClientId] = useState(defaultClientId ?? "")
-  const [dueDate, setDueDate] = useState("")
+  const [dueDate, setDueDate] = useState(defaultDueDate ?? "")
   const [notes, setNotes] = useState("")
   const [terms, setTerms] = useState("")
   const [autoFollowUp, setAutoFollowUp] = useState(isPro)
   const [items, setItems] = useState<LineItem[]>([
-    { description: "", quantity: 1, unitPrice: 0, taxRate: 0 },
+    {
+      description: defaultDescription ?? "",
+      quantity: 1,
+      unitPrice: defaultAmount ?? 0,
+      taxRate: 0,
+    },
   ])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
-  // Create new client inline
-  const [showNewClient, setShowNewClient] = useState(false)
-  const [newClientName, setNewClientName] = useState("")
+  // Create new client inline — pre-fill from copilot if clientName provided without clientId
+  const [showNewClient, setShowNewClient] = useState(!defaultClientId && !!defaultClientName)
+  const [newClientName, setNewClientName] = useState((!defaultClientId && defaultClientName) ? defaultClientName : "")
   const [newClientEmail, setNewClientEmail] = useState("")
   const [creatingClient, setCreatingClient] = useState(false)
   const [localClients, setLocalClients] = useState(clients)

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import ProfileTab from "./ProfileTab"
@@ -33,12 +34,12 @@ export default async function SettingsPage({ searchParams }: Props) {
 
   const { tab = "profile" } = await searchParams
 
-  const [org, user, taxes, items] = await Promise.all([
+  const [org, user, taxes, items] = serialize(await Promise.all([
     prisma.organization.findUnique({ where: { id: orgId } }),
     prisma.user.findUnique({ where: { id: session.user.userId! } }),
     prisma.tax.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.item.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
-  ])
+  ]))
 
   if (!org || !user) redirect("/login")
 

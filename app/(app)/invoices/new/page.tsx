@@ -9,7 +9,15 @@ export const metadata = { ...privateMetadata, title: "New Invoice" }
 export const dynamic = "force-dynamic"
 
 interface Props {
-  searchParams: Promise<{ clientId?: string }>
+  searchParams: Promise<{
+    clientId?: string
+    clientName?: string
+    amount?: string
+    description?: string
+    dueDate?: string
+    currency?: string
+    source?: string
+  }>
 }
 
 export default async function NewInvoicePage({ searchParams }: Props) {
@@ -17,7 +25,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
 
-  const { clientId } = await searchParams
+  const { clientId, clientName, amount, description, dueDate } = await searchParams
 
   const [clients, org] = await Promise.all([
     prisma.client.findMany({
@@ -34,7 +42,15 @@ export default async function NewInvoicePage({ searchParams }: Props) {
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="New Invoice" />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full pb-20 md:pb-6">
-        <InvoiceForm clients={clients} isPro={isPro} defaultClientId={clientId} />
+        <InvoiceForm
+          clients={clients}
+          isPro={isPro}
+          defaultClientId={clientId}
+          defaultClientName={clientName}
+          defaultAmount={amount ? parseFloat(amount) : undefined}
+          defaultDescription={description}
+          defaultDueDate={dueDate}
+        />
       </div>
     </div>
   )

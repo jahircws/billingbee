@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
+import { serialize } from "@/lib/serialize"
 import { privateMetadata } from "@/lib/metadata"
 import { Topbar } from "@/components/layout/Topbar"
 import CollectionsTab from "./CollectionsTab"
+import InvoiceActions from "./InvoiceActions"
 import { format } from "date-fns"
 import { fmtCurrency } from "@/lib/currency"
 
@@ -23,7 +25,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   const { id } = await params
   const { tab = "details" } = await searchParams
 
-  const invoice = await prisma.invoice.findUnique({
+  const invoice = serialize(await prisma.invoice.findUnique({
     where: { id, orgId },
     include: {
       client: true,
@@ -31,7 +33,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
       payments: { orderBy: { createdAt: "desc" } },
       collectionEvents: { orderBy: { scheduledAt: "asc" } },
     },
-  })
+  }))
 
   if (!invoice) notFound()
 
@@ -57,17 +59,26 @@ export default async function InvoicePage({ params, searchParams }: Props) {
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 pb-20 md:pb-6">
         {/* Header row */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h2>
-            <p className="text-sm text-gray-500">{invoice.client.name}</p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h2>
+              <p className="text-sm text-gray-500">{invoice.client.name}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[invoice.status] ?? "bg-gray-100 text-gray-600"}`}>
+                {invoice.status}
+              </span>
+              <span className="text-lg font-bold text-gray-900">{fmt(invoice.total)}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[invoice.status] ?? "bg-gray-100 text-gray-600"}`}>
-              {invoice.status}
-            </span>
-            <span className="text-lg font-bold text-gray-900">{fmt(invoice.total)}</span>
-          </div>
+          <InvoiceActions
+            invoiceId={invoice.id}
+            invoiceNumber={invoice.invoiceNumber}
+            status={invoice.status}
+            clientEmail={invoice.client.email}
+            payLink={`/pay/${invoice.id}`}
+          />
         </div>
 
         {/* Tab bar */}
