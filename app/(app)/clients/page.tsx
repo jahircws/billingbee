@@ -62,6 +62,15 @@ export default async function ClientsPage({ searchParams }: Props) {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No clients yet</p>
+            <p className="text-sm text-gray-400 mt-1 mb-5">Upload a chat screenshot or email to extract client details instantly</p>
+            <a
+              href="/generate"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
+            >
+              <Plus className="w-4 h-4" />
+              Upload a chat or email
+            </a>
+            <p className="text-xs text-gray-400 mt-3">AI extracts name, email, and project details automatically</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">

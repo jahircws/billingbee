@@ -99,9 +99,16 @@ export default async function QuotesPage({ searchParams }: Props) {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FileText className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No quotes yet</p>
-            <Link href="/quotes/new" className="mt-4 text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-              Create quote →
+            <p className="text-sm text-gray-400 mt-1 mb-5">Turn a conversation into a quote — paste a chat or email and AI builds it</p>
+            <Link
+              href="/generate?type=quote"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
+            >
+              Turn a conversation into a quote
             </Link>
+            <p className="text-xs text-gray-400 mt-3">
+              Or <Link href="/quotes/new" className="text-emerald-600 hover:underline">create manually</Link>
+            </p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">

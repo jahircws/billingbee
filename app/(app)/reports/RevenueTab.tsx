@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import Link from "next/link"
+import { BarChart2 } from "lucide-react"
 import { fmtCurrencyShort, getCurrencySymbol } from "@/lib/currency"
 
 interface Props {
@@ -37,6 +38,23 @@ function handleExport(monthlyData: Props["monthlyData"]) {
 export default function RevenueTab({ monthlyData, topClients, totalRevenue, currency }: Props) {
   const fmt = (n: number) => fmtCurrencyShort(n, currency)
   const sym = getCurrencySymbol(currency)
+
+  if (totalRevenue === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <BarChart2 className="w-10 h-10 text-gray-300 mb-3" />
+        <p className="text-gray-500 font-medium">No revenue data yet</p>
+        <p className="text-sm text-gray-400 mt-1 mb-5">Create your first invoice to start seeing analytics here</p>
+        <a
+          href="/dashboard"
+          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
+        >
+          Create first invoice with AI
+        </a>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

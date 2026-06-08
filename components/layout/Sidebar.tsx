@@ -12,6 +12,7 @@ import {
   Settings,
   Sparkles,
   Calculator,
+  Plus,
 } from "lucide-react"
 
 const NAV = [
@@ -88,14 +89,19 @@ export function Sidebar() {
   )
 }
 
-// Mobile bottom bar — 4 primary icons with labels
+// Mobile bottom bar — Dashboard, Invoices, Clients, +New
+const MOBILE_NAV = [
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/invoices", icon: FileText, label: "Invoices" },
+  { href: "/clients", icon: Users, label: "Clients" },
+]
+
 export function MobileNav() {
   const pathname = usePathname()
-  const items = NAV.slice(0, 4)
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-40">
-      {items.map(({ href, icon: Icon, label }) => {
+      {MOBILE_NAV.map(({ href, icon: Icon, label }) => {
         const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
         return (
           <Link
@@ -110,6 +116,16 @@ export function MobileNav() {
           </Link>
         )
       })}
+      {/* +New CTA */}
+      <Link
+        href="/invoices/new"
+        className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs text-emerald-600 font-semibold"
+      >
+        <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center -mt-4 shadow-lg">
+          <Plus size={18} className="text-white" strokeWidth={2.5} />
+        </div>
+        <span className="mt-0.5">New</span>
+      </Link>
     </nav>
   )
 }
