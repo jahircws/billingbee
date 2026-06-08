@@ -228,7 +228,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { href: "/invoices/new", icon: Plus, label: "New Invoice", cls: "bg-emerald-600 hover:bg-emerald-700 text-white" },
-            { href: "/invoices/new", icon: Paperclip, label: "From Upload", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
+            { href: "/invoices/new?mode=upload", icon: Paperclip, label: "From Upload", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
             { href: "/clients", icon: Users, label: "New Client", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
             { href: "/reports", icon: BarChart3, label: "Reports", cls: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200" },
           ].map(({ href, icon: Icon, label, cls }) => (

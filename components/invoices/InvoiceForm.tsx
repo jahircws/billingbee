@@ -56,6 +56,8 @@ export default function InvoiceForm({
   const [terms, setTerms] = useState("")
   const [showNotesTerms, setShowNotesTerms] = useState(false)
   const [autoFollowUp, setAutoFollowUp] = useState(isPro)
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "quarterly">("monthly")
   const [items, setItems] = useState<LineItem[]>([
     {
       description: defaultDescription ?? "",
@@ -152,12 +154,20 @@ export default function InvoiceForm({
     setSubmitting(true)
     setError("")
 
+    const cronByFrequency = {
+      weekly: "0 9 * * 1",
+      monthly: "0 9 1 * *",
+      quarterly: "0 9 1 1,4,7,10 *",
+    }
+
     const payload = {
       clientId,
       dueDate: dueDate || undefined,
       notes: notes || undefined,
       terms: terms || undefined,
       autoFollowUp,
+      isRecurring: type === "invoice" ? isRecurring : false,
+      recurringCron: type === "invoice" && isRecurring ? cronByFrequency[recurringFrequency] : undefined,
       items: items.map((i) => ({
         description: i.description,
         quantity: i.quantity,
@@ -389,7 +399,7 @@ export default function InvoiceForm({
               <p className="text-sm font-medium text-gray-700">Auto follow-up</p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {isPro
-                  ? "AI will send collection emails automatically"
+                  ? "Sends reminder emails at 3 days before, on the due date, and every 3 days after until paid"
                   : "Upgrade to Pro to enable auto follow-ups"}
               </p>
             </div>
@@ -410,6 +420,53 @@ export default function InvoiceForm({
               />
             </button>
           </label>
+        </div>
+      )}
+
+      {/* Recurring invoice (invoice only) */}
+      {type === "invoice" && (
+        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+          <label className="flex items-center justify-between gap-4 cursor-pointer">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Recurring invoice</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Automatically create a new invoice on a repeating schedule
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isRecurring}
+              onClick={() => setIsRecurring(!isRecurring)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isRecurring ? "bg-emerald-600" : "bg-gray-200"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isRecurring ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </label>
+          {isRecurring && (
+            <div className="flex gap-2 pt-1">
+              {(["weekly", "monthly", "quarterly"] as const).map((freq) => (
+                <button
+                  key={freq}
+                  type="button"
+                  onClick={() => setRecurringFrequency(freq)}
+                  className={`flex-1 text-xs font-medium py-2 rounded-lg border transition-colors capitalize ${
+                    recurringFrequency === freq
+                      ? "bg-emerald-50 border-emerald-400 text-emerald-700"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  {freq}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

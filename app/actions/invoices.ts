@@ -24,6 +24,8 @@ interface CreateInvoiceInput {
   terms?: string
   items: LineItemInput[]
   autoFollowUp?: boolean
+  isRecurring?: boolean
+  recurringCron?: string
 }
 
 export async function createInvoice(input: CreateInvoiceInput) {
@@ -87,6 +89,8 @@ export async function createInvoice(input: CreateInvoiceInput) {
       notes: input.notes,
       terms: input.terms,
       autoFollowUp,
+      isRecurring: input.isRecurring ?? false,
+      recurringCron: input.recurringCron ?? null,
       items: { create: lineItems },
     },
   })

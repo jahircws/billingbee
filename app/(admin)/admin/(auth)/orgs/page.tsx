@@ -2,6 +2,7 @@ import { requireAdminSession } from "@/lib/admin-auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
 import { Search } from "lucide-react"
+import InlinePlanSelect from "./InlinePlanSelect"
 
 export const dynamic = "force-dynamic"
 
@@ -10,7 +11,7 @@ interface PageProps {
 }
 
 export default async function AdminOrgsPage({ searchParams }: PageProps) {
-  await requireAdminSession()
+  const adminSession = await requireAdminSession()
   const { plan, q } = await searchParams
 
   const where: Record<string, unknown> = {}
@@ -90,18 +91,12 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
                   <p className="text-gray-500 text-xs">{org.email ?? org.slug}</p>
                 </td>
                 <td className="px-5 py-3">
-                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    org.plan === "pro"
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "bg-gray-700 text-gray-400"
-                  }`}>
-                    {org.plan}
-                  </span>
-                  {org.planExpiry && (
-                    <p className="text-gray-500 text-xs mt-0.5">
-                      exp {new Date(org.planExpiry).toLocaleDateString()}
-                    </p>
-                  )}
+                  <InlinePlanSelect
+                    orgId={org.id}
+                    currentPlan={org.plan}
+                    planExpiry={org.planExpiry?.toISOString() ?? null}
+                    adminId={adminSession.adminId}
+                  />
                 </td>
                 <td className="px-5 py-3 text-right text-gray-300">{org._count.invoices}</td>
                 <td className="px-5 py-3 text-gray-400 text-xs">{org.acquisitionSource ?? "—"}</td>

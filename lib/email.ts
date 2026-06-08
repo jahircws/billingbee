@@ -1,6 +1,6 @@
 import { Resend } from "resend"
 
-const DEFAULT_FROM = "BillingBee <noreply@billingbee.co>"
+const DEFAULT_FROM = process.env.RESEND_FROM ?? "BillingBee <noreply@billingbee.co>"
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY ?? "re_placeholder")
