@@ -58,8 +58,8 @@ const PLANS = [
     annual: 19.99,
     inrMonthly: 2099,
     description: "For agencies and teams managing multiple clients.",
-    cta: "Contact sales",
-    ctaHref: "/contact",
+    cta: "Start Business",
+    ctaHref: "/api/stripe/checkout-redirect?plan=business",
     popular: false,
     features: [
       "Everything in Pro",

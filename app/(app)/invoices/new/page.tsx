@@ -17,6 +17,7 @@ interface Props {
     dueDate?: string
     currency?: string
     source?: string
+    mode?: string
   }>
 }
 
@@ -25,7 +26,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
 
-  const { clientId, clientName, amount, description, dueDate } = await searchParams
+  const { clientId, clientName, amount, description, dueDate, mode } = await searchParams
 
   const [clients, org] = await Promise.all([
     prisma.client.findMany({
@@ -33,10 +34,11 @@ export default async function NewInvoicePage({ searchParams }: Props) {
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
     }),
-    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } }),
   ])
 
   const isPro = org?.plan !== "free"
+  const defaultCurrency = org?.currency ?? "INR"
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -50,6 +52,8 @@ export default async function NewInvoicePage({ searchParams }: Props) {
           defaultAmount={amount ? parseFloat(amount) : undefined}
           defaultDescription={description}
           defaultDueDate={dueDate}
+          defaultCurrency={defaultCurrency}
+          uploadMode={mode === "upload"}
         />
       </div>
     </div>

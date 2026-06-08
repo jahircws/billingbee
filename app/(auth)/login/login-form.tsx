@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { loginStaff } from "@/app/actions/auth"
 
-export function LoginForm() {
+export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const [state, action, pending] = useActionState(loginStaff, undefined)
 
   return (
@@ -18,6 +18,7 @@ export function LoginForm() {
       </div>
 
       <form action={action} className="space-y-5" suppressHydrationWarning>
+        {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
         <div className="space-y-1.5" suppressHydrationWarning>
           <Label htmlFor="email" className="text-sm font-medium text-gray-700">
             Email address

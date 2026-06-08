@@ -4,6 +4,11 @@ import { LoginForm } from "./login-form"
 
 export const metadata: Metadata = privateMetadata
 
-export default function LoginPage() {
-  return <LoginForm />
+interface Props {
+  searchParams: Promise<{ callbackUrl?: string }>
+}
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { callbackUrl } = await searchParams
+  return <LoginForm callbackUrl={callbackUrl} />
 }

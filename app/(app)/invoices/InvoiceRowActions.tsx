@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { MoreHorizontal, Send, CheckCircle, Trash2, Copy, ExternalLink } from "lucide-react"
 import { sendInvoice, deleteInvoice, updateInvoiceStatus, duplicateInvoice } from "@/app/actions/invoices"
@@ -16,6 +16,15 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+
+  useEffect(() => {
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setMenuPos({ top: rect.bottom + window.scrollY + 4, right: window.innerWidth - rect.right })
+    }
+  }, [open])
 
   async function openPayLink() {
     setOpen(false)
@@ -47,6 +56,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
     <>
       <div className="relative" onClick={(e) => e.stopPropagation()}>
         <button
+          ref={buttonRef}
           onClick={() => setOpen((v) => !v)}
           disabled={!!loading}
           className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
@@ -62,7 +72,10 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
         {open && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-            <div className="absolute right-0 top-full mt-1 z-20 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 text-sm">
+            <div
+              className="fixed z-20 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 text-sm"
+              style={{ top: menuPos.top, right: menuPos.right }}
+            >
               {clientEmail && !isPaid && (
                 <button
                   onClick={() => run("send", () => sendInvoice(invoiceId))}

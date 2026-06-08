@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ token: string }>
+  searchParams: Promise<{ paid?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,8 +35,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function PayPage({ params }: Props) {
+export default async function PayPage({ params, searchParams }: Props) {
   const { token } = await params
+  const { paid: paidParam } = await searchParams
 
   let invoiceId: string, orgId: string
   try {
@@ -46,20 +48,20 @@ export default async function PayPage({ params }: Props) {
     notFound()
   }
 
-  // Cache invoice data for 5 minutes — safe since payment status is checked separately
-  const invoice = await cacheGetOrSet(
-    `pay_invoice:${invoiceId}`,
-    () =>
-      prisma.invoice.findUnique({
-        where: { id: invoiceId, orgId },
-        include: {
-          client: true,
-          items: true,
-          org: { select: { name: true, email: true, address: true, gstin: true } },
-        },
-      }),
-    300,
-  )
+  // Bypass cache when returning from payment (?paid=true) to get fresh status
+  const fetchInvoice = () =>
+    prisma.invoice.findUnique({
+      where: { id: invoiceId, orgId },
+      include: {
+        client: true,
+        items: true,
+        org: { select: { name: true, email: true, address: true, gstin: true } },
+      },
+    })
+
+  const invoice = paidParam
+    ? await fetchInvoice()
+    : await cacheGetOrSet(`pay_invoice:${invoiceId}`, fetchInvoice, 300)
 
   if (!invoice) notFound()
 

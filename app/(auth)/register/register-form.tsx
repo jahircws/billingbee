@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { registerOrg } from "@/app/actions/auth"
 
-export function RegisterForm() {
+export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
   const [state, action, pending] = useActionState(registerOrg, undefined)
   const acqRef = useRef<HTMLInputElement>(null)
 
@@ -40,6 +40,7 @@ export function RegisterForm() {
 
       <form action={action} className="space-y-5">
         <input ref={acqRef} type="hidden" name="acquisitionSource" />
+        {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="orgName" className="text-sm font-medium text-gray-700">

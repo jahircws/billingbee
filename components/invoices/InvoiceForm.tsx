@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2, ChevronDown } from "lucide-react"
+import { Plus, Trash2, ChevronDown, Upload, X } from "lucide-react"
 import { createInvoice } from "@/app/actions/invoices"
 import { createQuote } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
@@ -30,6 +30,8 @@ interface Props {
   defaultDescription?: string
   defaultDueDate?: string
   isPro?: boolean
+  uploadMode?: boolean
+  defaultCurrency?: string
 }
 
 const DRAFT_KEY = "billingbee_draft_invoice"
@@ -48,6 +50,8 @@ export default function InvoiceForm({
   defaultDescription,
   defaultDueDate,
   isPro = false,
+  uploadMode = false,
+  defaultCurrency = "INR",
 }: Props) {
   const router = useRouter()
   const [clientId, setClientId] = useState(defaultClientId ?? "")
@@ -70,6 +74,43 @@ export default function InvoiceForm({
   const [error, setError] = useState("")
   const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
+  // Upload mode
+  const [uploadStep, setUploadStep] = useState<"idle" | "extracting" | "done">(uploadMode ? "idle" : "done")
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadError, setUploadError] = useState("")
+  const [dragOver, setDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleUploadFile(file: File) {
+    setUploadFile(file)
+    setUploadError("")
+    setUploadStep("extracting")
+    const formData = new FormData()
+    formData.append("file", file)
+    try {
+      const res = await fetch("/api/ai/extract", { method: "POST", body: formData })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Extraction failed")
+      const ex = data.extraction
+      if (ex.clientName) setNewClientName(ex.clientName)
+      if (ex.clientName && !defaultClientId) setShowNewClient(true)
+      if (ex.dueDate) setDueDate(ex.dueDate)
+      if (ex.notes) { setNotes(ex.notes); setShowNotesTerms(true) }
+      if (ex.items?.length) {
+        setItems(ex.items.map((i: { description: string; qty: number; rate: number }) => ({
+          description: i.description ?? "",
+          quantity: i.qty ?? 1,
+          unitPrice: i.rate ?? 0,
+          taxRate: 0,
+        })))
+      }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Could not read document")
+    } finally {
+      setUploadStep("done")
+    }
+  }
+
   // Create new client inline — pre-fill from copilot if clientName provided without clientId
   const [showNewClient, setShowNewClient] = useState(!defaultClientId && !!defaultClientName)
   const [newClientName, setNewClientName] = useState((!defaultClientId && defaultClientName) ? defaultClientName : "")
@@ -77,8 +118,10 @@ export default function InvoiceForm({
   const [creatingClient, setCreatingClient] = useState(false)
   const [localClients, setLocalClients] = useState(clients)
 
+  const [currency, setCurrency] = useState(defaultCurrency)
   const total = items.reduce((s, i) => s + calcItem(i), 0)
-  const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2 }).format(n)
 
   // Auto-save draft to localStorage
   const saveDraft = useCallback(() => {
@@ -162,6 +205,7 @@ export default function InvoiceForm({
 
     const payload = {
       clientId,
+      currency,
       dueDate: dueDate || undefined,
       notes: notes || undefined,
       terms: terms || undefined,
@@ -216,6 +260,68 @@ export default function InvoiceForm({
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-lg">
           {error}
+        </div>
+      )}
+
+      {/* Upload section */}
+      {uploadMode && (
+        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700">Upload invoice document</h3>
+            {uploadFile && uploadStep === "done" && (
+              <button
+                type="button"
+                onClick={() => { setUploadFile(null); setUploadStep("idle"); setUploadError("") }}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Remove
+              </button>
+            )}
+          </div>
+          {uploadStep === "extracting" ? (
+            <div className="flex items-center gap-2 text-sm text-gray-500 py-4 justify-center">
+              <svg className="animate-spin w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Reading document…
+            </div>
+          ) : uploadFile && uploadStep === "done" ? (
+            <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">
+              <Upload className="w-4 h-4" />
+              <span className="truncate">{uploadFile.name}</span>
+              <span className="ml-auto text-xs text-emerald-600">Fields pre-filled below</span>
+            </div>
+          ) : (
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault()
+                setDragOver(false)
+                const f = e.dataTransfer.files[0]
+                if (f) handleUploadFile(f)
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+                dragOver ? "border-emerald-400 bg-emerald-50" : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50"
+              }`}
+            >
+              <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">Drop a PDF or image here, or <span className="text-emerald-600 font-medium">browse</span></p>
+              <p className="text-xs text-gray-400 mt-1">PDF, PNG, JPG, WEBP — max 10MB</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadFile(f) }}
+              />
+            </div>
+          )}
+          {uploadError && (
+            <p className="text-xs text-red-600">{uploadError}</p>
+          )}
         </div>
       )}
 
@@ -286,6 +392,21 @@ export default function InvoiceForm({
               onChange={(e) => setDueDate(e.target.value)}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Currency</label>
+            <div className="relative">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                {["USD","EUR","GBP","INR","AUD","CAD","SGD","AED","JPY"].map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
         {!showNotesTerms ? (

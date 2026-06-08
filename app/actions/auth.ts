@@ -18,6 +18,7 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
   const email = sanitize(formData.get("email")).toLowerCase()
   const password = sanitize(formData.get("password"))
   const name = sanitize(formData.get("name"))
+  const callbackUrl = sanitize(formData.get("callbackUrl"))
   const orgName = rawOrgName || name
 
   const baseSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
@@ -67,15 +68,17 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     return { error: "Registration failed. Please try again." }
   }
 
-  redirect("/login")
+  const loginUrl = callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"
+  redirect(loginUrl)
 }
 
 export async function loginStaff(_prevState: unknown, formData: FormData) {
   const email = sanitize(formData.get("email")).toLowerCase()
   const password = sanitize(formData.get("password"))
+  const callbackUrl = sanitize(formData.get("callbackUrl")) || "/dashboard"
 
   try {
-    await signIn("staff", { email, password, redirectTo: "/dashboard" })
+    await signIn("staff", { email, password, redirectTo: callbackUrl })
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Invalid email or password" }
