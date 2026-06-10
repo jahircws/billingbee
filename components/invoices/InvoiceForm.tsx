@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Trash2, ChevronDown, Upload, X } from "lucide-react"
-import { createInvoice } from "@/app/actions/invoices"
+import { createInvoice, updateInvoiceWithItems } from "@/app/actions/invoices"
 import { createQuote } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
 import UpgradeModal from "@/components/billing/UpgradeModal"
@@ -21,6 +21,17 @@ interface LineItem {
   taxRate: number
 }
 
+interface InitialData {
+  invoiceId: string
+  clientId: string
+  dueDate?: string
+  notes?: string
+  terms?: string
+  currency: string
+  autoFollowUp: boolean
+  items: LineItem[]
+}
+
 interface Props {
   type?: "invoice" | "quote"
   clients: Client[]
@@ -32,6 +43,7 @@ interface Props {
   isPro?: boolean
   uploadMode?: boolean
   defaultCurrency?: string
+  initialData?: InitialData
 }
 
 const DRAFT_KEY = "billingbee_draft_invoice"
@@ -52,24 +64,28 @@ export default function InvoiceForm({
   isPro = false,
   uploadMode = false,
   defaultCurrency = "INR",
+  initialData,
 }: Props) {
+  const editMode = !!initialData
   const router = useRouter()
-  const [clientId, setClientId] = useState(defaultClientId ?? "")
-  const [dueDate, setDueDate] = useState(defaultDueDate ?? "")
-  const [notes, setNotes] = useState("")
-  const [terms, setTerms] = useState("")
-  const [showNotesTerms, setShowNotesTerms] = useState(false)
-  const [autoFollowUp, setAutoFollowUp] = useState(isPro)
+  const [clientId, setClientId] = useState(initialData?.clientId ?? defaultClientId ?? "")
+  const [dueDate, setDueDate] = useState(initialData?.dueDate ?? defaultDueDate ?? "")
+  const [notes, setNotes] = useState(initialData?.notes ?? "")
+  const [terms, setTerms] = useState(initialData?.terms ?? "")
+  const [showNotesTerms, setShowNotesTerms] = useState(!!(initialData?.notes || initialData?.terms))
+  const [autoFollowUp, setAutoFollowUp] = useState(initialData?.autoFollowUp ?? isPro)
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "quarterly">("monthly")
-  const [items, setItems] = useState<LineItem[]>([
-    {
-      description: defaultDescription ?? "",
-      quantity: 1,
-      unitPrice: defaultAmount ?? 0,
-      taxRate: 0,
-    },
-  ])
+  const [items, setItems] = useState<LineItem[]>(
+    initialData?.items ?? [
+      {
+        description: defaultDescription ?? "",
+        quantity: 1,
+        unitPrice: defaultAmount ?? 0,
+        taxRate: 0,
+      },
+    ]
+  )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
@@ -118,17 +134,19 @@ export default function InvoiceForm({
   const [creatingClient, setCreatingClient] = useState(false)
   const [localClients, setLocalClients] = useState(clients)
 
-  const [currency, setCurrency] = useState(defaultCurrency)
+  const [currency, setCurrency] = useState(initialData?.currency ?? defaultCurrency)
   const total = items.reduce((s, i) => s + calcItem(i), 0)
   const fmt = (n: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2 }).format(n)
 
-  // Auto-save draft to localStorage
+  // Auto-save draft to localStorage (skip in edit mode)
   const saveDraft = useCallback(() => {
+    if (editMode) return
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ clientId, dueDate, notes, terms, items }))
-  }, [clientId, dueDate, notes, terms, items])
+  }, [editMode, clientId, dueDate, notes, terms, items])
 
   useEffect(() => {
+    if (editMode) return
     const saved = localStorage.getItem(DRAFT_KEY)
     if (saved && !defaultClientId) {
       try {
@@ -220,9 +238,14 @@ export default function InvoiceForm({
       })),
     }
 
-    const result = type === "invoice"
-      ? await createInvoice(payload)
-      : await createQuote(payload)
+    let result: Record<string, unknown>
+    if (editMode && initialData) {
+      result = await updateInvoiceWithItems(initialData.invoiceId, payload) as Record<string, unknown>
+    } else if (type === "invoice") {
+      result = await createInvoice(payload) as Record<string, unknown>
+    } else {
+      result = await createQuote(payload) as Record<string, unknown>
+    }
 
     setSubmitting(false)
 
@@ -239,10 +262,14 @@ export default function InvoiceForm({
 
     localStorage.removeItem(DRAFT_KEY)
 
-    if (type === "invoice" && "invoiceId" in result) {
+    localStorage.removeItem(DRAFT_KEY)
+
+    if (editMode && "invoiceId" in result) {
+      router.push(`/invoices/${result.invoiceId}`)
+    } else if (type === "invoice" && "invoiceId" in result) {
       router.push(`/invoices/${result.invoiceId}`)
     } else if (type === "quote" && "quote" in result) {
-      router.push(`/quotes/${result.quote.id}`)
+      router.push(`/quotes/${(result.quote as { id: string }).id}`)
     }
   }
 
@@ -599,7 +626,9 @@ export default function InvoiceForm({
           className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
         >
           {submitting
-            ? "Creating…"
+            ? (editMode ? "Saving…" : "Creating…")
+            : editMode
+            ? "Save changes"
             : type === "invoice"
             ? "Create invoice"
             : "Create quote"}

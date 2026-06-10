@@ -168,6 +168,60 @@ export async function getInvoice(invoiceId: string) {
   return invoice
 }
 
+export async function updateInvoiceWithItems(invoiceId: string, input: CreateInvoiceInput) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const existing = await prisma.invoice.findUnique({ where: { id: invoiceId, orgId } })
+  if (!existing) return { error: "Not found" }
+
+  const lineItems = input.items.map((item) => {
+    const subtotal = item.quantity * item.unitPrice
+    const taxAmount = subtotal * ((item.taxRate ?? 0) / 100)
+    return {
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      taxRate: item.taxRate ?? 0,
+      taxAmount,
+      discount: 0,
+      total: subtotal + taxAmount,
+      sortOrder: 0,
+    }
+  })
+
+  const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
+  const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
+  const total = subtotal + taxAmount
+
+  const amountPaid = Number(existing.amountPaid)
+  const amountDue = Math.max(0, total - amountPaid)
+
+  await prisma.$transaction([
+    prisma.invoiceItem.deleteMany({ where: { invoiceId } }),
+    prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        clientId: input.clientId,
+        currency: (input.currency ?? "INR") as never,
+        dueDate: input.dueDate ? new Date(input.dueDate) : existing.dueDate,
+        notes: input.notes ?? null,
+        terms: input.terms ?? null,
+        autoFollowUp: input.autoFollowUp ?? existing.autoFollowUp,
+        subtotal,
+        taxAmount,
+        discountAmount: 0,
+        total,
+        amountDue,
+        items: { create: lineItems },
+      },
+    }),
+  ])
+
+  return { invoiceId }
+}
+
 export async function updateInvoice(invoiceId: string, data: Partial<CreateInvoiceInput> & { status?: string }) {
   const session = await auth()
   const orgId = session?.user?.orgId
