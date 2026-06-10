@@ -284,7 +284,7 @@ export async function sendInvoice(invoiceId: string, paymentUrl?: string) {
   if (!invoice.client.email) return { error: "Client has no email address" }
 
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { name: true } })
-  const url = paymentUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"}/pay/${invoiceId}`
+  const url = paymentUrl ?? `${process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"}/pay/${invoiceId}`
 
   sendInvoiceSentEmail(
     {
