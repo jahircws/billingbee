@@ -39,7 +39,7 @@ export default function BugReportButton() {
   }
 
   return (
-    <div className="fixed bottom-20 right-4 md:bottom-6 z-40">
+    <div className="fixed bottom-6 right-24 z-40">
       {open && (
         <div className="absolute bottom-14 right-0 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
