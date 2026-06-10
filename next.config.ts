@@ -48,6 +48,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
+  output: "standalone",
   async headers() {
     return [
       {
