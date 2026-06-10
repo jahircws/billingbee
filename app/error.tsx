@@ -3,10 +3,18 @@
 import { useEffect } from "react"
 import * as Sentry from "@sentry/nextjs"
 import Link from "next/link"
+import { logIssue } from "@/app/actions/issue-report"
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     Sentry.captureException(error)
+    logIssue({
+      type: "ERROR_500",
+      title: error.message || "Unhandled error",
+      description: error.stack,
+      url: typeof window !== "undefined" ? window.location.pathname : "unknown",
+      metadata: { digest: error.digest, name: error.name },
+    }).catch(() => {})
   }, [error])
 
   return (

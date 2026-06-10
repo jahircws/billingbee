@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { Sidebar, MobileNav } from "@/components/layout/Sidebar"
 import { privateMetadata } from "@/lib/metadata"
 import CopilotWidget from "@/components/ai/CopilotWidget"
+import BugReportButton from "@/components/bug-report/BugReportButton"
 
 export const metadata: Metadata = privateMetadata
 
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <MobileNav />
       <CopilotWidget username={session.user?.name ?? undefined} />
+      <BugReportButton />
     </div>
   )
 }

@@ -133,6 +133,7 @@ model Organization {
   proposals            Proposal[]
   contracts            Contract[]
   aiUsageLogs          AIUsageLog[]
+  issueReports         IssueReport[]
 
   @@index([plan])
   @@index([createdAt])
@@ -152,7 +153,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  orgUsers OrgUser[]
+  orgUsers     OrgUser[]
+  issueReports IssueReport[]
 
   // NextAuth v5 relations
   accounts Account[]
@@ -698,4 +700,32 @@ model Contract {
 
   @@index([orgId])
   @@index([clientId])
+}
+
+// ---------------------------------------------------------------------------
+// IssueReport — manual bug reports + auto-captured 404/500 errors
+// ---------------------------------------------------------------------------
+
+model IssueReport {
+  id          String   @id @default(cuid())
+  type        String   // "MANUAL" | "ERROR_404" | "ERROR_500"
+  title       String
+  description String?  @db.Text
+  url         String
+  userId      String?
+  userName    String?
+  userEmail   String?
+  orgId       String?
+  orgName     String?
+  status      String   @default("OPEN") // OPEN | IN_PROGRESS | RESOLVED
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  org  Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  user User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type])
+  @@index([status])
+  @@index([orgId])
+  @@index([createdAt])
 }

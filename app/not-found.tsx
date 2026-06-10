@@ -1,7 +1,30 @@
 import Link from "next/link"
 import { Search, Home } from "lucide-react"
+import { auth } from "@/auth"
+import { headers } from "next/headers"
+import prisma from "@/lib/db"
 
-export default function NotFound() {
+export default async function NotFound() {
+  // Auto-log the 404 with user context
+  try {
+    const [session, hdrs] = await Promise.all([auth(), headers()])
+    const url = hdrs.get("x-pathname") ?? hdrs.get("referer") ?? "unknown"
+    await prisma.issueReport.create({
+      data: {
+        type: "ERROR_404",
+        title: `404 — ${url}`,
+        url,
+        userId: session?.user?.userId ?? null,
+        userName: session?.user?.name ?? null,
+        userEmail: session?.user?.email ?? null,
+        orgId: session?.user?.orgId ?? null,
+        orgName: session?.user?.orgName ?? null,
+      },
+    })
+  } catch {
+    // never block the user-facing page
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="text-center max-w-md">
