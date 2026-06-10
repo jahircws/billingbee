@@ -8,6 +8,7 @@ import { scheduleCollections } from "@/app/actions/collections"
 import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 import { format, addDays } from "date-fns"
 import { sendInvoiceSentEmail } from "@/lib/email"
+import { generatePaymentToken } from "@/lib/payment-token"
 
 interface LineItemInput {
   description: string
@@ -284,7 +285,9 @@ export async function sendInvoice(invoiceId: string, paymentUrl?: string) {
   if (!invoice.client.email) return { error: "Client has no email address" }
 
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { name: true } })
-  const url = paymentUrl ?? `${process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"}/pay/${invoiceId}`
+  const token = generatePaymentToken(invoice.id, orgId)
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
+  const url = paymentUrl ?? `${base}/pay/${token}`
 
   sendInvoiceSentEmail(
     {
