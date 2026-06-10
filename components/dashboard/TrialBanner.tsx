@@ -50,18 +50,18 @@ export default function TrialBanner({ daysLeft, planExpiry }: Props) {
   return (
     <div className="mx-4 mt-4 flex items-center justify-between gap-4 bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3">
       <p className="text-sm text-emerald-800">
-        🎉{" "}
+        ✅{" "}
         <span className="font-semibold">
-          You have {daysLeft} day{daysLeft !== 1 ? "s" : ""} of Pro free
+          You&apos;re on Pro
         </span>{" "}
-        — enjoy unlimited invoices, AI follow-ups, and more!
+        — {daysLeft} day{daysLeft !== 1 ? "s" : ""} until renewal. Enjoy unlimited invoices, AI follow-ups, and more!
       </p>
       <div className="flex items-center gap-3 shrink-0">
         <Link
           href="/settings?tab=plan"
           className="text-xs font-semibold text-emerald-700 underline hover:text-emerald-900"
         >
-          Upgrade
+          Manage plan
         </Link>
         <button onClick={dismiss} className="text-emerald-400 hover:text-emerald-600">
           <X className="h-4 w-4" />
