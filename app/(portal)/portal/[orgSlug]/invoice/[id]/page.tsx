@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation"
+import { fmtCurrency } from "@/lib/currency"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
@@ -25,7 +26,7 @@ export default async function PortalInvoicePage({ params }: Props) {
 
   if (!invoice) notFound()
 
-  const fmt = (n: unknown) => `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
   const paymentLink = (invoice as unknown as Record<string, unknown>).paymentLink as string | null | undefined
 

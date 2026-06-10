@@ -8,6 +8,7 @@ import type { Metadata } from "next"
 import { format } from "date-fns"
 import QRCode from "qrcode"
 import PaymentActions from "./PaymentActions"
+import { fmtCurrency } from "@/lib/currency"
 
 export const dynamic = "force-dynamic"
 
@@ -74,9 +75,7 @@ export default async function PayPage({ params, searchParams }: Props) {
     ),
   ])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fmt = (n: any) =>
-    `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
   const isPaid = invoice.status === "PAID"
 

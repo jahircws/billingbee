@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import { fmtCurrency } from "@/lib/currency"
 import { Topbar } from "@/components/layout/Topbar"
 import { TrendingUp, AlertTriangle, CheckCircle, Clock, Loader2 } from "lucide-react"
 
@@ -21,13 +22,14 @@ const riskConfig = {
   high: { color: "text-red-700 bg-red-50 border-red-200", Icon: AlertTriangle, label: "High risk" },
 }
 
-const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
-
 export default function CashflowForecastPage() {
   const [forecast, setForecast] = useState<Forecast | null>(null)
   const [data, setData] = useState<CashflowData | null>(null)
+  const [currency, setCurrency] = useState("INR")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+
+  const fmt = useCallback((n: number) => fmtCurrency(n, currency), [currency])
 
   useEffect(() => {
     async function load() {
@@ -35,6 +37,7 @@ export default function CashflowForecastPage() {
         const dataRes = await fetch("/api/reports/cashflow-data")
         if (!dataRes.ok) throw new Error("Failed to load cashflow data")
         const raw = await dataRes.json()
+        setCurrency(raw.currency ?? "INR")
         setData({ latePayerAlerts: raw.latePayerAlerts, dueSoon: raw.dueSoon })
 
         const res = await fetch("/api/ai/cashflow", {

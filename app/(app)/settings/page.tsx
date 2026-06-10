@@ -91,7 +91,7 @@ export default async function SettingsPage({ searchParams }: Props) {
           {tab === "profile" && <ProfileTab user={user} />}
           {tab === "org" && <OrgTab org={org} />}
           {tab === "taxes" && <TaxesTab taxes={taxes} orgId={orgId} />}
-          {tab === "items" && <ItemsTab items={items} orgId={orgId} />}
+          {tab === "items" && <ItemsTab items={items} orgId={orgId} currency={org.currency ?? "INR"} />}
           {tab === "plan" && (
             <PlanTab
               org={org}

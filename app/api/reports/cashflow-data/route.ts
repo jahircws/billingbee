@@ -79,7 +79,10 @@ export async function GET() {
   })
   const monthlyExpenses = Number(expenseSum._sum.amount ?? 0) / 3
 
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+
   return NextResponse.json({
+    currency: org?.currency ?? "INR",
     paymentHistory,
     unpaidInvoices: unpaid.map((i) => ({
       amount: Number(i.total),

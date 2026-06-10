@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation"
+import { fmtCurrency } from "@/lib/currency"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
@@ -26,7 +27,7 @@ export default async function PortalQuotePage({ params }: Props) {
 
   if (!quote) notFound()
 
-  const fmt = (n: unknown) => `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: unknown) => fmtCurrency(n, quote.currency)
 
   return (
     <div className="max-w-2xl mx-auto w-full p-4 md:p-8 space-y-6">

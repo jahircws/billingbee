@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { CheckCircle, Copy, Loader2 } from "lucide-react"
+import { fmtCurrency } from "@/lib/currency"
 import Image from "next/image"
 
 interface Props {
@@ -26,7 +27,7 @@ export default function PaymentActions({ token, invoiceId, amount, currency, gat
   const [paid, setPaid] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const fmt = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: number) => fmtCurrency(n, currency)
   const pageUrl = typeof window !== "undefined" ? window.location.href : ""
 
   async function handlePay() {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { fmtCurrency } from "@/lib/currency"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
@@ -52,8 +53,7 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 8, color: "#9ca3af", textAlign: "center" },
 })
 
-const fmt = (n: unknown) =>
-  `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+// fmt is defined per-invoice below, after we know the currency
 
 export async function GET(
   _req: NextRequest,
@@ -84,6 +84,8 @@ export async function GET(
   if (!invoice) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
+
+  const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
   const isPro = org?.plan !== "free"
 

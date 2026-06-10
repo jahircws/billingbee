@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { fmtCurrency } from "@/lib/currency"
 import { useRouter } from "next/navigation"
 import { Trash2, Plus } from "lucide-react"
 
@@ -14,7 +15,7 @@ interface Item {
   hsn: string | null
 }
 
-export default function ItemsTab({ items: initial, orgId }: { items: Item[]; orgId: string }) {
+export default function ItemsTab({ items: initial, orgId, currency }: { items: Item[]; orgId: string; currency: string }) {
   const router = useRouter()
   const [items, setItems] = useState(initial)
   const [form, setForm] = useState({ name: "", description: "", unitPrice: "", taxRate: "", unit: "", hsn: "" })
@@ -54,7 +55,7 @@ export default function ItemsTab({ items: initial, orgId }: { items: Item[]; org
     setItems((prev) => prev.filter((i) => i.id !== id))
   }
 
-  const fmt = (n: unknown) => `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+  const fmt = (n: unknown) => fmtCurrency(n, currency)
 
   return (
     <div className="space-y-4">

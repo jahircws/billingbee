@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { fmtCurrency } from "@/lib/currency"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
@@ -36,12 +37,12 @@ export default async function PortalDashboardPage({ params }: Props) {
     prisma.invoice.findMany({
       where: { clientId },
       orderBy: { issueDate: "desc" },
-      select: { id: true, invoiceNumber: true, status: true, total: true, amountDue: true, dueDate: true, issueDate: true },
+      select: { id: true, invoiceNumber: true, status: true, total: true, amountDue: true, dueDate: true, issueDate: true, currency: true },
     }),
     prisma.quote.findMany({
       where: { clientId },
       orderBy: { issueDate: "desc" },
-      select: { id: true, quoteNumber: true, status: true, total: true, expiryDate: true, issueDate: true },
+      select: { id: true, quoteNumber: true, status: true, total: true, expiryDate: true, issueDate: true, currency: true },
     }),
     prisma.proposal.findMany({
       where: { clientId, status: { in: ["SENT", "ACCEPTED", "REJECTED"] } },
@@ -55,19 +56,16 @@ export default async function PortalDashboardPage({ params }: Props) {
     }),
   ])
 
-  const fmt = (n: unknown) => `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
-
-  const totalOutstanding = invoices
-    .filter((i) => i.status === "UNPAID" || i.status === "OVERDUE")
-    .reduce((s, i) => s + Number(i.amountDue), 0)
+  const overdueInvoices = invoices.filter((i) => i.status === "UNPAID" || i.status === "OVERDUE")
+  const overdueCount = overdueInvoices.length
 
   return (
     <div className="max-w-3xl mx-auto w-full p-4 md:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Welcome back, {client?.name}</h1>
-        {totalOutstanding > 0 && (
+        {overdueCount > 0 && (
           <p className="text-sm text-amber-700 mt-1 font-medium">
-            {fmt(totalOutstanding)} outstanding
+            {overdueCount} invoice{overdueCount > 1 ? "s" : ""} outstanding
           </p>
         )}
       </div>
@@ -95,7 +93,7 @@ export default async function PortalDashboardPage({ params }: Props) {
                         {inv.invoiceNumber}
                       </Link>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-semibold text-gray-900">{fmt(inv.total)}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-gray-900">{fmtCurrency(inv.total, inv.currency)}</td>
                     <td className="py-2.5 px-4 text-center">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[inv.status] ?? "bg-gray-100 text-gray-600"}`}>
                         {inv.status}
@@ -134,7 +132,7 @@ export default async function PortalDashboardPage({ params }: Props) {
                         {q.quoteNumber}
                       </Link>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-semibold text-gray-900">{fmt(q.total)}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-gray-900">{fmtCurrency(q.total, q.currency)}</td>
                     <td className="py-2.5 px-4 text-center">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[q.status] ?? "bg-gray-100 text-gray-600"}`}>
                         {q.status}
