@@ -6,8 +6,8 @@ import { Redis } from "@upstash/redis"
 
 const { auth } = NextAuth(authConfig)
 
-const PUBLIC_PATHS = ["/", "/login", "/register"]
-const PUBLIC_PREFIXES = ["/pay/", "/blog/", "/api/webhooks/"]
+const PUBLIC_PATHS = ["/", "/login", "/register", "/forgot-password", "/reset-password"]
+const PUBLIC_PREFIXES = ["/pay/", "/blog/", "/api/webhooks/", "/api/auth/forgot-password", "/api/auth/reset-password"]
 
 function isPublic(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true

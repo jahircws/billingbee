@@ -64,7 +64,7 @@ export default function ProposalEditor({ proposal }: { proposal: Proposal }) {
   const [sections, setSections] = useState<Section[]>(proposal.sections)
   const [pricing, setPricing] = useState<Pricing>(proposal.pricing ?? {})
 
-  const canSend = proposal.status === "DRAFT"
+  const canSend = proposal.status === "DRAFT" || proposal.status === "SENT"
   const canEdit = proposal.status === "DRAFT"
 
   function discardEdits() {
@@ -347,7 +347,7 @@ ${pricingHTML}
               className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg disabled:opacity-60 transition-colors"
             >
               <Send className="w-4 h-4" />
-              {sending ? "Sending…" : "Send to client"}
+              {sending ? "Sending…" : proposal.status === "SENT" ? "Resend to client" : "Send to client"}
             </button>
           )}
 
