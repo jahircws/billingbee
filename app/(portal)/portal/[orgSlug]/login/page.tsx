@@ -86,6 +86,15 @@ export default function PortalLoginPage({ params }: Props) {
               {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
+
+          <div className="text-center">
+            <a
+              href={`/portal/${orgSlug}/forgot-password`}
+              className="text-sm text-gray-500 hover:text-emerald-600 transition-colors"
+            >
+              Forgot password?
+            </a>
+          </div>
         </div>
       </div>
     </div>
