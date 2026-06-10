@@ -134,7 +134,7 @@ export async function sendWelcomeEmail(userName: string, userEmail: string, orgN
         </td>
       </tr>
     </table>
-    ${btn("Go to dashboard", "https://billingbee.co/dashboard")}
+    ${btn("Go to dashboard", `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/dashboard`)}
     ${p(`Questions? Reply to this email and we'll help you out.`)}
   `
   return sendEmail({
