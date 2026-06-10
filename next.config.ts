@@ -47,6 +47,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: false,
   async headers() {
     return [
       {
@@ -102,7 +103,10 @@ export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: true,
-  widenClientFileUpload: true,
+  widenClientFileUpload: false,
   disableLogger: true,
   automaticVercelMonitors: false,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 });
