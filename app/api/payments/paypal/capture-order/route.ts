@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import prisma from "@/lib/db"
 import { getPaypalConfig } from "@/lib/gateway-config"
 import { verifyPaymentToken } from "@/lib/payment-token"
+
+const schema = z.object({
+  orderId: z.string().min(1),
+  invoiceId: z.string().min(1),
+  token: z.string().min(1),
+})
 
 async function getPaypalAccessToken(clientId: string, clientSecret: string, mode: string) {
   const base = mode === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com"
@@ -18,7 +25,10 @@ async function getPaypalAccessToken(clientId: string, clientSecret: string, mode
 }
 
 export async function POST(req: NextRequest) {
-  const { orderId, invoiceId, token } = await req.json()
+  const body = await req.json().catch(() => null)
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+  const { orderId, invoiceId, token } = parsed.data
 
   let orgId: string
   try {

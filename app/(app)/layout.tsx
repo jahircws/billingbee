@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { Sidebar, MobileNav } from "@/components/layout/Sidebar"
 import { privateMetadata } from "@/lib/metadata"
+import CopilotWidget from "@/components/ai/CopilotWidget"
 
 export const metadata: Metadata = privateMetadata
 
@@ -20,6 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {children}
       </div>
       <MobileNav />
+      <CopilotWidget username={session.user?.name ?? undefined} />
     </div>
   )
 }

@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { z } from "zod"
 import prisma from "@/lib/db"
 import { getStripeConfig } from "@/lib/gateway-config"
 import { verifyPaymentToken } from "@/lib/payment-token"
 
+const schema = z.object({
+  invoiceId: z.string().min(1),
+  token: z.string().min(1),
+})
+
 export async function POST(req: NextRequest) {
-  const { invoiceId, token } = await req.json()
+  const body = await req.json().catch(() => null)
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+  const { invoiceId, token } = parsed.data
 
   let orgId: string
   try {

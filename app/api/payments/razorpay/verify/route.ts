@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
+import { z } from "zod"
 import prisma from "@/lib/db"
 import { getRazorpayConfig } from "@/lib/gateway-config"
 import { verifyPaymentToken } from "@/lib/payment-token"
 
+const schema = z.object({
+  orderId: z.string().min(1),
+  paymentId: z.string().min(1),
+  signature: z.string().min(1),
+  invoiceId: z.string().min(1),
+  token: z.string().min(1),
+})
+
 export async function POST(req: NextRequest) {
-  const { orderId, paymentId, signature, invoiceId, token } = await req.json()
+  const body = await req.json().catch(() => null)
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+  const { orderId, paymentId, signature, invoiceId, token } = parsed.data
 
   let orgId: string
   try {

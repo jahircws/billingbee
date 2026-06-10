@@ -1,6 +1,6 @@
 import { Resend } from "resend"
 
-const DEFAULT_FROM = process.env.RESEND_FROM ?? "BillingBee <noreply@billingbee.co>"
+const DEFAULT_FROM = process.env.RESEND_FROM ?? "BillingBee <hello@billingbee.co>"
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY ?? "re_placeholder")
@@ -12,6 +12,7 @@ interface SendEmailOptions {
   html: string
   text?: string
   from?: string
+  replyTo?: string
 }
 
 interface SendResult {
@@ -19,7 +20,7 @@ interface SendResult {
   error?: string
 }
 
-export async function sendEmail({ to, subject, html, text, from }: SendEmailOptions): Promise<SendResult> {
+export async function sendEmail({ to, subject, html, text, from, replyTo }: SendEmailOptions): Promise<SendResult> {
   try {
     const resend = getResend()
     const { data, error } = await resend.emails.send({
@@ -28,6 +29,7 @@ export async function sendEmail({ to, subject, html, text, from }: SendEmailOpti
       subject,
       html,
       text: text ?? "",
+      ...(replyTo ? { reply_to: replyTo } : {}),
     })
     if (error) return { error: error.message }
     return { id: data?.id }
@@ -67,8 +69,7 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:al
       <tr>
         <td style="padding:24px 0 0;text-align:center;">
           <p style="margin:0;font-size:12px;color:#9ca3af;">
-            BillingBee · AI-powered invoicing<br/>
-            <a href="https://billingbee.co/unsubscribe" style="color:#9ca3af;">Unsubscribe</a>
+            BillingBee · billingbee.co
           </p>
         </td>
       </tr>
@@ -113,34 +114,34 @@ function fmtAmount(amount: number, currency = "INR"): string {
 
 export async function sendWelcomeEmail(userName: string, userEmail: string, orgName: string) {
   const body = `
-    ${h1(`Welcome to BillingBee, ${userName}! 👋`)}
-    ${p(`You've created <strong>${orgName}</strong>. BillingBee is your AI-powered finance assistant — it writes invoices, chases payments, and helps you get paid faster.`)}
+    ${h1(`Your BillingBee account is ready`)}
+    ${p(`Hi ${userName}, your account for <strong>${orgName}</strong> has been created. Here are a few things to get started:`)}
     ${divider()}
-    <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">3 things to do first</p>
     <table cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td style="padding:10px 0;font-size:15px;color:#374151;">
-          <span style="color:#059669;font-weight:700;">1 ·</span> Create your first invoice in <strong>60 seconds</strong>
+          <span style="color:#059669;font-weight:700;">1 ·</span> Create your first invoice
         </td>
       </tr>
       <tr>
         <td style="padding:10px 0;font-size:15px;color:#374151;">
-          <span style="color:#059669;font-weight:700;">2 ·</span> Add your logo and business details in <strong>Settings</strong>
+          <span style="color:#059669;font-weight:700;">2 ·</span> Add your logo and business details in Settings
         </td>
       </tr>
       <tr>
         <td style="padding:10px 0;font-size:15px;color:#374151;">
-          <span style="color:#059669;font-weight:700;">3 ·</span> Invite your first client to the <strong>client portal</strong>
+          <span style="color:#059669;font-weight:700;">3 ·</span> Invite your first client to the client portal
         </td>
       </tr>
     </table>
-    ${btn("Create your first invoice →", "https://billingbee.co/generate")}
-    ${p(`Need help? Just reply to this email — we read every message.`)}
+    ${btn("Go to dashboard", "https://billingbee.co/dashboard")}
+    ${p(`Questions? Reply to this email and we'll help you out.`)}
   `
   return sendEmail({
     to: userEmail,
-    subject: "Welcome to BillingBee — your AI finance assistant",
-    html: layout(body, `Welcome ${userName}! Create your first invoice in 60 seconds.`),
+    subject: "Your BillingBee account is ready",
+    html: layout(body, `Your BillingBee account is ready, ${userName}.`),
+    replyTo: "hello@billingbee.co",
   })
 }
 

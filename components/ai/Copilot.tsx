@@ -116,10 +116,14 @@ export default function Copilot({
   lastClientUsed,
   initialMessage,
   isOnboarding = false,
+  apiEndpoint = "/api/ai/copilot",
+  suggestions: suggestionsProp,
 }: {
   lastClientUsed?: string
   initialMessage?: string
   isOnboarding?: boolean
+  apiEndpoint?: string
+  suggestions?: string[]
 }) {
   const welcomeContent = initialMessage ?? (isOnboarding ? ONBOARDING_MESSAGE : DEFAULT_WELCOME)
 
@@ -134,11 +138,14 @@ export default function Copilot({
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    const el = scrollContainerRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
   }, [messages])
 
   const historyForAPI = useCallback(() => {
@@ -159,7 +166,7 @@ export default function Copilot({
     setLoading(true)
 
     try {
-      const res = await fetch("/api/ai/copilot", {
+      const res = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text.trim(), history: historyForAPI() }),
@@ -268,7 +275,7 @@ export default function Copilot({
     }
   }
 
-  const suggestions = isOnboarding
+  const suggestions = suggestionsProp ?? (isOnboarding
     ? [
         "Invoice Acme Corp ₹10,000 for design work",
         "Invoice TechCorp ₹25,000 for consulting",
@@ -279,14 +286,14 @@ export default function Copilot({
         lastClientUsed ? `Create invoice for ${lastClientUsed}` : "Create invoice for new client",
         "How much did I earn this month?",
         "Show overdue invoices",
-      ]
+      ])
 
   const showSuggestions = messages.length <= 1
 
   return (
     <div className="flex flex-col h-full">
       {/* Message area */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0 overscroll-contain">
         {messages.map((msg) => (
           <Message
             key={msg.id}
@@ -322,7 +329,7 @@ export default function Copilot({
             value={input}
             onChange={(e) => {
               setInput(e.target.value)
-              e.target.style.height = "auto"
+              e.target.style.height = "36px"
               e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`
             }}
             onKeyDown={handleKeyDown}

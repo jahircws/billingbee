@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
-import GSTChat from "./GSTChat"
 import { Download, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
@@ -186,8 +185,6 @@ export default async function TaxPage() {
           </div>
         )}
 
-        {/* AI Tax Chat */}
-        <GSTChat />
       </div>
     </div>
   )

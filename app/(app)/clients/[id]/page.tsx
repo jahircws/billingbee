@@ -7,6 +7,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import InviteClientButton from "./InviteClientButton"
+import EditClientButton from "./EditClientButton"
 import PipelineTimeline from "./PipelineTimeline"
 import { fmtCurrency } from "@/lib/currency"
 
@@ -77,21 +78,33 @@ export default async function ClientPage({ params }: Props) {
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 pb-20 md:pb-6">
         {/* Client info */}
         <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-gray-900">{client.name}</h2>
+              {client.company && <p className="text-sm text-gray-500">{client.company}</p>}
               {client.email && <p className="text-sm text-gray-500">{client.email}</p>}
               {client.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
-              {client.address && <p className="text-sm text-gray-400 mt-1">{client.address}</p>}
+              {(client.address || client.city || client.state) && (
+                <p className="text-sm text-gray-400 mt-1">
+                  {[client.address, client.city, client.state, client.pincode].filter(Boolean).join(", ")}
+                </p>
+              )}
+              {client.gstin && (
+                <p className="text-xs text-gray-400 mt-1 font-mono">GSTIN: {client.gstin}</p>
+              )}
+              {client.pan && (
+                <p className="text-xs text-gray-400 font-mono">PAN: {client.pan}</p>
+              )}
             </div>
-            <div className="flex gap-2 flex-wrap">
-            {client.email && <InviteClientButton clientId={client.id} />}
-            <Link
-              href={`/invoices/new?clientId=${client.id}`}
-              className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
-            >
-              + Invoice
-            </Link>
+            <div className="flex gap-2 flex-wrap shrink-0">
+              <EditClientButton client={client} />
+              {client.email && <InviteClientButton clientId={client.id} />}
+              <Link
+                href={`/invoices/new?clientId=${client.id}`}
+                className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+              >
+                + Invoice
+              </Link>
             </div>
           </div>
         </div>

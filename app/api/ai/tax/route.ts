@@ -28,5 +28,5 @@ export async function POST(req: NextRequest) {
   })
 
   const text = msg.content[0]?.type === "text" ? msg.content[0].text : ""
-  return NextResponse.json({ answer: text })
+  return NextResponse.json({ message: text })
 }

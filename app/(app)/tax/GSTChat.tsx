@@ -20,9 +20,11 @@ export default function GSTChat() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    const el = scrollContainerRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [messages])
 
   async function send(text: string) {
@@ -64,7 +66,7 @@ export default function GSTChat() {
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[220px] max-h-[400px]">
+      <div ref={scrollContainerRef} className="overflow-y-auto p-4 space-y-3 min-h-[220px] max-h-[400px]">
         {messages.length === 0 && (
           <div className="text-center py-6">
             <p className="text-sm text-gray-400 mb-4">Ask anything about GST, filing, or compliance</p>

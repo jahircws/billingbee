@@ -76,6 +76,7 @@ export async function acceptPortalInvite(token: string, password: string) {
 
   return {
     success: true,
+    email: portalUser.email,
     orgSlug: portalUser.client.org.slug,
     clientSlug: portalUser.client.slug,
   }

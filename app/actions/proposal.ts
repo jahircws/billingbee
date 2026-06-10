@@ -301,6 +301,26 @@ Write a complete contract with: parties, scope of work, payment terms, timeline,
   return { proposal: serialize(updated) }
 }
 
+export async function updateProposal(
+  proposalId: string,
+  data: { title?: string; sections?: Section[]; pricing?: unknown; timeline?: string }
+) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const proposal = await prisma.proposal.update({
+    where: { id: proposalId, orgId },
+    data: {
+      ...(data.title !== undefined && { title: data.title }),
+      ...(data.sections !== undefined && { sections: data.sections as never }),
+      ...(data.pricing !== undefined && { pricing: data.pricing as never }),
+      ...(data.timeline !== undefined && { timeline: data.timeline }),
+    },
+  })
+  return { proposal: serialize(proposal) }
+}
+
 export async function updateProposalStatus(proposalId: string, status: string) {
   const session = await auth()
   const orgId = session?.user?.orgId

@@ -68,7 +68,9 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     return { error: "Registration failed. Please try again." }
   }
 
-  const loginUrl = callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"
+  const loginUrl = callbackUrl
+    ? `/login?registered=1&callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/login?registered=1"
   redirect(loginUrl)
 }
 

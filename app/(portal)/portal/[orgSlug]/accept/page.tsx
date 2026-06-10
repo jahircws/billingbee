@@ -30,9 +30,9 @@ function AcceptForm({ orgSlug }: { orgSlug: string }) {
     const result = await acceptPortalInvite(token, password)
     if ("error" in result) { setError(result.error ?? "Failed"); setLoading(false); return }
 
-    // Sign in automatically
+    // Sign in automatically with the email returned from acceptPortalInvite
     await signIn("client-password", {
-      email: "",
+      email: result.email,
       password,
       orgSlug,
       redirect: false,

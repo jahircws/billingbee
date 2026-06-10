@@ -8,6 +8,7 @@ import { format } from "date-fns"
 import { Plus, FileText } from "lucide-react"
 import { fmtCurrency } from "@/lib/currency"
 import InvoiceRowActions from "./InvoiceRowActions"
+import OpenCopilotButton from "@/components/ai/OpenCopilotButton"
 
 export const metadata = { ...privateMetadata, title: "Invoices" }
 export const dynamic = "force-dynamic"
@@ -110,13 +111,7 @@ export default async function InvoicesPage({ searchParams }: Props) {
             <FileText className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No invoices yet</p>
             <p className="text-sm text-gray-400 mt-1 mb-5">Your AI assistant can create one for you in seconds</p>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
-            >
-              <Plus className="w-4 h-4" />
-              Ask AI to create one
-            </Link>
+            <OpenCopilotButton />
             <p className="text-xs text-gray-400 mt-3">
               Try: <em>&quot;Invoice Acme Corp ₹10,000 for design work&quot;</em>
             </p>

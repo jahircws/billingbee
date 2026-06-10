@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import { authConfig } from "@/auth.config"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
 
 const { auth } = NextAuth(authConfig)
 
@@ -12,9 +14,38 @@ function isPublic(pathname: string) {
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))
 }
 
-export default auth((req) => {
+// Login rate limiter — 5 attempts per minute per IP (only active when Upstash is configured)
+const loginRatelimit =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(5, "1 m"),
+        prefix: "bb:login",
+      })
+    : null
+
+async function applyLoginRateLimit(req: NextRequest): Promise<NextResponse | null> {
+  if (!loginRatelimit) return null
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1"
+  const { success } = await loginRatelimit.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please wait a minute and try again." },
+      { status: 429 }
+    )
+  }
+  return null
+}
+
+export default auth(async (req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
+
+  // Rate-limit login attempts
+  if (req.method === "POST" && pathname === "/api/auth/callback/credentials") {
+    const limited = await applyLoginRateLimit(req)
+    if (limited) return limited
+  }
 
   if (pathname.startsWith("/admin/")) {
     if (pathname === "/admin/login") return NextResponse.next()

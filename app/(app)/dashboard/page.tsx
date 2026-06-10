@@ -1,10 +1,8 @@
-import { Suspense } from "react"
 import Link from "next/link"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
-import Copilot from "@/components/ai/Copilot"
 import { privateMetadata } from "@/lib/metadata"
 import HealthCard from "@/components/dashboard/HealthCard"
 import { calculateHealthScore } from "@/lib/health"
@@ -20,7 +18,6 @@ import {
   Paperclip,
   Users,
   BarChart3,
-  Sparkles,
 } from "lucide-react"
 import { format, addDays } from "date-fns"
 import { fmtCurrencyShort } from "@/lib/currency"
@@ -168,25 +165,6 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           </div>
         )}
 
-        {/* AI Revenue Copilot — hero feature */}
-        <div className="rounded-2xl overflow-hidden shadow-md border border-emerald-100" style={{ height: "520px" }}>
-          {/* Gradient header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-              <Sparkles size={16} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white leading-tight">AI Revenue Copilot</p>
-              <p className="text-xs text-emerald-100 leading-tight">Ask anything — create invoices, chase payments, analyse revenue</p>
-            </div>
-            <span className="text-[10px] font-medium text-emerald-100 bg-white/15 px-2 py-1 rounded-full shrink-0">Powered by Claude</span>
-          </div>
-          <div className="bg-white h-[calc(100%-72px)]">
-            <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading copilot...</div>}>
-              <Copilot lastClientUsed={lastClient ?? undefined} isOnboarding={isNewUser} />
-            </Suspense>
-          </div>
-        </div>
 
         {/* Attention cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-4">

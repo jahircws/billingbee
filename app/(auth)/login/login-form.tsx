@@ -7,11 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { loginStaff } from "@/app/actions/auth"
 
-export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
+interface Props {
+  callbackUrl?: string
+  registered?: boolean
+}
+
+export function LoginForm({ callbackUrl, registered }: Props) {
   const [state, action, pending] = useActionState(loginStaff, undefined)
 
   return (
     <div className="space-y-8">
+      {registered && (
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3">
+          <p className="text-sm text-emerald-700 font-medium">Account created! Please sign in to get started.</p>
+        </div>
+      )}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
         <p className="text-gray-500 text-sm">Sign in to your BillingBee account</p>

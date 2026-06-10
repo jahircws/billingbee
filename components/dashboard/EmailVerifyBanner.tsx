@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Mail } from "lucide-react"
+import { X, Mail, Loader2 } from "lucide-react"
 
 const KEY = "bb_email_verify_dismissed"
 const MAX_DISMISSALS = 3
 
 export default function EmailVerifyBanner() {
   const [visible, setVisible] = useState(false)
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
 
   useEffect(() => {
     try {
@@ -26,6 +27,17 @@ export default function EmailVerifyBanner() {
     } catch { /* ignore */ }
   }
 
+  async function sendVerification() {
+    if (status === "sending" || status === "sent") return
+    setStatus("sending")
+    try {
+      const res = await fetch("/api/auth/send-verification", { method: "POST" })
+      setStatus(res.ok ? "sent" : "error")
+    } catch {
+      setStatus("error")
+    }
+  }
+
   if (!visible) return null
 
   return (
@@ -33,7 +45,29 @@ export default function EmailVerifyBanner() {
       <div className="flex items-center gap-2.5">
         <Mail className="h-4 w-4 text-blue-500 shrink-0" />
         <p className="text-sm text-blue-800">
-          <span className="font-semibold">Verify your email</span> to unlock invoice sending &amp; payment collection
+          {status === "sent" ? (
+            "Verification email sent — check your inbox."
+          ) : (
+            <>
+              <button
+                onClick={sendVerification}
+                disabled={status === "sending"}
+                className="font-semibold underline underline-offset-2 hover:text-blue-600 transition-colors disabled:opacity-60"
+              >
+                {status === "sending" ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Sending…
+                  </span>
+                ) : status === "error" ? (
+                  "Retry sending verification"
+                ) : (
+                  "Verify your email"
+                )}
+              </button>
+              <span> to unlock invoice sending &amp; payment collection</span>
+            </>
+          )}
         </p>
       </div>
       <button
