@@ -6,6 +6,7 @@ import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
 import Anthropic from "@anthropic-ai/sdk"
 import { sendProposalEmail, sendContractEmail } from "@/lib/email"
+import { SignJWT } from "jose"
 import { headers } from "next/headers"
 
 const anthropic = new Anthropic()
@@ -213,7 +214,19 @@ export async function sendProposalToClient(proposalId: string) {
 
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
   const orgSlug = proposal.client.org.slug
-  const proposalUrl = `${base}/portal/${orgSlug}/proposal/${proposalId}`
+
+  // Generate a 7-day signed access token so unregistered clients can auto-login
+  const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET ?? "fallback-secret")
+  const accessToken = await new SignJWT({
+    clientId: proposal.client.id,
+    email: proposal.client.email,
+    orgSlug,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(secret)
+
+  const proposalUrl = `${base}/portal/${orgSlug}/open/${proposalId}?t=${accessToken}`
 
   // Fire-and-forget email
   sendProposalEmail(

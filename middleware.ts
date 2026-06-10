@@ -58,7 +58,7 @@ export default auth(async (req) => {
 
   if (pathname.startsWith("/portal/")) {
     // Allow portal auth pages: login, forgot-password, reset-password
-    if (/^\/portal\/[^/]+\/(login|forgot-password|reset-password)/.test(pathname)) return NextResponse.next()
+    if (/^\/portal\/[^/]+\/(login|forgot-password|reset-password|open)/.test(pathname)) return NextResponse.next()
     if (!session || session.user?.userType !== "CLIENT") {
       // Extract orgSlug from /portal/[orgSlug]/...
       const orgSlug = pathname.split("/")[2]

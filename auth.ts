@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
+import { jwtVerify } from "jose"
 import prisma from "@/lib/db"
 import { authConfig } from "./auth.config"
 
@@ -70,6 +71,61 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: portalUser.id,
           clientId: portalUser.clientId,
           orgId: portalUser.client.orgId,
+          email: portalUser.email,
+          userType: "CLIENT" as const,
+        }
+      },
+    }),
+    Credentials({
+      id: "client-token",
+      credentials: {
+        accessToken: { label: "AccessToken", type: "text" },
+        orgSlug: { label: "OrgSlug", type: "text" },
+      },
+      async authorize(credentials) {
+        const accessToken = credentials?.accessToken
+        const orgSlug = credentials?.orgSlug
+        if (typeof accessToken !== "string" || typeof orgSlug !== "string") return null
+
+        const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET ?? "fallback-secret")
+        let payload: { clientId: string; email: string; orgSlug: string }
+        try {
+          const result = await jwtVerify(accessToken, secret)
+          payload = result.payload as typeof payload
+        } catch {
+          return null
+        }
+
+        if (payload.orgSlug !== orgSlug) return null
+
+        const org = await prisma.organization.findUnique({ where: { slug: orgSlug } })
+        if (!org) return null
+
+        // Find or create the ClientPortalUser for this client
+        let portalUser = await prisma.clientPortalUser.findFirst({
+          where: { clientId: payload.clientId, email: payload.email.toLowerCase() },
+          include: { client: true },
+          orderBy: { createdAt: "desc" },
+        })
+
+        if (!portalUser) {
+          // Auto-create portal account (no password — client uses forgot-password to set one later)
+          const { randomBytes } = await import("crypto")
+          portalUser = await prisma.clientPortalUser.create({
+            data: {
+              clientId: payload.clientId,
+              email: payload.email.toLowerCase(),
+              token: randomBytes(32).toString("hex"),
+              expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            },
+            include: { client: true },
+          })
+        }
+
+        return {
+          id: portalUser.id,
+          clientId: portalUser.clientId,
+          orgId: org.id,
           email: portalUser.email,
           userType: "CLIENT" as const,
         }
