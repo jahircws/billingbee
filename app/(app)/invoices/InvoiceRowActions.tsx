@@ -102,10 +102,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
                 Pay link
               </button>
               <button
-                onClick={() => run("dup", () => duplicateInvoice(invoiceId).then((r) => {
-                  if ("invoice" in r && r.invoice) router.push(`/invoices/${r.invoice.id}`)
-                  return r
-                }))}
+                onClick={() => run("dup", () => duplicateInvoice(invoiceId))}
                 className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -127,8 +124,8 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={(e) => e.stopPropagation()}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="text-lg font-bold text-gray-900">Delete {invoiceNumber}?</h3>
-            <p className="text-sm text-gray-500">This cannot be undone.</p>
+            <h3 className="text-lg font-bold text-gray-900 text-center">Delete {invoiceNumber}?</h3>
+            <p className="text-sm text-gray-500 text-center">This cannot be undone.</p>
             <div className="flex gap-2">
               <button onClick={() => setConfirmDelete(false)} className="flex-1 text-sm text-gray-600 border border-gray-200 py-2.5 rounded-xl hover:bg-gray-50">Cancel</button>
               <button

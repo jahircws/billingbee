@@ -193,7 +193,7 @@ export async function convertToInvoice(quoteId: string) {
 
   await prisma.quote.update({
     where: { id: quoteId },
-    data: { status: "CONVERTED" as never },
+    data: { status: "CONVERTED" },
   })
 
   return { invoice: serialize(invoice) }

@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   bold: { fontFamily: "Helvetica-Bold" },
   grid: { flexDirection: "row", gap: 24 },
   col: { flex: 1 },
+  colRight: { flex: 1, alignItems: "flex-end" },
   divider: { borderBottomWidth: 1, borderBottomColor: "#e5e7eb", marginVertical: 16 },
   tableHeader: {
     flexDirection: "row",
@@ -122,18 +123,18 @@ export async function GET(
             {invoice.client.phone && <Text style={styles.value}>{invoice.client.phone}</Text>}
             {invoice.client.address && <Text style={styles.value}>{invoice.client.address}</Text>}
           </View>
-          <View style={styles.col}>
-            <View style={{ marginBottom: 8 }}>
+          <View style={styles.colRight}>
+            <View style={{ marginBottom: 8, alignItems: "flex-end" }}>
               <Text style={styles.label}>Issue date</Text>
               <Text style={styles.value}>{format(invoice.issueDate, "d MMMM yyyy")}</Text>
             </View>
             {invoice.dueDate && (
-              <View style={{ marginBottom: 8 }}>
+              <View style={{ marginBottom: 8, alignItems: "flex-end" }}>
                 <Text style={styles.label}>Due date</Text>
                 <Text style={{ ...styles.value, ...styles.bold }}>{format(invoice.dueDate, "d MMMM yyyy")}</Text>
               </View>
             )}
-            <View>
+            <View style={{ alignItems: "flex-end" }}>
               <Text style={styles.label}>Status</Text>
               <Text style={styles.value}>{invoice.status}</Text>
             </View>

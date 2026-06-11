@@ -475,6 +475,13 @@ export default function InvoiceForm({
         <h3 className="text-sm font-semibold text-gray-700">Items</h3>
 
         <div className="space-y-2">
+          {/* Column headers */}
+          <div className="grid grid-cols-12 gap-2 px-1">
+            <span className="col-span-5 text-xs text-gray-400">Description</span>
+            <span className="col-span-2 text-xs text-gray-400 text-center">Qty</span>
+            <span className="col-span-2 text-xs text-gray-400 text-right">Rate</span>
+            <span className="col-span-2 text-xs text-gray-400 text-center">Tax%</span>
+          </div>
           {items.map((item, idx) => (
             <div key={idx} className="grid grid-cols-12 gap-2 items-center">
               <input
@@ -492,6 +499,7 @@ export default function InvoiceForm({
                 placeholder="Qty"
                 value={item.quantity}
                 onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
               <input
                 className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -501,6 +509,7 @@ export default function InvoiceForm({
                 placeholder="Rate"
                 value={item.unitPrice}
                 onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
               <input
                 className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -511,6 +520,7 @@ export default function InvoiceForm({
                 placeholder="Tax%"
                 value={item.taxRate}
                 onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
               <button
                 type="button"

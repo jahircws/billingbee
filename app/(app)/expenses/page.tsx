@@ -6,6 +6,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Receipt } from "lucide-react"
 import NewExpenseButton from "./NewExpenseButton"
+import ExpenseRowActions from "./ExpenseRowActions"
 import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Expenses" }
@@ -98,6 +99,7 @@ export default async function ExpensesPage({ searchParams }: Props) {
                     <th className="py-3 px-4 text-left text-xs text-gray-400 font-medium hidden md:table-cell">Category</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Date</th>
+                    <th className="py-3 px-4 w-10" />
                   </tr>
                 </thead>
                 <tbody>
@@ -127,6 +129,9 @@ export default async function ExpensesPage({ searchParams }: Props) {
                       </td>
                       <td className="py-3 px-4 text-right text-gray-400 hidden md:table-cell">
                         {format(expense.date, "d MMM yyyy")}
+                      </td>
+                      <td className="py-3 px-2 text-right">
+                        <ExpenseRowActions expenseId={expense.id} title={expense.title} />
                       </td>
                     </tr>
                   ))}

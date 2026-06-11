@@ -636,8 +636,8 @@ export default function GenerateClient() {
                           className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                       </div>
-                      <div className="col-span-2 flex items-center justify-end gap-1">
-                        <span className="text-sm text-gray-700 tabular-nums">
+                      <div className="col-span-2 flex items-center justify-end gap-1 min-w-0">
+                        <span className="text-sm text-gray-700 tabular-nums truncate min-w-0">
                           {(item.qty * item.rate).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </span>
                         {form.items.length > 1 && (

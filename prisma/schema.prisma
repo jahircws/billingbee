@@ -48,6 +48,7 @@ enum QuoteStatus {
   ACCEPTED
   REJECTED
   EXPIRED
+  CONVERTED
 }
 
 enum PaymentMethod {

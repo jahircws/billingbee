@@ -11,13 +11,18 @@ export default function ConvertQuoteButton({ quoteId }: { quoteId: string }) {
   async function handleConvert() {
     if (!confirm("Convert this quote to an invoice?")) return
     setLoading(true)
-    const result = await convertToInvoice(quoteId)
-    setLoading(false)
-    if ("error" in result) {
-      alert(result.error)
-      return
+    try {
+      const result = await convertToInvoice(quoteId)
+      if ("error" in result) {
+        alert(result.error)
+        return
+      }
+      router.push(`/invoices/${result.invoice.id}`)
+    } catch {
+      alert("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
     }
-    router.push(`/invoices/${result.invoice.id}`)
   }
 
   return (

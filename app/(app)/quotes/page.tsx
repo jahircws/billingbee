@@ -7,6 +7,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Plus, FileText } from "lucide-react"
 import { fmtCurrency } from "@/lib/currency"
+import QuoteRowActions from "./QuoteRowActions"
 
 export const metadata = { ...privateMetadata, title: "Quotes" }
 export const dynamic = "force-dynamic"
@@ -118,6 +119,7 @@ export default async function QuotesPage({ searchParams }: Props) {
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
                     <th className="py-3 px-4 text-center text-xs text-gray-400 font-medium">Status</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Expires</th>
+                    <th className="py-3 px-4 w-10" />
                   </tr>
                 </thead>
                 <tbody>
@@ -129,7 +131,7 @@ export default async function QuotesPage({ searchParams }: Props) {
                         </Link>
                       </td>
                       <td className="py-3 px-4 text-gray-800 font-medium">{quote.client.name}</td>
-                      <td className="py-3 px-4 text-right font-semibold text-gray-900">{fmt(Number(quote.total))}</td>
+                      <td className="py-3 px-4 text-right font-semibold text-gray-900">{fmtCurrency(Number(quote.total), quote.currency)}</td>
                       <td className="py-3 px-4 text-center">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[quote.status] ?? "bg-gray-100 text-gray-600"}`}>
                           {quote.status}
@@ -137,6 +139,9 @@ export default async function QuotesPage({ searchParams }: Props) {
                       </td>
                       <td className="py-3 px-4 text-right text-gray-500 hidden md:table-cell">
                         {quote.expiryDate ? format(quote.expiryDate, "d MMM yyyy") : "—"}
+                      </td>
+                      <td className="py-3 px-2 text-right">
+                        <QuoteRowActions quoteId={quote.id} quoteNumber={quote.quoteNumber} />
                       </td>
                     </tr>
                   ))}

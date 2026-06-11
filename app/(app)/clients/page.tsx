@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { Plus, Users } from "lucide-react"
 import NewClientButton from "./NewClientButton"
+import ClientRowActions from "./ClientRowActions"
 
 export const metadata = { ...privateMetadata, title: "Clients" }
 export const dynamic = "force-dynamic"
@@ -80,6 +81,7 @@ export default async function ClientsPage({ searchParams }: Props) {
                   <th className="py-3 px-4 text-left text-xs text-gray-400 font-medium">Name</th>
                   <th className="py-3 px-4 text-left text-xs text-gray-400 font-medium hidden md:table-cell">Email</th>
                   <th className="py-3 px-4 text-center text-xs text-gray-400 font-medium">Invoices</th>
+                  <th className="py-3 px-4 w-10" />
                 </tr>
               </thead>
               <tbody>
@@ -93,6 +95,9 @@ export default async function ClientsPage({ searchParams }: Props) {
                     </td>
                     <td className="py-3 px-4 text-gray-500 hidden md:table-cell">{client.email ?? "—"}</td>
                     <td className="py-3 px-4 text-center text-gray-600">{client._count.invoices}</td>
+                    <td className="py-3 px-2 text-right">
+                      <ClientRowActions clientId={client.id} clientName={client.name} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
