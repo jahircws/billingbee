@@ -97,6 +97,7 @@ export default function InvoiceForm({
     initialData?.recurringFrequency ?? "monthly"
   )
   const [discountAmount, setDiscountAmount] = useState(initialData?.discountAmount ?? 0)
+  const [discountType, setDiscountType] = useState<"FIXED" | "PERCENTAGE">("FIXED")
   const [items, setItems] = useState<LineItem[]>(
     initialData?.items ?? [
       {
@@ -167,7 +168,9 @@ export default function InvoiceForm({
     const base = i.taxType === "FIXED" ? i.quantity * i.unitPrice : i.quantity * i.unitPrice * (1 - i.discount / 100)
     return s + (i.taxType === "FIXED" ? i.taxRate : base * (i.taxRate / 100))
   }, 0)
-  const total = items.reduce((s, i) => s + calcItem(i), 0) - discountAmount
+  const itemsTotal = items.reduce((s, i) => s + calcItem(i), 0)
+  const actualDiscount = discountType === "PERCENTAGE" ? itemsTotal * (discountAmount / 100) : discountAmount
+  const total = itemsTotal - actualDiscount
   const fmt = (n: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2 }).format(n)
 
@@ -272,7 +275,7 @@ export default function InvoiceForm({
       autoFollowUp,
       isRecurring: type === "invoice" ? isRecurring : false,
       recurringCron: type === "invoice" && isRecurring ? cronByFrequency[recurringFrequency] : undefined,
-      discountAmount: discountAmount || undefined,
+      discountAmount: actualDiscount || undefined,
       items: items.map((i) => ({
         description: i.description,
         quantity: i.quantity,
@@ -654,7 +657,17 @@ export default function InvoiceForm({
           )}
           <div className="flex items-center justify-between gap-3">
             <label className="text-xs text-gray-400">Discount</label>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" name="discountType" value="FIXED" checked={discountType === "FIXED"} onChange={() => setDiscountType("FIXED")} className="accent-emerald-600" />
+                  Fixed
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" name="discountType" value="PERCENTAGE" checked={discountType === "PERCENTAGE"} onChange={() => setDiscountType("PERCENTAGE")} className="accent-emerald-600" />
+                  %
+                </label>
+              </div>
               <span className="text-xs text-gray-400">−</span>
               <input
                 type="number"
