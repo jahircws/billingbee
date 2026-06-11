@@ -100,89 +100,89 @@ export default function OnboardingChecklist({ steps, draftInvoiceId }: Props) {
     },
   ]
 
+  // Index of the first incomplete non-bonus step (to show its description)
+  const nextStepIdx = stepDefs.findIndex(s => !s.done && !s.bonus)
+
   return (
     <div className="mx-4 mt-3 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-semibold text-gray-900">
-                {allCoreComplete ? "You're all set! 🎉" : "Get set up in minutes"}
-              </p>
-              <span className="text-xs text-gray-400 shrink-0 ml-2">{doneCoreCount}/{totalCore} done</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
-              <div
-                className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
+      {/* Header — progress bar + controls */}
+      <div className="px-4 py-2.5 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-gray-700">
+              {allCoreComplete ? "You're all set! 🎉" : "Get set up in minutes"}
+            </p>
+            <span className="text-xs text-gray-400 shrink-0 ml-2">{doneCoreCount}/{totalCore} done</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-1">
+            <div
+              className="bg-emerald-500 h-1 rounded-full transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={() => setCollapsed(v => !v)}
             className="text-gray-400 hover:text-gray-600 p-1 transition-colors"
             aria-label={collapsed ? "Expand" : "Collapse"}
           >
-            {collapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
+            {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           </button>
           <button
             onClick={dismiss}
             className="text-gray-400 hover:text-gray-600 p-1 transition-colors"
             aria-label="Dismiss"
           >
-            <X size={15} />
+            <X size={14} />
           </button>
         </div>
       </div>
 
       {/* Steps */}
       {!collapsed && (
-        <div className="border-t border-gray-100 divide-y divide-gray-50">
-          {stepDefs.map((step) => {
+        <div className="border-t border-gray-100">
+          {stepDefs.map((step, idx) => {
+            const isNext = idx === nextStepIdx
             const row = (
               <div
-                className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                  !step.done && step.href ? "hover:bg-gray-50 cursor-pointer" : ""
-                }`}
+                className={`flex items-center gap-2.5 px-4 transition-colors ${
+                  isNext ? "py-2.5 bg-emerald-50/60" : "py-1.5"
+                } ${!step.done && step.href ? "hover:bg-gray-50 cursor-pointer" : ""}`}
               >
                 {/* Icon */}
-                <div className="mt-0.5 shrink-0">
+                <div className="shrink-0">
                   {step.done ? (
-                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <Check size={12} className="text-emerald-600" />
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <Check size={10} className="text-emerald-600" />
                     </div>
                   ) : step.bonus ? (
-                    <div className="w-6 h-6 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-                      <Star size={11} className="text-amber-500 fill-amber-400" />
+                    <div className="w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
+                      <Star size={9} className="text-amber-500 fill-amber-400" />
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-gray-300" />
+                    <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                     </div>
                   )}
                 </div>
 
                 {/* Text */}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium leading-tight ${step.done ? "text-gray-400 line-through" : "text-gray-900"}`}>
+                  <p className={`text-xs font-medium leading-tight ${step.done ? "text-gray-400 line-through" : "text-gray-800"}`}>
                     {step.label}
                     {step.bonus && !step.done && (
-                      <span className="ml-1.5 text-xs font-normal text-amber-600 no-underline" style={{ textDecoration: "none" }}>
-                        bonus
-                      </span>
+                      <span className="ml-1 text-xs font-normal text-amber-500">bonus</span>
                     )}
                   </p>
-                  {!step.done && (
+                  {isNext && (
                     <p className="text-xs text-gray-400 mt-0.5">{step.desc}</p>
                   )}
                 </div>
 
-                {/* Arrow */}
-                {!step.done && step.href && (
-                  <span className="text-xs text-emerald-600 font-semibold shrink-0 mt-0.5">Go →</span>
+                {/* Arrow — only on next actionable step */}
+                {isNext && step.href && (
+                  <span className="text-xs text-emerald-600 font-semibold shrink-0">Go →</span>
                 )}
               </div>
             )
