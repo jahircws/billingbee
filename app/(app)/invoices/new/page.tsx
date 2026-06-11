@@ -28,13 +28,14 @@ export default async function NewInvoicePage({ searchParams }: Props) {
 
   const { clientId, clientName, amount, description, dueDate, mode } = await searchParams
 
-  const [clients, org] = await Promise.all([
+  const [clients, org, taxes] = await Promise.all([
     prisma.client.findMany({
       where: { orgId },
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } }),
+    prisma.tax.findMany({ where: { orgId, isActive: true }, select: { id: true, name: true, rate: true }, orderBy: { name: "asc" } }),
   ])
 
   const isPro = org?.plan !== "free"
@@ -46,6 +47,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
       <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full pb-20 md:pb-6">
         <InvoiceForm
           clients={clients}
+          orgTaxes={taxes.map((t) => ({ id: t.id, name: t.name, rate: Number(t.rate) }))}
           isPro={isPro}
           defaultClientId={clientId}
           defaultClientName={clientName}

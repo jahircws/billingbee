@@ -39,9 +39,16 @@ interface InitialData {
   items: LineItem[]
 }
 
+interface OrgTax {
+  id: string
+  name: string
+  rate: number
+}
+
 interface Props {
   type?: "invoice" | "quote"
   clients: Client[]
+  orgTaxes?: OrgTax[]
   defaultClientId?: string
   defaultClientName?: string
   defaultAmount?: number
@@ -55,7 +62,7 @@ interface Props {
 
 const DRAFT_KEY = "billingbee_draft_invoice"
 
-const TAX_NAMES = ["GST", "IGST", "CGST+SGST", "None"]
+const DEFAULT_TAX_NAMES = ["GST", "IGST", "CGST+SGST", "None"]
 
 function calcItem(item: LineItem) {
   const subtotal = item.quantity * item.unitPrice
@@ -80,7 +87,9 @@ export default function InvoiceForm({
   uploadMode = false,
   defaultCurrency = "INR",
   initialData,
+  orgTaxes = [],
 }: Props) {
+  const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : DEFAULT_TAX_NAMES
   const editMode = !!initialData
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
@@ -591,10 +600,15 @@ export default function InvoiceForm({
                 <div className="col-span-2 relative">
                   <select
                     value={item.taxName}
-                    onChange={(e) => updateItem(idx, "taxName", e.target.value)}
+                    onChange={(e) => {
+                      const name = e.target.value
+                      const orgTax = orgTaxes.find((t) => t.name === name)
+                      updateItem(idx, "taxName", name)
+                      if (orgTax) updateItem(idx, "taxRate", orgTax.rate)
+                    }}
                     className="w-full text-xs border border-gray-200 rounded-lg px-2 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                   >
-                    {TAX_NAMES.map((n) => <option key={n} value={n}>{n}</option>)}
+                    {taxNames.map((n) => <option key={n} value={n}>{n}</option>)}
                   </select>
                 </div>
                 <button
