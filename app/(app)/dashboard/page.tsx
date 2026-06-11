@@ -188,7 +188,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
       {emailUnverified && <EmailVerifyBanner />}
       <GenerateSignupBanner draftInvoiceId={onboarding.draftInvoiceId} />
       {onboarding.show && (
-        <OnboardingChecklist steps={onboarding.steps} draftInvoiceId={onboarding.draftInvoiceId} />
+        <OnboardingChecklist steps={onboarding.steps} draftInvoiceId={onboarding.draftInvoiceId} orgId={orgId} />
       )}
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">

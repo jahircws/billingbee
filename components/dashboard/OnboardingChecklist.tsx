@@ -15,19 +15,19 @@ interface Steps {
 interface Props {
   steps: Steps
   draftInvoiceId: string | null
+  orgId: string
 }
 
-const DISMISSED_KEY = "bb_onboarding_dismissed"
-
-export default function OnboardingChecklist({ steps, draftInvoiceId }: Props) {
+export default function OnboardingChecklist({ steps, draftInvoiceId, orgId }: Props) {
+  const dismissedKey = `bb_onboarding_dismissed_${orgId}`
   const [dismissed, setDismissed] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(DISMISSED_KEY) === "1") setDismissed(true)
+      if (localStorage.getItem(dismissedKey) === "1") setDismissed(true)
     } catch { /* ignore */ }
-  }, [])
+  }, [dismissedKey])
 
   const allCoreComplete = steps.account && steps.business && steps.client && steps.invoiceSent
   const allComplete = allCoreComplete && steps.gateway
@@ -36,7 +36,7 @@ export default function OnboardingChecklist({ steps, draftInvoiceId }: Props) {
   useEffect(() => {
     if (allComplete) {
       const t = setTimeout(() => {
-        try { localStorage.setItem(DISMISSED_KEY, "1") } catch { /* ignore */ }
+        try { localStorage.setItem(dismissedKey, "1") } catch { /* ignore */ }
         setDismissed(true)
       }, 2000)
       return () => clearTimeout(t)
@@ -44,7 +44,7 @@ export default function OnboardingChecklist({ steps, draftInvoiceId }: Props) {
   }, [allComplete])
 
   function dismiss() {
-    try { localStorage.setItem(DISMISSED_KEY, "1") } catch { /* ignore */ }
+    try { localStorage.setItem(dismissedKey, "1") } catch { /* ignore */ }
     setDismissed(true)
   }
 
