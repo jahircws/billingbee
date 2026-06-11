@@ -10,6 +10,7 @@ import { registerOrg } from "@/app/actions/auth"
 export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
   const [state, action, pending] = useActionState(registerOrg, undefined)
   const acqRef = useRef<HTMLInputElement>(null)
+  const pendingDocRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     try {
@@ -17,6 +18,13 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
       if (raw && acqRef.current) {
         const { source, campaign, from } = JSON.parse(raw)
         acqRef.current.value = campaign || from || source || ""
+      }
+    } catch { /* ignore */ }
+
+    try {
+      const pendingDoc = localStorage.getItem("bb_pending_doc")
+      if (pendingDoc && pendingDocRef.current) {
+        pendingDocRef.current.value = pendingDoc
       }
     } catch { /* ignore */ }
   }, [])
@@ -38,8 +46,15 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
         </p>
       </div>
 
-      <form action={action} className="space-y-5">
+      <form
+        action={action}
+        className="space-y-5"
+        onSubmit={() => {
+          try { localStorage.removeItem("bb_pending_doc") } catch { /* ignore */ }
+        }}
+      >
         <input ref={acqRef} type="hidden" name="acquisitionSource" />
+        <input ref={pendingDocRef} type="hidden" name="pendingDoc" />
         {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">

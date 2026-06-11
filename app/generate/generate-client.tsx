@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { format, addDays } from "date-fns"
-import { Sparkles, X, Plus, ChevronDown, ChevronUp, Loader2, Paperclip } from "lucide-react"
+import { Sparkles, X, Plus, ChevronDown, ChevronUp, Loader2, Paperclip, ArrowRight } from "lucide-react"
 import UploadToInvoice, { type ExtractionResult } from "@/components/ai/UploadToInvoice"
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -181,99 +182,36 @@ function Preview({ form }: { form: FormState }) {
   )
 }
 
-// ── Save Modal ────────────────────────────────────────────────────────────────
+// ── Sign-up interstitial for Proposal / Contract ─────────────────────────────
 
-function SaveModal({ form, onClose }: { form: FormState; onClose: () => void }) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [businessName, setBusinessName] = useState(form.fromName)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-
-    const fd = new FormData()
-    fd.append("email", email)
-    fd.append("password", password)
-    fd.append("confirmPassword", password)
-    fd.append("orgName", businessName)
-    fd.append("name", businessName)
-
-    const { registerOrg } = await import("@/app/actions/auth")
-    const result = await registerOrg(null, fd)
-    if (result?.error) {
-      setError(result.error)
-      setLoading(false)
-    }
-    // On success registerOrg redirects to /login; we want /dashboard
-    // Since registerOrg redirects to /login, we redirect ourselves
-    window.location.href = "/dashboard?new=true"
-  }
+function SignUpInterstitial({ docType }: { docType: "proposal" | "contract" }) {
+  const label = docType === "proposal" ? "Proposals" : "Contracts"
+  const description =
+    docType === "proposal"
+      ? "Multi-section AI proposals with scope, deliverables, timeline, and pricing — auto-generated from a brief."
+      : "Professional contracts with custom clauses, e-signature, and client acceptance flow."
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Save your document</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
+    <div className="flex-1 flex items-center justify-center p-8">
+      <div className="max-w-sm text-center">
+        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <Sparkles size={24} className="text-emerald-600" />
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Business name</label>
-            <input
-              type="text"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password (min 8 chars)</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={8}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              required
-            />
-          </div>
-
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-            Create free account &amp; save →
-          </button>
-
-          <p className="text-center text-sm text-gray-500">
-            Already have an account?{" "}
-            <Link href="/login" className="text-emerald-600 hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </form>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{label} need an account</h2>
+        <p className="text-sm text-gray-500 leading-relaxed mb-6">{description}</p>
+        <Link
+          href="/register?from=generate"
+          className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors w-full"
+        >
+          Sign up free to get started
+          <ArrowRight size={14} />
+        </Link>
+        <p className="text-xs text-gray-400 mt-3">
+          Already have an account?{" "}
+          <Link href="/login" className="text-emerald-600 hover:underline">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   )
@@ -282,11 +220,11 @@ function SaveModal({ form, onClose }: { form: FormState; onClose: () => void }) 
 // ── Main client component ─────────────────────────────────────────────────────
 
 export default function GenerateClient() {
+  const router = useRouter()
   const [form, setForm] = useState<FormState>(defaultState)
   const [urlTypeLocked, setUrlTypeLocked] = useState(false)
   const [showTax, setShowTax] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
-  const [showModal, setShowModal] = useState(false)
   const [showDraftBanner, setShowDraftBanner] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [suggestLoading, setSuggestLoading] = useState<string | null>(null)
@@ -516,6 +454,13 @@ export default function GenerateClient() {
     setPdfLoading(false)
   }
 
+  function handleSaveAndRegister() {
+    try {
+      localStorage.setItem("bb_pending_doc", JSON.stringify(form))
+    } catch { /* ignore */ }
+    router.push("/register?from=generate")
+  }
+
   const docTypes: { id: DocType; label: string }[] = [
     { id: "invoice", label: "Invoice" },
     { id: "quote", label: "Quote" },
@@ -552,7 +497,34 @@ export default function GenerateClient() {
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left column — form */}
+        {/* Proposal / Contract interstitial — replaces entire content area */}
+        {(form.docType === "proposal" || form.docType === "contract") && (
+          <div className="flex flex-1 flex-col">
+            {/* Still show the tab switcher so they can go back */}
+            <div className="w-full md:w-[480px] shrink-0 bg-white border-r border-gray-100 px-6 pt-6">
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+                {docTypes.map((dt) => (
+                  <button
+                    key={dt.id}
+                    onClick={() => set("docType", dt.id)}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                      form.docType === dt.id
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {dt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <SignUpInterstitial docType={form.docType} />
+          </div>
+        )}
+
+        {/* Left column + right column — invoice and quote only */}
+        {(form.docType === "invoice" || form.docType === "quote") && (
+        <>
         <div className="w-full md:w-[480px] shrink-0 overflow-y-auto bg-white border-r border-gray-100">
           <div className="p-6 space-y-6">
             {/* Doc type tabs (hide if type in URL) */}
@@ -740,33 +712,6 @@ export default function GenerateClient() {
                     />
                   </div>
                 </div>
-                {form.docType === "proposal" && (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="Project title"
-                      value={form.projectTitle}
-                      onChange={(e) => set("projectTitle", e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Timeline (e.g. 4 weeks)"
-                      value={form.timeline}
-                      onChange={(e) => set("timeline", e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </>
-                )}
-                {form.docType === "contract" && (
-                  <textarea
-                    placeholder="Scope summary"
-                    value={form.scopeSummary}
-                    onChange={(e) => set("scopeSummary", e.target.value)}
-                    rows={3}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-                  />
-                )}
               </div>
             </section>
 
@@ -905,9 +850,9 @@ export default function GenerateClient() {
             <div className="max-w-[700px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <p className="text-white font-semibold text-sm">
-                  Send with a payment link — clients pay online in minutes
+                  Sign up free to send with a payment link
                 </p>
-                <p className="text-emerald-200 text-xs mt-0.5">Free · No credit card · 30 seconds</p>
+                <p className="text-emerald-200 text-xs mt-0.5">No credit card · 30 seconds to set up</p>
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
@@ -919,19 +864,19 @@ export default function GenerateClient() {
                   Download PDF
                 </button>
                 <button
-                  onClick={() => setShowModal(true)}
-                  className="bg-white text-emerald-700 font-semibold px-4 py-2.5 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                  onClick={handleSaveAndRegister}
+                  className="bg-white text-emerald-700 font-semibold px-4 py-2.5 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
                 >
-                  Save &amp; get paid →
+                  Save &amp; get paid
+                  <ArrowRight size={14} />
                 </button>
               </div>
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
-
-      {/* Save modal */}
-      {showModal && <SaveModal form={form} onClose={() => setShowModal(false)} />}
     </div>
   )
 }

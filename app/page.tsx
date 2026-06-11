@@ -164,7 +164,7 @@ export default function HomePage() {
               Sign in
             </Link>
             <Link
-              href="/generate"
+              href="/register"
               className="text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-all active:scale-95"
             >
               Try free →

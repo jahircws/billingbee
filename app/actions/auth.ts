@@ -7,6 +7,28 @@ import { signIn, signOut } from "@/auth"
 import prisma from "@/lib/db"
 import DOMPurify from "isomorphic-dompurify"
 import { sendWelcomeEmail } from "@/lib/email"
+import { addDays } from "date-fns"
+
+interface PendingDocItem {
+  description: string
+  qty: number
+  rate: number
+}
+
+interface PendingDoc {
+  docType: "invoice" | "quote"
+  fromName: string
+  toName: string
+  toEmail?: string
+  toCompany?: string
+  issueDate?: string
+  dueDate?: string
+  items: PendingDocItem[]
+  taxEnabled?: boolean
+  taxRate?: string
+  notes?: string
+  paymentTerms?: string
+}
 
 function sanitize(value: unknown): string {
   if (typeof value !== "string") return ""
@@ -37,6 +59,17 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     return { error: "Passwords do not match" }
   }
 
+  // Parse pending doc from free tool if present
+  let pendingDoc: PendingDoc | null = null
+  try {
+    const raw = formData.get("pendingDoc")
+    if (raw && typeof raw === "string" && raw.startsWith("{")) {
+      pendingDoc = JSON.parse(raw) as PendingDoc
+    }
+  } catch { /* ignore malformed data */ }
+
+  let createdDocPath: string | null = null
+
   try {
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) return { error: "Email already in use" }
@@ -60,6 +93,81 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
       await tx.orgUser.create({
         data: { orgId: org.id, userId: user.id, role: "OWNER" },
       })
+
+      if (pendingDoc && pendingDoc.toName) {
+        const client = await tx.client.create({
+          data: {
+            orgId: org.id,
+            name: pendingDoc.toName,
+            email: pendingDoc.toEmail || undefined,
+            company: pendingDoc.toCompany || undefined,
+          },
+        })
+
+        const taxRate = pendingDoc.taxEnabled ? parseFloat(pendingDoc.taxRate ?? "0") || 0 : 0
+        const lineItems = (pendingDoc.items ?? []).filter((i) => i.description).map((i, idx) => {
+          const subtotal = i.qty * i.rate
+          const taxAmt = subtotal * (taxRate / 100)
+          return {
+            description: i.description,
+            quantity: i.qty,
+            unitPrice: i.rate,
+            taxRate,
+            taxAmount: taxAmt,
+            discount: 0,
+            total: subtotal + taxAmt,
+            sortOrder: idx,
+          }
+        })
+
+        const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
+        const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
+        const total = subtotal + taxAmount
+        const dueDate = pendingDoc.dueDate ? new Date(pendingDoc.dueDate) : addDays(new Date(), 30)
+
+        if (pendingDoc.docType === "quote") {
+          const count = await tx.quote.count({ where: { orgId: org.id } })
+          const quoteNumber = `QUO-${String(count + 1).padStart(3, "0")}`
+          const quote = await tx.quote.create({
+            data: {
+              orgId: org.id,
+              clientId: client.id,
+              quoteNumber,
+              status: "DRAFT",
+              issueDate: pendingDoc.issueDate ? new Date(pendingDoc.issueDate) : new Date(),
+              expiryDate: dueDate,
+              subtotal,
+              taxAmount,
+              total,
+              notes: pendingDoc.notes || undefined,
+              terms: pendingDoc.paymentTerms || undefined,
+              items: { create: lineItems },
+            },
+          })
+          createdDocPath = `/quotes/${quote.id}`
+        } else {
+          const count = await tx.invoice.count({ where: { orgId: org.id } })
+          const invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`
+          const invoice = await tx.invoice.create({
+            data: {
+              orgId: org.id,
+              clientId: client.id,
+              invoiceNumber,
+              status: "DRAFT",
+              issueDate: pendingDoc.issueDate ? new Date(pendingDoc.issueDate) : new Date(),
+              dueDate,
+              subtotal,
+              taxAmount,
+              total,
+              amountDue: total,
+              notes: pendingDoc.notes || undefined,
+              terms: pendingDoc.paymentTerms || undefined,
+              items: { create: lineItems },
+            },
+          })
+          createdDocPath = `/invoices/${invoice.id}`
+        }
+      }
     })
 
     // Fire-and-forget welcome email
@@ -68,9 +176,8 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     return { error: "Registration failed. Please try again." }
   }
 
-  const loginUrl = callbackUrl
-    ? `/login?registered=1&callbackUrl=${encodeURIComponent(callbackUrl)}`
-    : "/login?registered=1"
+  const destination = createdDocPath ?? (callbackUrl || "/dashboard")
+  const loginUrl = `/login?registered=1&callbackUrl=${encodeURIComponent(destination)}`
   redirect(loginUrl)
 }
 
