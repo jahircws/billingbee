@@ -4,6 +4,21 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient, updateClient } from "@/app/actions/client"
 
+const COUNTRIES = [
+  { code: "IN", name: "India" },
+  { code: "US", name: "United States" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "AU", name: "Australia" },
+  { code: "CA", name: "Canada" },
+  { code: "SG", name: "Singapore" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "DE", name: "Germany" },
+  { code: "FR", name: "France" },
+  { code: "NL", name: "Netherlands" },
+  { code: "JP", name: "Japan" },
+  { code: "NZ", name: "New Zealand" },
+]
+
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa",
   "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala",
@@ -52,6 +67,7 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
   const [city, setCity] = useState(initial.city ?? "")
   const [state, setState] = useState(initial.state ?? "")
   const [pincode, setPincode] = useState(initial.pincode ?? "")
+  const [country, setCountry] = useState(initial.country ?? "IN")
   const [notes, setNotes] = useState(initial.notes ?? "")
 
   async function handleSubmit(e: React.FormEvent) {
@@ -65,7 +81,7 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
       company: company || undefined, gstin: gstin || undefined,
       pan: pan || undefined, address: address || undefined,
       city: city || undefined, state: state || undefined,
-      country: "IN", pincode: pincode || undefined, notes: notes || undefined,
+      country: country || "IN", pincode: pincode || undefined, notes: notes || undefined,
     }
 
     if (mode === "create") {
@@ -173,13 +189,21 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
                 </div>
               </div>
               <div>
-                <label className={label}>State</label>
-                <select value={state} onChange={e => setState(e.target.value)} className={input}>
-                  <option value="">Select state</option>
-                  {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                <label className={label}>Country</label>
+                <select value={country} onChange={e => setCountry(e.target.value)} className={input}>
+                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                 </select>
-                <p className="text-[10px] text-gray-400 mt-0.5">Used to determine CGST+SGST vs IGST</p>
               </div>
+              {country === "IN" && (
+                <div>
+                  <label className={label}>State</label>
+                  <select value={state} onChange={e => setState(e.target.value)} className={input}>
+                    <option value="">Select state</option>
+                    {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Used to determine CGST+SGST vs IGST</p>
+                </div>
+              )}
             </div>
           </div>
 

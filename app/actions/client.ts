@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
 import { checkClientLimit, invalidatePlanCache } from "@/lib/plan"
+import { sendPortalInviteEmail } from "@/lib/email"
 
 interface ClientInput {
   name: string
@@ -99,6 +100,14 @@ export async function createClient(data: ClientInput) {
     },
   })
   invalidatePlanCache(orgId)
+
+  if (data.email) {
+    const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { name: true, slug: true } })
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
+    const loginUrl = org?.slug ? `${base}/portal/${org.slug}/login` : base
+    sendPortalInviteEmail(data.name.trim(), data.email, org?.name ?? "Your business", loginUrl).catch(() => {})
+  }
+
   return { client: serialize(client) }
 }
 

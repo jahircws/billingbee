@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { MoreHorizontal, Send, CheckCircle, Trash2, Copy, ExternalLink } from "lucide-react"
-import { sendInvoice, deleteInvoice, updateInvoiceStatus, duplicateInvoice } from "@/app/actions/invoices"
+import Link from "next/link"
+import { MoreHorizontal, Send, CheckCircle, Trash2, Copy, ExternalLink, Edit2, Bell } from "lucide-react"
+import { sendInvoice, deleteInvoice, updateInvoiceStatus, duplicateInvoice, sendReminder } from "@/app/actions/invoices"
 
 interface Props {
   invoiceId: string
@@ -16,6 +17,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
 
@@ -25,6 +27,12 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
       setMenuPos({ top: rect.bottom + window.scrollY + 4, right: window.innerWidth - rect.right })
     }
   }, [open])
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 3000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   async function openPayLink() {
     setOpen(false)
@@ -37,23 +45,46 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
       setLoading(null)
     }
   }
+
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  async function run(key: string, fn: () => Promise<unknown>) {
+  async function run(key: string, fn: () => Promise<{ error?: unknown } | { success?: boolean } | unknown>) {
     setLoading(key)
     setOpen(false)
     try {
-      await fn()
+      const result = await fn() as { error?: string } | null
+      if (result && "error" in result && result.error) {
+        setToast({ msg: String(result.error), ok: false })
+      } else if (key === "send") {
+        setToast({ msg: "Invoice sent to client", ok: true })
+      } else if (key === "reminder") {
+        setToast({ msg: "Reminder sent to client", ok: true })
+      }
       router.refresh()
+    } catch {
+      setToast({ msg: "Something went wrong", ok: false })
     } finally {
       setLoading(null)
     }
   }
 
+  const isDraft = status === "DRAFT"
   const isPaid = status === "PAID"
+  const canRemind = (status === "UNPAID" || status === "OVERDUE") && !!clientEmail
 
   return (
     <>
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium transition-all ${
+            toast.ok ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+          }`}
+        >
+          {toast.msg}
+        </div>
+      )}
+
       <div className="relative" onClick={(e) => e.stopPropagation()}>
         <button
           ref={buttonRef}
@@ -73,9 +104,19 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
           <>
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
             <div
-              className="fixed z-20 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 text-sm"
+              className="fixed z-20 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 text-sm"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
+              {isDraft && (
+                <Link
+                  href={`/invoices/${invoiceId}/edit`}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
+                  onClick={() => setOpen(false)}
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-blue-500" />
+                  Edit
+                </Link>
+              )}
               {clientEmail && !isPaid && (
                 <button
                   onClick={() => run("send", () => sendInvoice(invoiceId))}
@@ -83,6 +124,15 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
                 >
                   <Send className="w-3.5 h-3.5 text-emerald-500" />
                   Send to client
+                </button>
+              )}
+              {canRemind && (
+                <button
+                  onClick={() => run("reminder", () => sendReminder(invoiceId))}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
+                >
+                  <Bell className="w-3.5 h-3.5 text-amber-500" />
+                  Send reminder
                 </button>
               )}
               {!isPaid && (

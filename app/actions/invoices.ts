@@ -15,10 +15,14 @@ interface LineItemInput {
   quantity: number
   unitPrice: number
   taxRate?: number
+  taxName?: string
+  taxType?: string
+  discount?: number
 }
 
 interface CreateInvoiceInput {
   clientId: string
+  issueDate?: string
   dueDate?: string
   currency?: string
   notes?: string
@@ -27,6 +31,7 @@ interface CreateInvoiceInput {
   autoFollowUp?: boolean
   isRecurring?: boolean
   recurringCron?: string
+  discountAmount?: number
 }
 
 export async function createInvoice(input: CreateInvoiceInput) {
@@ -43,29 +48,37 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const count = await prisma.invoice.count({ where: { orgId } })
   const invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`
 
+  const issueDate = input.issueDate ? new Date(input.issueDate) : new Date()
   const dueDate = input.dueDate
     ? new Date(input.dueDate)
-    : addDays(new Date(), 30)
+    : addDays(issueDate, 30)
 
   // Compute totals
   const lineItems = input.items.map((item) => {
     const subtotal = item.quantity * item.unitPrice
-    const taxAmount = subtotal * ((item.taxRate ?? 0) / 100)
+    const itemDiscount = item.discount ?? 0
+    const discountedSubtotal = subtotal - (item.taxType === "FIXED" ? 0 : subtotal * (itemDiscount / 100))
+    const taxAmount = item.taxType === "FIXED"
+      ? (item.taxRate ?? 0)
+      : discountedSubtotal * ((item.taxRate ?? 0) / 100)
     return {
       description: item.description,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       taxRate: item.taxRate ?? 0,
+      taxName: item.taxName ?? "GST",
+      taxType: item.taxType ?? "PERCENTAGE",
       taxAmount,
-      discount: 0,
-      total: subtotal + taxAmount,
+      discount: itemDiscount,
+      total: discountedSubtotal + taxAmount,
       sortOrder: 0,
     }
   })
 
   const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
   const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
-  const total = subtotal + taxAmount
+  const discountAmount = input.discountAmount ?? 0
+  const total = subtotal + taxAmount - discountAmount
 
   // Auto follow-up: Pro orgs get it on by default, free orgs get false
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } })
@@ -77,13 +90,13 @@ export async function createInvoice(input: CreateInvoiceInput) {
       orgId,
       clientId: input.clientId,
       invoiceNumber,
-      status: "UNPAID",
-      issueDate: new Date(),
+      status: "DRAFT",
+      issueDate,
       dueDate,
       currency: (input.currency ?? "INR") as never,
       subtotal,
       taxAmount,
-      discountAmount: 0,
+      discountAmount,
       total,
       amountPaid: 0,
       amountDue: total,
@@ -178,22 +191,29 @@ export async function updateInvoiceWithItems(invoiceId: string, input: CreateInv
 
   const lineItems = input.items.map((item) => {
     const subtotal = item.quantity * item.unitPrice
-    const taxAmount = subtotal * ((item.taxRate ?? 0) / 100)
+    const itemDiscount = item.discount ?? 0
+    const discountedSubtotal = subtotal - (item.taxType === "FIXED" ? 0 : subtotal * (itemDiscount / 100))
+    const taxAmount = item.taxType === "FIXED"
+      ? (item.taxRate ?? 0)
+      : discountedSubtotal * ((item.taxRate ?? 0) / 100)
     return {
       description: item.description,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       taxRate: item.taxRate ?? 0,
+      taxName: item.taxName ?? "GST",
+      taxType: item.taxType ?? "PERCENTAGE",
       taxAmount,
-      discount: 0,
-      total: subtotal + taxAmount,
+      discount: itemDiscount,
+      total: discountedSubtotal + taxAmount,
       sortOrder: 0,
     }
   })
 
   const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
   const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
-  const total = subtotal + taxAmount
+  const discountAmount = input.discountAmount ?? 0
+  const total = subtotal + taxAmount - discountAmount
 
   const amountPaid = Number(existing.amountPaid)
   const amountDue = Math.max(0, total - amountPaid)
@@ -205,13 +225,16 @@ export async function updateInvoiceWithItems(invoiceId: string, input: CreateInv
       data: {
         clientId: input.clientId,
         currency: (input.currency ?? "INR") as never,
+        issueDate: input.issueDate ? new Date(input.issueDate) : existing.issueDate,
         dueDate: input.dueDate ? new Date(input.dueDate) : existing.dueDate,
         notes: input.notes ?? null,
         terms: input.terms ?? null,
         autoFollowUp: input.autoFollowUp ?? existing.autoFollowUp,
+        isRecurring: input.isRecurring ?? existing.isRecurring,
+        recurringCron: input.recurringCron ?? existing.recurringCron,
         subtotal,
         taxAmount,
-        discountAmount: 0,
+        discountAmount,
         total,
         amountDue,
         items: { create: lineItems },
@@ -349,6 +372,54 @@ export async function sendInvoice(invoiceId: string, paymentUrl?: string) {
       status: "UNPAID",
       sentAt: new Date(),
     },
+  })
+
+  sendInvoiceSentEmail(
+    {
+      invoiceNumber: invoice.invoiceNumber,
+      orgName: org?.name ?? "Your business",
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      total: Number(invoice.total),
+      currency: invoice.currency,
+      items: invoice.items.map((i) => ({
+        description: i.description,
+        quantity: Number(i.quantity),
+        unitPrice: Number(i.unitPrice),
+        total: Number(i.total),
+      })),
+    },
+    invoice.client.name,
+    invoice.client.email,
+    url,
+  ).catch(() => {})
+
+  return { success: true }
+}
+
+export async function sendReminder(invoiceId: string) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId, orgId },
+    include: {
+      client: true,
+      items: { orderBy: { sortOrder: "asc" } },
+    },
+  })
+  if (!invoice) return { error: "Not found" }
+  if (!invoice.client.email) return { error: "Client has no email address" }
+
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { name: true } })
+  const token = generatePaymentToken(invoice.id, orgId)
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
+  const url = `${base}/pay/${token}`
+
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: { reminderSentAt: new Date() },
   })
 
   sendInvoiceSentEmail(

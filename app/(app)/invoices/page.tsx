@@ -49,9 +49,9 @@ export default async function InvoicesPage({ searchParams }: Props) {
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
   ])
-  const currency = org?.currency ?? "INR"
+  const orgCurrency = org?.currency ?? "INR"
   const total = invoices.reduce((s, i) => s + Number(i.total), 0)
-  const fmt = (n: number) => fmtCurrency(n, currency)
+  const fmt = (n: number) => fmtCurrency(n, orgCurrency)
 
   const statuses = ["DRAFT", "UNPAID", "PAID", "OVERDUE"]
 
@@ -149,12 +149,19 @@ export default async function InvoicesPage({ searchParams }: Props) {
                         {invoice.client.name}
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-gray-900">
-                        {fmt(Number(invoice.total))}
+                        {fmtCurrency(Number(invoice.total), invoice.currency)}
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[invoice.status] ?? "bg-gray-100 text-gray-600"}`}>
-                          {invoice.status}
-                        </span>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[invoice.status] ?? "bg-gray-100 text-gray-600"}`}>
+                            {invoice.status}
+                          </span>
+                          {invoice.isRecurring && (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700" title="Recurring invoice">
+                              ↻
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-right text-gray-500 hidden md:table-cell">
                         {invoice.dueDate ? format(invoice.dueDate, "d MMM yyyy") : "—"}

@@ -21,6 +21,6 @@ export async function GET(
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const token = generatePaymentToken(invoice.id, invoice.orgId)
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
   return NextResponse.json({ url: `${base}/pay/${token}` })
 }

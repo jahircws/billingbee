@@ -122,6 +122,9 @@ export async function GET(
             {invoice.client.email && <Text style={styles.value}>{invoice.client.email}</Text>}
             {invoice.client.phone && <Text style={styles.value}>{invoice.client.phone}</Text>}
             {invoice.client.address && <Text style={styles.value}>{invoice.client.address}</Text>}
+            {(invoice.client as { gstin?: string | null }).gstin && (
+              <Text style={{ ...styles.value, color: "#6b7280" }}>GSTIN: {(invoice.client as { gstin?: string | null }).gstin}</Text>
+            )}
           </View>
           <View style={styles.colRight}>
             <View style={{ marginBottom: 8, alignItems: "flex-end" }}>
@@ -156,7 +159,11 @@ export async function GET(
             <Text style={{ ...styles.td, ...styles.descCol }}>{item.description}</Text>
             <Text style={{ ...styles.td, ...styles.numCol }}>{Number(item.quantity)}</Text>
             <Text style={{ ...styles.td, ...styles.numCol }}>{fmt(item.unitPrice)}</Text>
-            <Text style={{ ...styles.td, ...styles.numCol }}>{Number(item.taxRate)}%</Text>
+            <Text style={{ ...styles.td, ...styles.numCol }}>
+              {(item as { taxName?: string | null }).taxName && (item as { taxName?: string | null }).taxName !== "None"
+                ? `${(item as { taxName?: string | null }).taxName} ${Number(item.taxRate)}%`
+                : `${Number(item.taxRate)}%`}
+            </Text>
             <Text style={{ ...styles.td, ...styles.numCol }}>{fmt(item.total)}</Text>
           </View>
         ))}

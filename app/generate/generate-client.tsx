@@ -18,6 +18,10 @@ interface LineItem {
   rate: number
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: "₹", USD: "$", EUR: "€", GBP: "£", AUD: "A$", CAD: "CA$", SGD: "S$", AED: "AED ", JPY: "¥",
+}
+
 interface FormState {
   docType: DocType
   docNumber: string
@@ -28,6 +32,7 @@ interface FormState {
   toCompany: string
   issueDate: string
   dueDate: string
+  currency: string
   projectTitle: string
   timeline: string
   scopeSummary: string
@@ -59,6 +64,7 @@ function defaultState(docType: DocType = "invoice"): FormState {
     toCompany: "",
     issueDate: today,
     dueDate: docType === "quote" ? plus14 : plus30,
+    currency: "INR",
     projectTitle: "",
     timeline: "",
     scopeSummary: "",
@@ -79,7 +85,8 @@ function Preview({ form }: { form: FormState }) {
   const taxRate = form.taxEnabled ? parseFloat(form.taxRate) || 0 : 0
   const taxAmt = subtotal * (taxRate / 100)
   const total = subtotal + taxAmt
-  const fmt = (n: number) => n.toLocaleString("en-IN", { minimumFractionDigits: 2 })
+  const sym = CURRENCY_SYMBOLS[form.currency] ?? form.currency + " "
+  const fmt = (n: number) => `${sym}${n.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
   const docLabel = form.docType.charAt(0).toUpperCase() + form.docType.slice(1)
 
   return (
@@ -434,6 +441,7 @@ export default function GenerateClient() {
             toCompany: form.toCompany,
             issueDate: form.issueDate,
             dueDate: form.dueDate,
+            currency: form.currency,
             items: form.items.map((i) => ({ description: i.description, qty: i.qty, rate: i.rate })),
             taxName: form.taxEnabled ? form.taxName : undefined,
             taxRate: form.taxEnabled ? parseFloat(form.taxRate) : undefined,
@@ -710,6 +718,18 @@ export default function GenerateClient() {
                       onChange={(e) => set("dueDate", e.target.value)}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Currency</label>
+                    <select
+                      value={form.currency}
+                      onChange={(e) => set("currency", e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    >
+                      {Object.keys(CURRENCY_SYMBOLS).map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>

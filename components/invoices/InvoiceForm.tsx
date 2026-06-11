@@ -19,16 +19,23 @@ interface LineItem {
   quantity: number
   unitPrice: number
   taxRate: number
+  taxName: string
+  taxType: string
+  discount: number
 }
 
 interface InitialData {
   invoiceId: string
   clientId: string
+  issueDate?: string
   dueDate?: string
   notes?: string
   terms?: string
   currency: string
   autoFollowUp: boolean
+  isRecurring: boolean
+  recurringFrequency?: "weekly" | "monthly" | "quarterly"
+  discountAmount?: number
   items: LineItem[]
 }
 
@@ -48,9 +55,17 @@ interface Props {
 
 const DRAFT_KEY = "billingbee_draft_invoice"
 
+const TAX_NAMES = ["GST", "IGST", "CGST+SGST", "None"]
+
 function calcItem(item: LineItem) {
   const subtotal = item.quantity * item.unitPrice
-  return subtotal + subtotal * (item.taxRate / 100)
+  const discountedSubtotal = item.taxType === "FIXED"
+    ? subtotal
+    : subtotal - subtotal * (item.discount / 100)
+  const tax = item.taxType === "FIXED"
+    ? item.taxRate
+    : discountedSubtotal * (item.taxRate / 100)
+  return discountedSubtotal + tax
 }
 
 export default function InvoiceForm({
@@ -68,14 +83,20 @@ export default function InvoiceForm({
 }: Props) {
   const editMode = !!initialData
   const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
+
   const [clientId, setClientId] = useState(initialData?.clientId ?? defaultClientId ?? "")
+  const [issueDate, setIssueDate] = useState(initialData?.issueDate ?? "")
   const [dueDate, setDueDate] = useState(initialData?.dueDate ?? defaultDueDate ?? "")
   const [notes, setNotes] = useState(initialData?.notes ?? "")
   const [terms, setTerms] = useState(initialData?.terms ?? "")
   const [showNotesTerms, setShowNotesTerms] = useState(!!(initialData?.notes || initialData?.terms))
   const [autoFollowUp, setAutoFollowUp] = useState(initialData?.autoFollowUp ?? isPro)
-  const [isRecurring, setIsRecurring] = useState(false)
-  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "quarterly">("monthly")
+  const [isRecurring, setIsRecurring] = useState(initialData?.isRecurring ?? false)
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "quarterly">(
+    initialData?.recurringFrequency ?? "monthly"
+  )
+  const [discountAmount, setDiscountAmount] = useState(initialData?.discountAmount ?? 0)
   const [items, setItems] = useState<LineItem[]>(
     initialData?.items ?? [
       {
@@ -83,6 +104,9 @@ export default function InvoiceForm({
         quantity: 1,
         unitPrice: defaultAmount ?? 0,
         taxRate: 0,
+        taxName: "GST",
+        taxType: "PERCENTAGE",
+        discount: 0,
       },
     ]
   )
@@ -118,6 +142,9 @@ export default function InvoiceForm({
           quantity: i.qty ?? 1,
           unitPrice: i.rate ?? 0,
           taxRate: 0,
+          taxName: "GST",
+          taxType: "PERCENTAGE",
+          discount: 0,
         })))
       }
     } catch (err) {
@@ -127,7 +154,7 @@ export default function InvoiceForm({
     }
   }
 
-  // Create new client inline — pre-fill from copilot if clientName provided without clientId
+  // Create new client inline
   const [showNewClient, setShowNewClient] = useState(!defaultClientId && !!defaultClientName)
   const [newClientName, setNewClientName] = useState((!defaultClientId && defaultClientName) ? defaultClientName : "")
   const [newClientEmail, setNewClientEmail] = useState("")
@@ -135,15 +162,20 @@ export default function InvoiceForm({
   const [localClients, setLocalClients] = useState(clients)
 
   const [currency, setCurrency] = useState(initialData?.currency ?? defaultCurrency)
-  const total = items.reduce((s, i) => s + calcItem(i), 0)
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
+  const totalTax = items.reduce((s, i) => {
+    const base = i.taxType === "FIXED" ? i.quantity * i.unitPrice : i.quantity * i.unitPrice * (1 - i.discount / 100)
+    return s + (i.taxType === "FIXED" ? i.taxRate : base * (i.taxRate / 100))
+  }, 0)
+  const total = items.reduce((s, i) => s + calcItem(i), 0) - discountAmount
   const fmt = (n: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2 }).format(n)
 
-  // Auto-save draft to localStorage (skip in edit mode)
+  // Auto-save draft
   const saveDraft = useCallback(() => {
     if (editMode) return
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ clientId, dueDate, notes, terms, items }))
-  }, [editMode, clientId, dueDate, notes, terms, items])
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ clientId, issueDate, dueDate, notes, terms, items, discountAmount }))
+  }, [editMode, clientId, issueDate, dueDate, notes, terms, items, discountAmount])
 
   useEffect(() => {
     if (editMode) return
@@ -153,15 +185,17 @@ export default function InvoiceForm({
         const d = JSON.parse(saved)
         if (d.items?.length) {
           setClientId(d.clientId ?? "")
+          setIssueDate(d.issueDate ?? "")
           setDueDate(d.dueDate ?? "")
           setNotes(d.notes ?? "")
           setTerms(d.terms ?? "")
           if (d.notes || d.terms) setShowNotesTerms(true)
           setItems(d.items)
+          setDiscountAmount(d.discountAmount ?? 0)
         }
       } catch {}
     }
-  }, [defaultClientId])
+  }, [defaultClientId, editMode])
 
   useEffect(() => {
     const timer = setInterval(saveDraft, 30000)
@@ -169,7 +203,7 @@ export default function InvoiceForm({
   }, [saveDraft])
 
   function addItem() {
-    setItems((prev) => [...prev, { description: "", quantity: 1, unitPrice: 0, taxRate: 0 }])
+    setItems((prev) => [...prev, { description: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: "GST", taxType: "PERCENTAGE", discount: 0 }])
   }
 
   function removeItem(idx: number) {
@@ -179,7 +213,9 @@ export default function InvoiceForm({
   function updateItem(idx: number, field: keyof LineItem, value: string | number) {
     setItems((prev) =>
       prev.map((item, i) =>
-        i === idx ? { ...item, [field]: field === "description" ? value : Number(value) } : item
+        i === idx
+          ? { ...item, [field]: typeof value === "string" && field !== "description" && field !== "taxName" && field !== "taxType" ? Number(value) : value }
+          : item
       )
     )
   }
@@ -207,10 +243,15 @@ export default function InvoiceForm({
     setNewClientEmail("")
   }
 
+  function showError(msg: string) {
+    setError(msg)
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!clientId) { setError("Select a client"); return }
-    if (items.some((i) => !i.description.trim())) { setError("All items need a description"); return }
+    if (!clientId) { showError("Select a client"); return }
+    if (items.some((i) => !i.description.trim())) { showError("All items need a description"); return }
 
     setSubmitting(true)
     setError("")
@@ -224,17 +265,22 @@ export default function InvoiceForm({
     const payload = {
       clientId,
       currency,
+      issueDate: issueDate || undefined,
       dueDate: dueDate || undefined,
       notes: notes || undefined,
       terms: terms || undefined,
       autoFollowUp,
       isRecurring: type === "invoice" ? isRecurring : false,
       recurringCron: type === "invoice" && isRecurring ? cronByFrequency[recurringFrequency] : undefined,
+      discountAmount: discountAmount || undefined,
       items: items.map((i) => ({
         description: i.description,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
         taxRate: i.taxRate,
+        taxName: i.taxName,
+        taxType: i.taxType,
+        discount: i.discount,
       })),
     }
 
@@ -253,14 +299,11 @@ export default function InvoiceForm({
       const r = result as { error?: unknown; current?: unknown; limit?: unknown }
       if (r.error === "LIMIT_REACHED") {
         setLimitReached({ current: r.current as number, limit: r.limit as number })
-        setSubmitting(false)
         return
       }
-      setError(String(r.error ?? "Error"))
+      showError(String(r.error ?? "Error"))
       return
     }
-
-    localStorage.removeItem(DRAFT_KEY)
 
     localStorage.removeItem(DRAFT_KEY)
 
@@ -283,7 +326,7 @@ export default function InvoiceForm({
         onClose={() => setLimitReached(null)}
       />
     )}
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-lg">
           {error}
@@ -410,6 +453,15 @@ export default function InvoiceForm({
         <h3 className="text-sm font-semibold text-gray-700">Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
+            <label className="block text-xs text-gray-400 mb-1">Invoice date</label>
+            <input
+              type="date"
+              value={issueDate}
+              onChange={(e) => setIssueDate(e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <div>
             <label className="block text-xs text-gray-400 mb-1">
               {type === "quote" ? "Expiry date" : "Due date"}
             </label>
@@ -457,7 +509,7 @@ export default function InvoiceForm({
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Terms</label>
+              <label className="block text-xs text-gray-400 mb-1">Terms &amp; Conditions</label>
               <textarea
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
@@ -474,62 +526,105 @@ export default function InvoiceForm({
       <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
         <h3 className="text-sm font-semibold text-gray-700">Items</h3>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {/* Column headers */}
           <div className="grid grid-cols-12 gap-2 px-1">
-            <span className="col-span-5 text-xs text-gray-400">Description</span>
-            <span className="col-span-2 text-xs text-gray-400 text-center">Qty</span>
-            <span className="col-span-2 text-xs text-gray-400 text-right">Rate</span>
-            <span className="col-span-2 text-xs text-gray-400 text-center">Tax%</span>
+            <span className="col-span-4 text-xs text-gray-400">Description</span>
+            <span className="col-span-1 text-xs text-gray-400 text-center">Qty</span>
+            <span className="col-span-2 text-xs text-gray-400 text-right">Price</span>
+            <span className="col-span-2 text-xs text-gray-400 text-center">Tax</span>
+            <span className="col-span-2 text-xs text-gray-400 text-center">Type</span>
           </div>
           {items.map((item, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-              <input
-                className="col-span-5 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                placeholder="Description"
-                value={item.description}
-                onChange={(e) => updateItem(idx, "description", e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, idx)}
-              />
-              <input
-                className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                type="number"
-                min="0"
-                step="0.001"
-                placeholder="Qty"
-                value={item.quantity}
-                onChange={(e) => updateItem(idx, "quantity", e.target.value)}
-                onFocus={(e) => e.target.select()}
-              />
-              <input
-                className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Rate"
-                value={item.unitPrice}
-                onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
-                onFocus={(e) => e.target.select()}
-              />
-              <input
-                className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                placeholder="Tax%"
-                value={item.taxRate}
-                onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
-                onFocus={(e) => e.target.select()}
-              />
-              <button
-                type="button"
-                onClick={() => removeItem(idx)}
-                disabled={items.length === 1}
-                className="col-span-1 flex justify-center text-gray-300 hover:text-red-400 disabled:opacity-20 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+            <div key={idx} className="space-y-1.5">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <input
+                  className="col-span-4 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Description"
+                  value={item.description}
+                  onChange={(e) => updateItem(idx, "description", e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, idx)}
+                />
+                <input
+                  className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  placeholder="Qty"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                />
+                <input
+                  className="col-span-2 text-sm border border-gray-200 rounded-lg px-2 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Price"
+                  value={item.unitPrice}
+                  onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                />
+                <div className="col-span-2 flex items-center gap-1">
+                  <input
+                    className="w-full text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder={item.taxType === "FIXED" ? "Amt" : "%"}
+                    value={item.taxRate}
+                    onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                </div>
+                <div className="col-span-2 relative">
+                  <select
+                    value={item.taxName}
+                    onChange={(e) => updateItem(idx, "taxName", e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  >
+                    {TAX_NAMES.map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeItem(idx)}
+                  disabled={items.length === 1}
+                  className="col-span-1 flex justify-center text-gray-300 hover:text-red-400 disabled:opacity-20 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Tax type + per-item discount row */}
+              <div className="grid grid-cols-12 gap-2 px-0">
+                <div className="col-span-4 col-start-5 flex gap-2 items-center">
+                  <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`taxType-${idx}`}
+                      checked={item.taxType === "PERCENTAGE"}
+                      onChange={() => updateItem(idx, "taxType", "PERCENTAGE")}
+                      className="accent-emerald-600"
+                    />
+                    %
+                  </label>
+                  <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`taxType-${idx}`}
+                      checked={item.taxType === "FIXED"}
+                      onChange={() => updateItem(idx, "taxType", "FIXED")}
+                      className="accent-emerald-600"
+                    />
+                    Fixed
+                  </label>
+                  {item.taxName === "CGST+SGST" && item.taxType === "PERCENTAGE" && (
+                    <span className="text-xs text-gray-400">
+                      ({(item.taxRate / 2).toFixed(1)}% + {(item.taxRate / 2).toFixed(1)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -543,8 +638,38 @@ export default function InvoiceForm({
             <Plus className="w-4 h-4" />
             Add item
           </button>
-          <div className="text-sm font-bold text-gray-900">
-            Total: {fmt(total)}
+        </div>
+
+        {/* Totals summary */}
+        <div className="border-t border-gray-100 pt-3 space-y-1.5 text-sm">
+          <div className="flex justify-between text-gray-500">
+            <span>Subtotal</span>
+            <span>{fmt(subtotal)}</span>
+          </div>
+          {totalTax > 0 && (
+            <div className="flex justify-between text-gray-500">
+              <span>Tax</span>
+              <span>{fmt(totalTax)}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-xs text-gray-400">Discount</label>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400">−</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={discountAmount || ""}
+                onChange={(e) => setDiscountAmount(Number(e.target.value))}
+                placeholder="0.00"
+                className="w-24 text-sm border border-gray-200 rounded-lg px-2 py-1 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+          <div className="flex justify-between font-bold text-gray-900 text-base border-t border-gray-100 pt-2">
+            <span>Total</span>
+            <span>{fmt(total)}</span>
           </div>
         </div>
       </div>

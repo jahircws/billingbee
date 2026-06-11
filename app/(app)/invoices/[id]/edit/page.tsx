@@ -42,16 +42,22 @@ export default async function EditInvoicePage({ params }: Props) {
   const initialData = {
     invoiceId: serialized.id,
     clientId: serialized.clientId,
+    issueDate: serialized.issueDate ? format(new Date(serialized.issueDate), "yyyy-MM-dd") : undefined,
     dueDate: serialized.dueDate ? format(new Date(serialized.dueDate), "yyyy-MM-dd") : undefined,
     notes: serialized.notes ?? undefined,
     terms: serialized.terms ?? undefined,
     currency: serialized.currency ?? org?.currency ?? "INR",
     autoFollowUp: serialized.autoFollowUp,
-    items: serialized.items.map((item: { description: string; quantity: unknown; unitPrice: unknown; taxRate: unknown }) => ({
+    isRecurring: serialized.isRecurring ?? false,
+    recurringFrequency: (serialized.recurringCron === "0 9 * * 1" ? "weekly" : serialized.recurringCron === "0 9 1 1,4,7,10 *" ? "quarterly" : "monthly") as "weekly" | "monthly" | "quarterly",
+    items: serialized.items.map((item: { description: string; quantity: unknown; unitPrice: unknown; taxRate: unknown; taxName?: string | null; taxType?: string | null; discount: unknown }) => ({
       description: item.description,
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice),
       taxRate: Number(item.taxRate),
+      taxName: (item.taxName as string) ?? "GST",
+      taxType: (item.taxType as string) ?? "PERCENTAGE",
+      discount: Number(item.discount ?? 0),
     })),
   }
 

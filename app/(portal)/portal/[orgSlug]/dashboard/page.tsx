@@ -32,7 +32,7 @@ export default async function PortalDashboardPage({ params }: Props) {
 
   const clientId = session.user.clientId
 
-  const [client, invoices, quotes, proposals, contracts] = await Promise.all([
+  const [client, invoices, quotes, proposals, contracts, payments] = await Promise.all([
     prisma.client.findUnique({ where: { id: clientId }, select: { name: true } }),
     prisma.invoice.findMany({
       where: { clientId },
@@ -53,6 +53,12 @@ export default async function PortalDashboardPage({ params }: Props) {
       where: { clientId },
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, status: true, signedAt: true, createdAt: true },
+    }),
+    prisma.payment.findMany({
+      where: { invoice: { clientId } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, amount: true, createdAt: true, method: true, invoice: { select: { invoiceNumber: true, currency: true } } },
     }),
   ])
 
@@ -193,6 +199,37 @@ export default async function PortalDashboardPage({ params }: Props) {
                 </span>
               </Link>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Transaction History */}
+      {payments.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Transaction History</h2>
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="py-2.5 px-4 text-left text-xs text-gray-400 font-medium">Invoice</th>
+                  <th className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
+                  <th className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id} className="border-b border-gray-50 last:border-0">
+                    <td className="py-2.5 px-4 font-mono text-xs text-emerald-700 font-medium">{p.invoice.invoiceNumber}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-emerald-700">
+                      {fmtCurrency(p.amount, p.invoice.currency)}
+                    </td>
+                    <td className="py-2.5 px-4 text-right text-gray-400 hidden md:table-cell">
+                      {format(p.createdAt, "d MMM yyyy")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       )}

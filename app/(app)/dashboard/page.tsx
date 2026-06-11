@@ -211,21 +211,21 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
             label="Overdue"
             value={attention.overdue.count > 0 ? `${attention.overdue.count} invoice${attention.overdue.count !== 1 ? "s" : ""} · ${fmt(attention.overdue.amount)}` : "All clear"}
             colorClass={attention.overdue.count > 0 ? "border-red-400" : "border-gray-200"}
-            href="/invoices?filter=overdue"
+            href="/invoices?status=OVERDUE"
           />
           <AttentionCard
             icon={Clock}
             label="Due soon"
             value={attention.dueSoon.count > 0 ? `${attention.dueSoon.count} due this week · ${fmt(attention.dueSoon.amount)}` : "Nothing due soon"}
             colorClass={attention.dueSoon.count > 0 ? "border-amber-400" : "border-gray-200"}
-            href="/invoices?filter=due-soon"
+            href="/invoices?status=UNPAID"
           />
           <AttentionCard
             icon={FileText}
             label="Unsent drafts"
             value={attention.drafts > 0 ? `${attention.drafts} draft${attention.drafts !== 1 ? "s" : ""} ready to send` : "No drafts"}
             colorClass={attention.drafts > 0 ? "border-blue-400" : "border-gray-200"}
-            href="/invoices?filter=draft"
+            href="/invoices?status=DRAFT"
           />
           <AttentionCard
             icon={CheckCircle}
@@ -233,7 +233,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
             value={attention.lastPayment ? `${attention.lastPayment.client} paid ${fmt(attention.lastPayment.amount)}` : "No payments yet"}
             sub={attention.lastPayment ? attention.lastPayment.date : undefined}
             colorClass={attention.lastPayment ? "border-emerald-400" : "border-gray-200"}
-            href="/invoices?filter=paid"
+            href="/invoices?status=PAID"
           />
         </div>
 

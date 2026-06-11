@@ -27,7 +27,7 @@ export function Topbar({ title }: Props) {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (query.trim()) {
-      router.push(`/dashboard/search?q=${encodeURIComponent(query.trim())}`)
+      router.push(`/invoices?search=${encodeURIComponent(query.trim())}`)
     }
   }
 

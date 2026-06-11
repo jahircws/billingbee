@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
 import { format } from "date-fns"
+import { generatePaymentToken } from "@/lib/payment-token"
 
 interface Props {
   params: Promise<{ orgSlug: string; id: string }>
@@ -28,7 +29,10 @@ export default async function PortalInvoicePage({ params }: Props) {
 
   const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
-  const paymentLink = (invoice as unknown as Record<string, unknown>).paymentLink as string | null | undefined
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
+  const paymentToken = generatePaymentToken(invoice.id, (invoice as { orgId: string }).orgId)
+  const paymentLink = `${base}/pay/${paymentToken}`
+  const pdfUrl = `/api/invoice/${invoice.id}/pdf`
 
   return (
     <div className="max-w-2xl mx-auto w-full p-4 md:p-8 space-y-6">
@@ -103,17 +107,27 @@ export default async function PortalInvoicePage({ params }: Props) {
         </div>
       )}
 
-      {/* Pay button */}
-      {(invoice.status === "UNPAID" || invoice.status === "OVERDUE") && paymentLink && (
+      {/* Actions */}
+      <div className="flex gap-3">
         <a
-          href={paymentLink}
+          href={pdfUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition-colors"
+          className="flex-1 text-center border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition-colors text-sm"
         >
-          Pay {fmt(invoice.amountDue)} now
+          Download PDF
         </a>
-      )}
+        {(invoice.status === "UNPAID" || invoice.status === "OVERDUE") && (
+          <a
+            href={paymentLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+          >
+            Pay {fmt(invoice.amountDue)} now
+          </a>
+        )}
+      </div>
     </div>
   )
 }
