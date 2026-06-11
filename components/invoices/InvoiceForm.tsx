@@ -535,8 +535,8 @@ export default function InvoiceForm({
             <span className="col-span-4 text-xs text-gray-400">Description</span>
             <span className="col-span-1 text-xs text-gray-400 text-center">Qty</span>
             <span className="col-span-2 text-xs text-gray-400 text-right">Price</span>
-            <span className="col-span-2 text-xs text-gray-400 text-center">Tax</span>
-            <span className="col-span-2 text-xs text-gray-400 text-center">Type</span>
+            <span className="col-span-2 text-xs text-gray-400 text-center">Tax %/₹</span>
+            <span className="col-span-2 text-xs text-gray-400 text-center">Tax Name</span>
           </div>
           {items.map((item, idx) => (
             <div key={idx} className="space-y-1.5">
@@ -568,17 +568,25 @@ export default function InvoiceForm({
                   onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
                   onFocus={(e) => e.target.select()}
                 />
-                <div className="col-span-2 flex items-center gap-1">
+                <div className="col-span-2 flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
                   <input
-                    className="w-full text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full text-sm px-2 py-2 text-center focus:outline-none bg-white"
                     type="number"
                     min="0"
                     step="0.1"
-                    placeholder={item.taxType === "FIXED" ? "Amt" : "%"}
+                    placeholder={item.taxType === "FIXED" ? "₹" : "%"}
                     value={item.taxRate}
                     onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
                     onFocus={(e) => e.target.select()}
                   />
+                  <button
+                    type="button"
+                    onClick={() => updateItem(idx, "taxType", item.taxType === "FIXED" ? "PERCENTAGE" : "FIXED")}
+                    className="px-1.5 py-2 text-xs font-medium text-gray-400 hover:text-emerald-600 hover:bg-gray-50 border-l border-gray-200 bg-white transition-colors select-none"
+                    title="Toggle % / Fixed"
+                  >
+                    {item.taxType === "FIXED" ? "₹" : "%"}
+                  </button>
                 </div>
                 <div className="col-span-2 relative">
                   <select
@@ -598,36 +606,13 @@ export default function InvoiceForm({
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              {/* Tax type + per-item discount row */}
-              <div className="grid grid-cols-12 gap-2 px-0">
-                <div className="col-span-4 col-start-5 flex gap-2 items-center">
-                  <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`taxType-${idx}`}
-                      checked={item.taxType === "PERCENTAGE"}
-                      onChange={() => updateItem(idx, "taxType", "PERCENTAGE")}
-                      className="accent-emerald-600"
-                    />
-                    %
-                  </label>
-                  <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`taxType-${idx}`}
-                      checked={item.taxType === "FIXED"}
-                      onChange={() => updateItem(idx, "taxType", "FIXED")}
-                      className="accent-emerald-600"
-                    />
-                    Fixed
-                  </label>
-                  {item.taxName === "CGST+SGST" && item.taxType === "PERCENTAGE" && (
-                    <span className="text-xs text-gray-400">
-                      ({(item.taxRate / 2).toFixed(1)}% + {(item.taxRate / 2).toFixed(1)}%)
-                    </span>
-                  )}
+              {item.taxName === "CGST+SGST" && item.taxType === "PERCENTAGE" && (
+                <div className="grid grid-cols-12 gap-2 px-0">
+                  <span className="col-span-4 col-start-8 text-xs text-gray-400 text-center">
+                    ({(item.taxRate / 2).toFixed(1)}% + {(item.taxRate / 2).toFixed(1)}%)
+                  </span>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
