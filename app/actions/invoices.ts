@@ -343,6 +343,14 @@ export async function sendInvoice(invoiceId: string, paymentUrl?: string) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
   const url = paymentUrl ?? `${base}/pay/${token}`
 
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: {
+      status: "UNPAID",
+      sentAt: new Date(),
+    },
+  })
+
   sendInvoiceSentEmail(
     {
       invoiceNumber: invoice.invoiceNumber,
