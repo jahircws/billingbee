@@ -3,23 +3,21 @@
 import { useState, useEffect } from "react"
 import { Check, Share2, X } from "lucide-react"
 
-export default function GenerateSignupBanner() {
+export default function GenerateSignupBanner({ draftInvoiceId }: { draftInvoiceId?: string | null }) {
   const [visible, setVisible] = useState(false)
   const [payLink, setPayLink] = useState("")
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    // Show only when coming from /generate signup
     try {
       const acq = JSON.parse(localStorage.getItem("bb_acquisition") ?? "{}")
       if (acq.from === "generate" || acq.source === "seo") {
         setVisible(true)
-        // Build a generic payment link placeholder — in prod this resolves to latest invoice
         const base = window.location.origin
-        setPayLink(`${base}/invoices`)
+        setPayLink(draftInvoiceId ? `${base}/invoices/${draftInvoiceId}` : `${base}/invoices`)
       }
     } catch { /* ignore */ }
-  }, [])
+  }, [draftInvoiceId])
 
   function copyLink() {
     navigator.clipboard.writeText(payLink).catch(() => {})

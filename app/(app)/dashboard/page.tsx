@@ -9,6 +9,7 @@ import { calculateHealthScore } from "@/lib/health"
 import TrialBanner from "@/components/dashboard/TrialBanner"
 import EmailVerifyBanner from "@/components/dashboard/EmailVerifyBanner"
 import GenerateSignupBanner from "@/components/dashboard/GenerateSignupBanner"
+import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist"
 import {
   AlertCircle,
   Clock,
@@ -74,6 +75,39 @@ async function getLastClientUsed(orgId: string) {
   return inv?.client?.name ?? null
 }
 
+async function getOnboardingState(orgId: string) {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  const [org, clients, sentInvoice, draftInvoice, gateway] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { gstin: true, address: true, logo: true, createdAt: true },
+    }),
+    prisma.client.count({ where: { orgId } }),
+    prisma.invoice.findFirst({ where: { orgId, sentAt: { not: null } }, select: { id: true } }),
+    prisma.invoice.findFirst({
+      where: { orgId, status: "DRAFT" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true },
+    }),
+    prisma.paymentGatewayConfig.findFirst({ where: { orgId, isActive: true }, select: { id: true } }),
+  ])
+
+  const isNewEnough = org ? org.createdAt >= thirtyDaysAgo : false
+
+  return {
+    show: isNewEnough,
+    steps: {
+      account: true,
+      business: !!(org?.gstin || org?.address || org?.logo),
+      client: clients > 0,
+      invoiceSent: !!sentInvoice,
+      gateway: !!gateway,
+    },
+    draftInvoiceId: draftInvoice?.id ?? null,
+  }
+}
+
 // ── Attention card component ───────────────────────────────────────────────────
 
 function AttentionCard({
@@ -120,7 +154,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
 
   const userId = session.user.userId
 
-  const [attention, lastClient, healthScore, org, invoiceCount, clientCount, userRecord] = await Promise.all([
+  const [attention, lastClient, healthScore, org, invoiceCount, clientCount, userRecord, onboarding] = await Promise.all([
     getAttentionData(orgId),
     getLastClientUsed(orgId),
     calculateHealthScore(orgId),
@@ -128,6 +162,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     prisma.invoice.count({ where: { orgId } }),
     prisma.client.count({ where: { orgId } }),
     userId ? prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } }) : Promise.resolve(null),
+    getOnboardingState(orgId),
   ])
 
   const currency = org?.currency ?? "INR"
@@ -151,7 +186,10 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         <TrialBanner daysLeft={trialDaysLeft} planExpiry={org!.planExpiry!.toISOString()} />
       )}
       {emailUnverified && <EmailVerifyBanner />}
-      <GenerateSignupBanner />
+      <GenerateSignupBanner draftInvoiceId={onboarding.draftInvoiceId} />
+      {onboarding.show && (
+        <OnboardingChecklist steps={onboarding.steps} draftInvoiceId={onboarding.draftInvoiceId} />
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-20 md:pb-6">
         {/* Pro upgrade success banner */}
