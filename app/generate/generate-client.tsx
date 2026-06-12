@@ -240,6 +240,8 @@ export default function GenerateClient() {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [showDownloadGate, setShowDownloadGate] = useState(false)
+  const [errors, setErrors] = useState<string[]>([])
+  const [invalidFields, setInvalidFields] = useState<{ fromName?: boolean; toName?: boolean; docNumber?: boolean; items?: boolean }>({})
 
   const previewDebounce = useRef<NodeJS.Timeout | null>(null)
   const [previewForm, setPreviewForm] = useState<FormState>(form)
@@ -336,6 +338,7 @@ export default function GenerateClient() {
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }))
+    if (errors.length) { setErrors([]); setInvalidFields({}) }
   }
 
   function setItem(id: string, key: keyof LineItem, value: string | number) {
@@ -343,6 +346,7 @@ export default function GenerateClient() {
       ...f,
       items: f.items.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
     }))
+    if (errors.length) { setErrors([]); setInvalidFields({}) }
   }
 
   function addItem() {
@@ -425,7 +429,42 @@ export default function GenerateClient() {
     setShowUpload(false)
   }
 
+  // Returns a list of human-readable problems; empty array means the form is
+  // valid enough to produce a real document. Also flags which fields to highlight.
+  function validateForm(): string[] {
+    const errs: string[] = []
+    const fields: typeof invalidFields = {}
+    if (!form.fromName.trim()) { errs.push("Your business name"); fields.fromName = true }
+    if (!form.toName.trim()) { errs.push("Client name"); fields.toName = true }
+    if (!form.docNumber.trim()) {
+      errs.push(`${form.docType.charAt(0).toUpperCase() + form.docType.slice(1)} number`)
+      fields.docNumber = true
+    }
+    if (!form.items.some((i) => i.description.trim() && i.rate > 0)) {
+      errs.push("At least one line item with a description and amount")
+      fields.items = true
+    }
+    setInvalidFields(fields)
+    setErrors(errs)
+    return errs
+  }
+
+  // Called from the "Download PDF" button: validate first, only open the
+  // signup gate when the form can actually produce a real document.
+  function attemptDownload() {
+    if (validateForm().length > 0) {
+      setMobilePreview(false) // show the form (with errors) on mobile
+      return
+    }
+    setShowDownloadGate(true)
+  }
+
   async function handleDownloadPDF() {
+    if (validateForm().length > 0) {
+      setShowDownloadGate(false)
+      setMobilePreview(false)
+      return
+    }
     setShowDownloadGate(false)
     setPdfLoading(true)
     try {
@@ -465,6 +504,11 @@ export default function GenerateClient() {
   }
 
   function handleSaveAndRegister() {
+    if (validateForm().length > 0) {
+      setShowDownloadGate(false)
+      setMobilePreview(false)
+      return
+    }
     try {
       localStorage.setItem("bb_pending_doc", JSON.stringify(form))
     } catch { /* ignore */ }
@@ -556,6 +600,16 @@ export default function GenerateClient() {
               </div>
             )}
 
+            {/* Validation summary */}
+            {errors.length > 0 && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm font-semibold text-red-700 mb-1">Please complete these before downloading:</p>
+                <ul className="list-disc list-inside text-sm text-red-600 space-y-0.5">
+                  {errors.map((e) => <li key={e}>{e}</li>)}
+                </ul>
+              </div>
+            )}
+
             {/* Your details */}
             <section suppressHydrationWarning>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Your details</h3>
@@ -565,7 +619,7 @@ export default function GenerateClient() {
                   placeholder="Business name *"
                   value={form.fromName}
                   onChange={(e) => set("fromName", e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${invalidFields.fromName ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
                 <input
                   type="email"
@@ -586,7 +640,7 @@ export default function GenerateClient() {
                   placeholder="Client name *"
                   value={form.toName}
                   onChange={(e) => set("toName", e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${invalidFields.toName ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
                 <input
                   type="email"
@@ -607,7 +661,7 @@ export default function GenerateClient() {
 
             {/* Line items */}
             <section>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Line items</h3>
+              <h3 className={`text-xs font-semibold uppercase tracking-widest mb-3 ${invalidFields.items ? "text-red-500" : "text-gray-400"}`}>Line items {invalidFields.items && <span className="normal-case font-normal">— add a description &amp; amount</span>}</h3>
               <div className="space-y-2">
                 {/* Table header */}
                 <div className="grid grid-cols-12 gap-1 text-xs text-gray-400 px-1">
@@ -698,7 +752,7 @@ export default function GenerateClient() {
                   placeholder={form.docType === "invoice" ? "Invoice number" : form.docType === "quote" ? "Quote number" : "Document number"}
                   value={form.docNumber}
                   onChange={(e) => set("docNumber", e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${invalidFields.docNumber ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -878,7 +932,7 @@ export default function GenerateClient() {
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
-                  onClick={() => setShowDownloadGate(true)}
+                  onClick={attemptDownload}
                   disabled={pdfLoading}
                   className="bg-white/20 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 transition-colors"
                 >

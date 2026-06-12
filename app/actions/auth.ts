@@ -41,6 +41,7 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
   const password = sanitize(formData.get("password"))
   const name = sanitize(formData.get("name"))
   const callbackUrl = sanitize(formData.get("callbackUrl"))
+  const trial = sanitize(formData.get("trial"))
   const orgName = rawOrgName || name
 
   const baseSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
@@ -83,9 +84,14 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     const passwordHash = await hash(password, 12)
     const acquisitionSource = sanitize(formData.get("acquisitionSource")) || undefined
 
+    // "Start Pro" on pricing opts into a 14-day Pro trial (no card). A trial is
+    // simply plan=pro with a planExpiry date; lib/plan.ts downgrades to free
+    // automatically once it passes.
+    const trialData = trial === "pro" ? { plan: "pro", planExpiry: addDays(new Date(), 14) } : {}
+
     await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name: orgName, slug: orgSlug, ...(acquisitionSource ? { acquisitionSource } : {}) },
+        data: { name: orgName, slug: orgSlug, ...(acquisitionSource ? { acquisitionSource } : {}), ...trialData },
       })
       const user = await tx.user.create({
         data: { email, name, passwordHash },

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { Check, Zap, ChevronDown } from "lucide-react"
 
@@ -12,7 +12,6 @@ const PLANS = [
     name: "Free",
     monthly: 0,
     annual: 0,
-    inrMonthly: 0,
     description: "Perfect for freelancers just getting started.",
     cta: "Start for free",
     ctaHref: "/generate",
@@ -32,10 +31,9 @@ const PLANS = [
     name: "Pro",
     monthly: 9.99,
     annual: 7.99,
-    inrMonthly: 829,
     description: "Everything you need to run a professional practice.",
-    cta: "Start Pro",
-    ctaHref: "/api/stripe/checkout-redirect?plan=pro",
+    cta: "Start 14-day free trial",
+    ctaHref: "/register?trial=pro",
     popular: true,
     features: [
       "Unlimited invoices & clients",
@@ -56,10 +54,9 @@ const PLANS = [
     name: "Business",
     monthly: 24.99,
     annual: 19.99,
-    inrMonthly: 2099,
     description: "For agencies and teams managing multiple clients.",
-    cta: "Start Business",
-    ctaHref: "/api/stripe/checkout-redirect?plan=business",
+    cta: "Contact sales",
+    ctaHref: "/contact",
     popular: false,
     features: [
       "Everything in Pro",
@@ -129,17 +126,7 @@ function Cell({ value }: { value: boolean | string }) {
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
-  const [isIndia, setIsIndia] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-
-  useEffect(() => {
-    try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-      if (tz.includes("Calcutta") || tz.includes("Bombay") || tz.includes("Kolkata")) {
-        setIsIndia(true)
-      }
-    } catch { /* ignore */ }
-  }, [])
 
   return (
     <div className="min-h-screen bg-white">
@@ -200,9 +187,6 @@ export default function PricingPage() {
         <div className="grid md:grid-cols-3 gap-6 mb-16">
           {PLANS.map((plan) => {
             const price = annual ? plan.annual : plan.monthly
-            const inrPrice = annual
-              ? Math.round(plan.inrMonthly * 0.8)
-              : plan.inrMonthly
 
             return (
               <div
@@ -240,11 +224,6 @@ export default function PricingPage() {
                       {annual && (
                         <p className="text-xs text-gray-400 mt-0.5">
                           ${(price * 12).toFixed(2)}/yr · billed annually
-                        </p>
-                      )}
-                      {isIndia && inrPrice > 0 && (
-                        <p className="text-sm text-gray-500 mt-1 font-medium">
-                          ≈ ₹{inrPrice.toLocaleString("en-IN")}/mo
                         </p>
                       )}
                     </div>

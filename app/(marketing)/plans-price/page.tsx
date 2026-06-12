@@ -7,13 +7,13 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   ...generatePageMetadata(
     "Pricing — Free, Pro & Business Plans | BillingBee",
-    "BillingBee pricing: Free (5 invoices/mo), Pro ₹999/mo (unlimited + AI collections), Business ₹2499/mo (teams + white-label). Cancel anytime.",
+    "BillingBee pricing: Free (5 invoices/mo), Pro $9.99/mo (unlimited + AI collections), Business $24.99/mo (teams + white-label). Cancel anytime.",
     "/plans-price",
     {
       keywords: [
-        "billing software pricing India",
+        "billing software pricing",
         "invoice app cost",
-        "GST invoicing plan",
+        "invoicing plan",
         "freelancer billing price",
       ],
     }
@@ -30,22 +30,22 @@ export const metadata: Metadata = {
           "@type": "Offer",
           name: "Free",
           price: "0",
-          priceCurrency: "INR",
-          description: "5 invoices/month, PDF download, GST calculations",
+          priceCurrency: "USD",
+          description: "5 invoices/month, PDF download, tax calculations",
         },
         {
           "@type": "Offer",
           name: "Pro",
-          price: "999",
-          priceCurrency: "INR",
+          price: "9.99",
+          priceCurrency: "USD",
           billingIncrement: "P1M",
-          description: "Unlimited invoices, AI collections, payment links, GST reports",
+          description: "Unlimited invoices, AI collections, payment links, full reports",
         },
         {
           "@type": "Offer",
           name: "Business",
-          price: "2499",
-          priceCurrency: "INR",
+          price: "24.99",
+          priceCurrency: "USD",
           billingIncrement: "P1M",
           description: "Team seats, white-label portal, API access, priority support",
         },

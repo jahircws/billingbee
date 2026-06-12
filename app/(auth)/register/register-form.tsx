@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { registerOrg } from "@/app/actions/auth"
 
-export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
+export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; trial?: string }) {
+  const isProTrial = trial === "pro"
   const [state, action, pending] = useActionState(registerOrg, undefined)
   const acqRef = useRef<HTMLInputElement>(null)
   const pendingDocRef = useRef<HTMLInputElement>(null)
@@ -38,11 +39,13 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
             className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
             style={{ backgroundColor: "#10b981" }}
           >
-            Free
+            {isProTrial ? "Pro trial" : "Free"}
           </span>
         </div>
         <p className="text-gray-500 text-sm">
-          No credit card required &middot; Set up in under 2 minutes
+          {isProTrial
+            ? "Starting your 14-day Pro trial — no credit card required"
+            : "No credit card required · Set up in under 2 minutes"}
         </p>
       </div>
 
@@ -56,6 +59,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
         <input ref={acqRef} type="hidden" name="acquisitionSource" />
         <input ref={pendingDocRef} type="hidden" name="pendingDoc" />
         {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
+        {isProTrial && <input type="hidden" name="trial" value="pro" />}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="orgName" className="text-sm font-medium text-gray-700">
@@ -166,7 +170,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
           className="w-full h-11 text-sm font-semibold text-white rounded-lg transition-colors"
           style={{ backgroundColor: pending ? "#6ee7b7" : "#10b981" }}
         >
-          {pending ? "Creating account…" : "Create free account"}
+          {pending ? "Creating account…" : isProTrial ? "Start 14-day Pro trial" : "Create free account"}
         </Button>
       </form>
 
