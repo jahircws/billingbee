@@ -21,7 +21,7 @@ export default async function EditInvoicePage({ params }: Props) {
 
   const { id } = await params
 
-  const [invoice, clients, org, taxes] = await Promise.all([
+  const [invoice, clients, org, taxes, items] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id, orgId },
       include: { items: { orderBy: { sortOrder: "asc" } } },
@@ -33,6 +33,7 @@ export default async function EditInvoicePage({ params }: Props) {
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } }),
     prisma.tax.findMany({ where: { orgId, isActive: true }, select: { id: true, name: true, rate: true }, orderBy: { name: "asc" } }),
+    prisma.item.findMany({ where: { orgId, isActive: true }, select: { id: true, name: true, description: true, unitPrice: true, taxRate: true, hsn: true }, orderBy: { name: "asc" } }),
   ])
 
   if (!invoice) notFound()
@@ -69,6 +70,7 @@ export default async function EditInvoicePage({ params }: Props) {
       <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full pb-20 md:pb-6">
         <InvoiceForm
           clients={clients}
+          savedItems={items.map((i) => ({ id: i.id, name: i.name, description: i.description, unitPrice: Number(i.unitPrice), taxRate: Number(i.taxRate), hsn: i.hsn }))}
           orgTaxes={taxes.map((t) => ({ id: t.id, name: t.name, rate: Number(t.rate) }))}
           isPro={isPro}
           defaultCurrency={org?.currency ?? "INR"}
