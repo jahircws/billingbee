@@ -2,19 +2,30 @@ import { NextRequest, NextResponse } from "next/server"
 import { fmtCurrency } from "@/lib/currency"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
-import { renderToBuffer, Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
+import { renderToBuffer, Document, Page, Text, View, StyleSheet, Image, Font } from "@react-pdf/renderer"
 import { format } from "date-fns"
+import path from "path"
+
+// Built-in Helvetica has no glyph for ₹ / € / £ (it renders garbage like "¹"),
+// so register DejaVu Sans, which covers all the currency symbols we format.
+Font.register({
+  family: "DejaVu",
+  fonts: [
+    { src: path.join(process.cwd(), "public/fonts/DejaVuSans.ttf") },
+    { src: path.join(process.cwd(), "public/fonts/DejaVuSans-Bold.ttf"), fontWeight: "bold" },
+  ],
+})
 
 const styles = StyleSheet.create({
-  page: { padding: 48, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a" },
+  page: { padding: 48, fontSize: 10, fontFamily: "DejaVu", color: "#1a1a1a" },
   header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 32 },
-  orgName: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#059669" },
-  invoiceTitle: { fontSize: 22, fontFamily: "Helvetica-Bold", color: "#059669", textAlign: "right" },
+  orgName: { fontSize: 18, fontWeight: "bold", color: "#059669" },
+  invoiceTitle: { fontSize: 22, fontWeight: "bold", color: "#059669", textAlign: "right" },
   invoiceNumber: { fontSize: 11, color: "#6b7280", textAlign: "right", marginTop: 4 },
   section: { marginBottom: 16 },
   label: { fontSize: 8, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 },
   value: { fontSize: 10, color: "#111827" },
-  bold: { fontFamily: "Helvetica-Bold" },
+  bold: { fontWeight: "bold" },
   grid: { flexDirection: "row", gap: 24 },
   col: { flex: 1 },
   colRight: { flex: 1, alignItems: "flex-end" },
@@ -32,7 +43,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
   },
-  th: { fontSize: 8, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5, fontFamily: "Helvetica-Bold" },
+  th: { fontSize: 8, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: "bold" },
   td: { fontSize: 10, color: "#374151" },
   descCol: { flex: 3 },
   numCol: { flex: 1, textAlign: "right" },
@@ -40,7 +51,7 @@ const styles = StyleSheet.create({
   totalRow: { flexDirection: "row", gap: 16, paddingVertical: 3 },
   totalLabel: { fontSize: 10, color: "#6b7280", width: 80, textAlign: "right" },
   totalValue: { fontSize: 10, color: "#111827", width: 80, textAlign: "right" },
-  grandTotal: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#059669" },
+  grandTotal: { fontSize: 13, fontWeight: "bold", color: "#059669" },
   watermark: {
     position: "absolute",
     top: "40%",
