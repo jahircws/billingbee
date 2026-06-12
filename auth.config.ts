@@ -17,6 +17,7 @@ export const authConfig = {
       return token
     },
     session({ session, token }) {
+      if (token.userId) session.user.id = token.userId as string
       session.user.userId = token.userId as string | undefined
       session.user.orgId = token.orgId as string | undefined
       session.user.orgName = token.orgName as string | undefined
