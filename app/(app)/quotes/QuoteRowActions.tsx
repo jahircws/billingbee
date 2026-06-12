@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Trash2 } from "lucide-react"
+import Link from "next/link"
+import { Trash2, Pencil } from "lucide-react"
 import { deleteQuote } from "@/app/actions/quote"
 
-export default function QuoteRowActions({ quoteId, quoteNumber }: { quoteId: string; quoteNumber: string }) {
+export default function QuoteRowActions({ quoteId, quoteNumber, status }: { quoteId: string; quoteNumber: string; status?: string }) {
   const router = useRouter()
   const [confirm, setConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -23,6 +24,16 @@ export default function QuoteRowActions({ quoteId, quoteNumber }: { quoteId: str
 
   return (
     <>
+      {status !== "CONVERTED" && (
+        <Link
+          href={`/quotes/${quoteId}/edit`}
+          onClick={(e) => e.stopPropagation()}
+          className="p-1.5 text-gray-300 hover:text-blue-500 transition-colors rounded inline-flex"
+          title="Edit"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </Link>
+      )}
       <button
         onClick={(e) => { e.stopPropagation(); setConfirm(true) }}
         className="p-1.5 text-gray-300 hover:text-red-500 transition-colors rounded"

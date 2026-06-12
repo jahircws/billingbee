@@ -232,6 +232,7 @@ export async function sendPaymentReceivedEmail(
   currency: string,
   staffEmail: string,
   orgName: string,
+  invoiceId?: string,
 ) {
   const formatted = fmtAmount(amount, currency)
   const body = `
@@ -252,7 +253,7 @@ export async function sendPaymentReceivedEmail(
         <td style="padding:6px 0;color:#374151;text-align:right;">${invoiceNumber}</td>
       </tr>
     </table>
-    ${btn("View invoice →", "https://billingbee.co/invoices")}
+    ${btn("View invoice →", invoiceId ? `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/invoices/${invoiceId}` : `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/invoices`)}
   `
   return sendEmail({
     to: staffEmail,
@@ -575,6 +576,31 @@ export async function sendContractEmail(
 }
 
 // ── sendProposalEmail ──────────────────────────────────────────────────────
+
+export async function sendQuoteEmail(
+  clientName: string,
+  clientEmail: string,
+  orgName: string,
+  quoteNumber: string,
+  amount: string,
+  quoteUrl: string,
+) {
+  const body = `
+    ${h1(`${orgName} sent you a quote`)}
+    ${p(`Hi ${clientName}, <strong>${orgName}</strong> has prepared quote <strong>${quoteNumber}</strong> for you.`)}
+    ${divider()}
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Total</p>
+    <p style="margin:0 0 20px;font-size:18px;font-weight:700;color:#111827;">${amount}</p>
+    ${btn("View quote →", quoteUrl)}
+    ${divider()}
+    ${p(`Questions? Just reply to this email.`)}
+  `
+  return sendEmail({
+    to: clientEmail,
+    subject: `${orgName} sent you quote ${quoteNumber}`,
+    html: layout(body, `${orgName} has sent you a quote. Click to review.`),
+  })
+}
 
 export async function sendProposalEmail(
   clientName: string,

@@ -123,7 +123,14 @@ export default async function QuotesPage({ searchParams }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {quotes.map((quote) => (
+                  {quotes.map((quote) => {
+                    const displayStatus =
+                      quote.expiryDate &&
+                      new Date(quote.expiryDate) < new Date() &&
+                      !["ACCEPTED", "CONVERTED", "REJECTED"].includes(quote.status)
+                        ? "EXPIRED"
+                        : quote.status
+                    return (
                     <tr key={quote.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-4">
                         <Link href={`/quotes/${quote.id}`} className="font-mono text-xs text-blue-700 hover:underline font-medium">
@@ -133,18 +140,19 @@ export default async function QuotesPage({ searchParams }: Props) {
                       <td className="py-3 px-4 text-gray-800 font-medium">{quote.client.name}</td>
                       <td className="py-3 px-4 text-right font-semibold text-gray-900">{fmtCurrency(Number(quote.total), quote.currency)}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[quote.status] ?? "bg-gray-100 text-gray-600"}`}>
-                          {quote.status}
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[displayStatus] ?? "bg-gray-100 text-gray-600"}`}>
+                          {displayStatus}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right text-gray-500 hidden md:table-cell">
                         {quote.expiryDate ? format(quote.expiryDate, "d MMM yyyy") : "—"}
                       </td>
                       <td className="py-3 px-2 text-right">
-                        <QuoteRowActions quoteId={quote.id} quoteNumber={quote.quoteNumber} />
+                        <QuoteRowActions quoteId={quote.id} quoteNumber={quote.quoteNumber} status={quote.status} />
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

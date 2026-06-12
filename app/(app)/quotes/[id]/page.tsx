@@ -7,6 +7,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import ConvertQuoteButton from "./ConvertQuoteButton"
+import SendQuoteButton from "./SendQuoteButton"
 import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Quote" }
@@ -67,13 +68,24 @@ export default async function QuotePage({ params }: Props) {
         {/* Actions */}
         <div className="flex gap-2 flex-wrap">
           <a
-            href={`/api/invoice/${quote.id}/pdf`}
+            href={`/api/quote/${quote.id}/pdf`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
           >
             Download PDF
           </a>
+          {(quote.status as string) !== "CONVERTED" && (
+            <Link
+              href={`/quotes/${quote.id}/edit`}
+              className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
+            >
+              Edit
+            </Link>
+          )}
+          {(quote.status as string) !== "CONVERTED" && (
+            <SendQuoteButton quoteId={quote.id} hasEmail={!!quote.client.email} />
+          )}
           {(quote.status as string) !== "CONVERTED" && (
             <ConvertQuoteButton quoteId={quote.id} />
           )}
