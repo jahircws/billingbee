@@ -70,7 +70,8 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
 
   const isDraft = status === "DRAFT"
   const isPaid = status === "PAID"
-  const canRemind = (status === "UNPAID" || status === "OVERDUE") && !!clientEmail
+  const canPay = status === "UNPAID" || status === "OVERDUE"
+  const canRemind = canPay && !!clientEmail
 
   return (
     <>
@@ -144,13 +145,15 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
                   Mark as paid
                 </button>
               )}
-              <button
-                onClick={openPayLink}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Pay link
-              </button>
+              {canPay && (
+                <button
+                  onClick={openPayLink}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Pay link
+                </button>
+              )}
               <button
                 onClick={() => run("dup", () => duplicateInvoice(invoiceId))}
                 className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"

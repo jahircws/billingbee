@@ -64,6 +64,7 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
   }
 
   const isPaid = status === "PAID"
+  const canPay = status === "UNPAID" || status === "OVERDUE"
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -102,16 +103,18 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
         PDF
       </a>
 
-      {/* Pay link */}
-      <button
-        onClick={openPayLink}
-        disabled={!!loading}
-        className="flex items-center gap-1.5 text-sm bg-white hover:bg-gray-50 active:scale-95 text-gray-700 border border-gray-200 font-medium px-3 py-2 rounded-lg transition-all disabled:opacity-50"
-        title="Open payment page"
-      >
-        <ExternalLink className="w-3.5 h-3.5" />
-        {loading === "paylink" ? "Loading…" : "Pay link"}
-      </button>
+      {/* Pay link — only when payment is due */}
+      {canPay && (
+        <button
+          onClick={openPayLink}
+          disabled={!!loading}
+          className="flex items-center gap-1.5 text-sm bg-white hover:bg-gray-50 active:scale-95 text-gray-700 border border-gray-200 font-medium px-3 py-2 rounded-lg transition-all disabled:opacity-50"
+          title="Open payment page"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          {loading === "paylink" ? "Loading…" : "Pay link"}
+        </button>
+      )}
 
       {/* More menu */}
       <div className="relative">
@@ -126,14 +129,16 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
           <>
             <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
             <div className="absolute right-0 top-full mt-1 z-20 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 text-sm">
-              <a
-                href={`/invoices/${invoiceId}/edit`}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
-                onClick={() => setShowMenu(false)}
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                Edit invoice
-              </a>
+              {!isPaid && (
+                <a
+                  href={`/invoices/${invoiceId}/edit`}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
+                  onClick={() => setShowMenu(false)}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Edit invoice
+                </a>
+              )}
               <button
                 onClick={() => run("duplicate", () => duplicateInvoice(invoiceId).then((r) => {
                   if ("invoice" in r && r.invoice) router.push(`/invoices/${r.invoice.id}`)

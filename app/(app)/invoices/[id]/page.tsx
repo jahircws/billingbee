@@ -145,6 +145,22 @@ export default async function InvoicePage({ params, searchParams }: Props) {
                   ))}
                 </tbody>
                 <tfoot>
+                  <tr className="border-t border-gray-100">
+                    <td colSpan={3} className="py-2 px-4 text-right text-xs text-gray-400">Subtotal</td>
+                    <td className="py-2 px-4 text-right text-sm text-gray-700">{fmt(invoice.subtotal)}</td>
+                  </tr>
+                  {Number(invoice.taxAmount) > 0 && (
+                    <tr>
+                      <td colSpan={3} className="py-2 px-4 text-right text-xs text-gray-400">Tax</td>
+                      <td className="py-2 px-4 text-right text-sm text-gray-700">{fmt(invoice.taxAmount)}</td>
+                    </tr>
+                  )}
+                  {Number(invoice.discountAmount) > 0 && (
+                    <tr>
+                      <td colSpan={3} className="py-2 px-4 text-right text-xs text-gray-400">Discount</td>
+                      <td className="py-2 px-4 text-right text-sm text-gray-700">−{fmt(invoice.discountAmount)}</td>
+                    </tr>
+                  )}
                   <tr className="border-t border-gray-200">
                     <td colSpan={3} className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium">Total</td>
                     <td className="py-2.5 px-4 text-right font-bold text-emerald-600">{fmt(invoice.total)}</td>
