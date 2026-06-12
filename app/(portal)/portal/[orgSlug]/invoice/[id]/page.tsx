@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation"
 import { fmtCurrency } from "@/lib/currency"
+import { paymentMethodLabel } from "@/lib/payment"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
@@ -22,7 +23,11 @@ export default async function PortalInvoicePage({ params }: Props) {
 
   const invoice = await prisma.invoice.findUnique({
     where: { id, clientId: session.user.clientId },
-    include: { client: true, items: { orderBy: { sortOrder: "asc" } } },
+    include: {
+      client: true,
+      items: { orderBy: { sortOrder: "asc" } },
+      payments: { orderBy: { paidAt: "desc" } },
+    },
   })
 
   if (!invoice) notFound()
@@ -100,6 +105,32 @@ export default async function PortalInvoicePage({ params }: Props) {
           </tfoot>
         </table>
       </div>
+
+      {invoice.payments.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">Payments</h2>
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="py-2.5 px-4 text-left text-xs text-gray-400 font-medium">Date</th>
+                  <th className="py-2.5 px-4 text-left text-xs text-gray-400 font-medium">Method</th>
+                  <th className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.payments.map((p) => (
+                  <tr key={p.id} className="border-b border-gray-50 last:border-0">
+                    <td className="py-2.5 px-4 text-gray-500">{format(p.paidAt ?? p.createdAt, "d MMM yyyy")}</td>
+                    <td className="py-2.5 px-4 text-gray-500">{paymentMethodLabel(p.method)}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-emerald-700">{fmt(p.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {invoice.notes && (
         <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">

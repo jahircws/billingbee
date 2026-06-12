@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { fmtCurrency } from "@/lib/currency"
+import { paymentMethodLabel } from "@/lib/payment"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
@@ -58,7 +59,7 @@ export default async function PortalDashboardPage({ params }: Props) {
       where: { invoice: { clientId } },
       orderBy: { createdAt: "desc" },
       take: 20,
-      select: { id: true, amount: true, createdAt: true, method: true, invoice: { select: { invoiceNumber: true, currency: true } } },
+      select: { id: true, amount: true, createdAt: true, paidAt: true, method: true, invoice: { select: { invoiceNumber: true, currency: true } } },
     }),
   ])
 
@@ -204,35 +205,37 @@ export default async function PortalDashboardPage({ params }: Props) {
       )}
 
       {/* Transaction History */}
-      {payments.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">Transaction History</h2>
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <section>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">Transaction History</h2>
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          {payments.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="py-2.5 px-4 text-left text-xs text-gray-400 font-medium">Date</th>
                   <th className="py-2.5 px-4 text-left text-xs text-gray-400 font-medium">Invoice</th>
+                  <th className="py-2.5 px-4 text-left text-xs text-gray-400 font-medium hidden md:table-cell">Method</th>
                   <th className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
-                  <th className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((p) => (
                   <tr key={p.id} className="border-b border-gray-50 last:border-0">
+                    <td className="py-2.5 px-4 text-gray-500">{format(p.paidAt ?? p.createdAt, "d MMM yyyy")}</td>
                     <td className="py-2.5 px-4 font-mono text-xs text-emerald-700 font-medium">{p.invoice.invoiceNumber}</td>
+                    <td className="py-2.5 px-4 text-gray-500 hidden md:table-cell">{paymentMethodLabel(p.method)}</td>
                     <td className="py-2.5 px-4 text-right font-semibold text-emerald-700">
                       {fmtCurrency(p.amount, p.invoice.currency)}
-                    </td>
-                    <td className="py-2.5 px-4 text-right text-gray-400 hidden md:table-cell">
-                      {format(p.createdAt, "d MMM yyyy")}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-      )}
+          ) : (
+            <p className="py-8 px-4 text-center text-sm text-gray-400">No payments yet.</p>
+          )}
+        </div>
+      </section>
 
       {invoices.length === 0 && quotes.length === 0 && proposals.length === 0 && contracts.length === 0 && (
         <div className="text-center py-16">
