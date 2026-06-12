@@ -121,3 +121,26 @@ export async function getExpenseCategories() {
     orderBy: { name: "asc" },
   })
 }
+
+export async function createCategory(data: { name: string; color?: string }) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const name = data.name?.trim()
+  if (!name) return { error: "Category name is required" }
+
+  const existing = await prisma.category.findFirst({ where: { orgId, name } })
+  if (existing) {
+    // Re-activate if it was soft-deleted; otherwise just return it
+    const category = existing.isActive
+      ? existing
+      : await prisma.category.update({ where: { id: existing.id }, data: { isActive: true } })
+    return { category: serialize(category) }
+  }
+
+  const category = await prisma.category.create({
+    data: { orgId, name, color: data.color || null },
+  })
+  return { category: serialize(category) }
+}

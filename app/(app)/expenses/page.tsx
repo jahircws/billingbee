@@ -131,7 +131,17 @@ export default async function ExpensesPage({ searchParams }: Props) {
                         {format(expense.date, "d MMM yyyy")}
                       </td>
                       <td className="py-3 px-2 text-right">
-                        <ExpenseRowActions expenseId={expense.id} title={expense.title} />
+                        <ExpenseRowActions
+                          expenseId={expense.id}
+                          title={expense.title}
+                          amount={Number(expense.amount)}
+                          currency={expense.currency}
+                          date={format(expense.date, "yyyy-MM-dd")}
+                          vendor={expense.vendor}
+                          categoryId={expense.categoryId}
+                          notes={expense.notes}
+                          categories={categories.map((c) => ({ id: c.id, name: c.name, color: c.color }))}
+                        />
                       </td>
                     </tr>
                   ))}
