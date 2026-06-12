@@ -175,9 +175,30 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Billing Address</p>
             <div className="space-y-3">
               <div>
+                <label className={label}>Country</label>
+                <select value={country} onChange={e => setCountry(e.target.value)} className={input}>
+                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
                 <label className={label}>Street address</label>
                 <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123, MG Road" className={input} />
               </div>
+              {country === "IN" ? (
+                <div>
+                  <label className={label}>State</label>
+                  <select value={state} onChange={e => setState(e.target.value)} className={input}>
+                    <option value="">Select state</option>
+                    {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Used to determine CGST+SGST vs IGST</p>
+                </div>
+              ) : (
+                <div>
+                  <label className={label}>State / Province</label>
+                  <input value={state} onChange={e => setState(e.target.value)} placeholder="State / Province" className={input} />
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={label}>City</label>
@@ -188,22 +209,6 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
                   <input value={pincode} onChange={e => setPincode(e.target.value)} placeholder="400001" maxLength={6} className={input} />
                 </div>
               </div>
-              <div>
-                <label className={label}>Country</label>
-                <select value={country} onChange={e => setCountry(e.target.value)} className={input}>
-                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-                </select>
-              </div>
-              {country === "IN" && (
-                <div>
-                  <label className={label}>State</label>
-                  <select value={state} onChange={e => setState(e.target.value)} className={input}>
-                    <option value="">Select state</option>
-                    {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Used to determine CGST+SGST vs IGST</p>
-                </div>
-              )}
             </div>
           </div>
 

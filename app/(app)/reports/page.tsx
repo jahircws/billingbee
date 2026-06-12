@@ -14,7 +14,7 @@ export const metadata = { ...privateMetadata, title: "Reports" }
 export const dynamic = "force-dynamic"
 
 interface Props {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; cur?: string }>
 }
 
 const TABS = [
@@ -29,7 +29,7 @@ export default async function ReportsPage({ searchParams }: Props) {
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
 
-  const { tab = "revenue" } = await searchParams
+  const { tab = "revenue", cur } = await searchParams
 
   const now = new Date()
   const twelveMonthsAgo = startOfMonth(subMonths(now, 11))
@@ -37,8 +37,16 @@ export default async function ReportsPage({ searchParams }: Props) {
   // Revenue by month
   const revenueInvoices = await prisma.invoice.findMany({
     where: { orgId, issueDate: { gte: twelveMonthsAgo }, status: { not: "DRAFT" } },
-    select: { issueDate: true, total: true, clientId: true, client: { select: { name: true } } },
+    select: { issueDate: true, total: true, currency: true, clientId: true, client: { select: { name: true } } },
   })
+
+  // Currencies can't be summed together — pick one (default: most-used) and filter.
+  const currencyCounts = new Map<string, number>()
+  for (const inv of revenueInvoices) currencyCounts.set(inv.currency, (currencyCounts.get(inv.currency) ?? 0) + 1)
+  const availableCurrencies = [...currencyCounts.keys()]
+  const mostUsedCurrency = [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
+  const selectedCurrency = cur && availableCurrencies.includes(cur) ? cur : (mostUsedCurrency ?? "INR")
+  const filteredInvoices = revenueInvoices.filter((i) => i.currency === selectedCurrency)
 
   // Monthly buckets
   const monthlyRevenue: Record<string, number> = {}
@@ -46,7 +54,7 @@ export default async function ReportsPage({ searchParams }: Props) {
     const m = startOfMonth(subMonths(now, i))
     monthlyRevenue[format(m, "MMM yy")] = 0
   }
-  for (const inv of revenueInvoices) {
+  for (const inv of filteredInvoices) {
     const key = format(inv.issueDate, "MMM yy")
     if (key in monthlyRevenue) monthlyRevenue[key] += Number(inv.total)
   }
@@ -54,7 +62,7 @@ export default async function ReportsPage({ searchParams }: Props) {
 
   // Top clients
   const clientMap: Record<string, { name: string; revenue: number }> = {}
-  for (const inv of revenueInvoices) {
+  for (const inv of filteredInvoices) {
     if (!clientMap[inv.clientId]) clientMap[inv.clientId] = { name: inv.client.name, revenue: 0 }
     clientMap[inv.clientId].revenue += Number(inv.total)
   }
@@ -109,7 +117,7 @@ export default async function ReportsPage({ searchParams }: Props) {
   }
   const taxData = Object.values(taxByRate).sort((a, b) => a.rate - b.rate)
 
-  const totalRevenue = revenueInvoices.reduce((s, i) => s + Number(i.total), 0)
+  const totalRevenue = filteredInvoices.reduce((s, i) => s + Number(i.total), 0)
   const totalOutstanding = outstanding.reduce((s, i) => s + Number(i.amountDue), 0)
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0)
 
@@ -143,7 +151,8 @@ export default async function ReportsPage({ searchParams }: Props) {
             monthlyData={monthlyData}
             topClients={topClients}
             totalRevenue={totalRevenue}
-            currency={currency}
+            currency={selectedCurrency}
+            availableCurrencies={availableCurrencies}
           />
         )}
         {tab === "outstanding" && (

@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Search, Plus, Bell, LogOut, Settings } from "lucide-react"
+import { Search, Plus, LogOut, Settings } from "lucide-react"
+import { NotificationBell } from "./NotificationBell"
 
 interface Props {
   title: string
@@ -59,9 +60,7 @@ export function Topbar({ title }: Props) {
           <Plus size={14} />
           <span className="hidden sm:inline">New Invoice</span>
         </Link>
-        <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors" title="Notifications">
-          <Bell size={16} />
-        </button>
+        <NotificationBell />
         {/* Avatar + dropdown */}
         <div className="relative" ref={menuRef}>
           <button

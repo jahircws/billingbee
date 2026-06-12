@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { BarChart2 } from "lucide-react"
 import { fmtCurrencyShort, getCurrencySymbol } from "@/lib/currency"
 
@@ -18,6 +18,7 @@ interface Props {
   topClients: { name: string; revenue: number }[]
   totalRevenue: number
   currency: string
+  availableCurrencies?: string[]
 }
 
 function handleExport(monthlyData: Props["monthlyData"]) {
@@ -35,7 +36,8 @@ function handleExport(monthlyData: Props["monthlyData"]) {
   URL.revokeObjectURL(url)
 }
 
-export default function RevenueTab({ monthlyData, topClients, totalRevenue, currency }: Props) {
+export default function RevenueTab({ monthlyData, topClients, totalRevenue, currency, availableCurrencies = [] }: Props) {
+  const router = useRouter()
   const fmt = (n: number) => fmtCurrencyShort(n, currency)
   const sym = getCurrencySymbol(currency)
 
@@ -62,12 +64,26 @@ export default function RevenueTab({ monthlyData, topClients, totalRevenue, curr
           <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">12-month revenue</p>
           <p className="text-3xl font-black text-gray-900">{fmt(totalRevenue)}</p>
         </div>
-        <button
-          onClick={() => handleExport(monthlyData)}
-          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
-        >
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          {availableCurrencies.length > 1 && (
+            <select
+              value={currency}
+              onChange={(e) => router.push(`/reports?tab=revenue&cur=${e.target.value}`)}
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              title="Filter by currency"
+            >
+              {availableCurrencies.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          )}
+          <button
+            onClick={() => handleExport(monthlyData)}
+            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 p-4">

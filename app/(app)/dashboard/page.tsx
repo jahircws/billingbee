@@ -85,7 +85,10 @@ async function getOnboardingState(orgId: string) {
       select: { gstin: true, address: true, logo: true, createdAt: true },
     }),
     prisma.client.count({ where: { orgId } }),
-    prisma.invoice.findFirst({ where: { orgId, sentAt: { not: null } }, select: { id: true } }),
+    prisma.invoice.findFirst({
+      where: { orgId, OR: [{ sentAt: { not: null } }, { status: { in: ["UNPAID", "PAID", "OVERDUE"] } }] },
+      select: { id: true },
+    }),
     prisma.invoice.findFirst({
       where: { orgId, status: "DRAFT" },
       orderBy: { createdAt: "desc" },
