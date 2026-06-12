@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ token: string }>
-  searchParams: Promise<{ paid?: string }>
+  searchParams: Promise<{ paid?: string; session_id?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PayPage({ params, searchParams }: Props) {
   const { token } = await params
-  const { paid: paidParam } = await searchParams
+  const { paid: paidParam, session_id: sessionId } = await searchParams
 
   let invoiceId: string, orgId: string
   try {
@@ -66,6 +66,27 @@ export default async function PayPage({ params, searchParams }: Props) {
 
   if (!invoice) notFound()
 
+  // Returning from a Stripe Checkout success redirect. The webhook is the source
+  // of truth, but it may not have landed yet — so confirm the session read-only
+  // and show a success/"confirming" state instead of re-showing the payment form.
+  let paymentConfirmed = false
+  let confirmingPayment = false
+  if (paidParam === "true" && invoice.status !== "PAID") {
+    confirmingPayment = true
+    if (sessionId) {
+      try {
+        const { getStripeConfig } = await import("@/lib/gateway-config")
+        const Stripe = (await import("stripe")).default
+        const { secretKey } = await getStripeConfig(orgId)
+        const stripe = new Stripe(secretKey)
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
+        if (session.payment_status === "paid") paymentConfirmed = true
+      } catch {
+        // fall back to the confirming state + auto-refresh
+      }
+    }
+  }
+
   // Fetch gateways + QR in parallel
   const [gateways, qrDataUrl] = await Promise.all([
     getConfiguredGateways(orgId),
@@ -77,10 +98,15 @@ export default async function PayPage({ params, searchParams }: Props) {
 
   const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
-  const isPaid = invoice.status === "PAID"
+  const isPaid = invoice.status === "PAID" || paymentConfirmed
+  // While confirming (Stripe redirect landed before the webhook), suppress the
+  // payment form and auto-refresh so the user never lands back on "pay now".
+  const showForm = !isPaid && !confirmingPayment
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start py-10 px-4">
+      {/* Auto-refresh while waiting for the payment webhook to confirm */}
+      {!isPaid && confirmingPayment && <meta httpEquiv="refresh" content="4" />}
       <div className="w-full max-w-2xl space-y-4">
         {/* Header */}
         <div className="text-center">
@@ -94,6 +120,11 @@ export default async function PayPage({ params, searchParams }: Props) {
           {isPaid && (
             <div className="bg-emerald-600 text-white text-center py-3 text-sm font-semibold">
               ✓ This invoice has been paid. Thank you!
+            </div>
+          )}
+          {!isPaid && confirmingPayment && (
+            <div className="bg-emerald-50 text-emerald-700 text-center py-3 text-sm font-semibold">
+              Payment received — confirming with your bank. This page will update automatically…
             </div>
           )}
 
@@ -189,7 +220,7 @@ export default async function PayPage({ params, searchParams }: Props) {
           </div>
 
           {/* Payment actions — client component */}
-          {!isPaid && gateways.length > 0 && (
+          {showForm && gateways.length > 0 && (
             <div className="border-t border-gray-100 p-6 md:p-8">
               <PaymentActions
                 token={token}
@@ -202,7 +233,7 @@ export default async function PayPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {!isPaid && gateways.length === 0 && (
+          {showForm && gateways.length === 0 && (
             <div className="border-t border-gray-100 p-6 text-center text-sm text-gray-400">
               Contact {invoice.org.name} to arrange payment.
             </div>

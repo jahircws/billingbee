@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     ],
     metadata: { invoiceId, orgId },
     payment_intent_data: { metadata: { invoiceId, orgId } },
-    success_url: `${base}/pay/${token}?paid=true`,
+    success_url: `${base}/pay/${token}?paid=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/pay/${token}`,
   })
 
