@@ -178,10 +178,12 @@ export async function GET(
                 <Text style={{ ...styles.value, ...styles.bold }}>{format(invoice.dueDate, "d MMMM yyyy")}</Text>
               </View>
             )}
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.label}>Status</Text>
-              <Text style={styles.value}>{invoice.status}</Text>
-            </View>
+            {invoice.status !== "DRAFT" && (
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={styles.label}>Status</Text>
+                <Text style={styles.value}>{invoice.status}</Text>
+              </View>
+            )}
             {isGstInvoice && placeOfSupply && (
               <View style={{ marginTop: 8, alignItems: "flex-end" }}>
                 <Text style={styles.label}>Place of supply</Text>
