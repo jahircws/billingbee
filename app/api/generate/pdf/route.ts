@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { checkRateLimit } from "@/lib/rate-limit"
-import { renderToBuffer, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
+import { fmtCurrency } from "@/lib/currency"
+import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer"
 import React from "react"
+import path from "path"
 
+// Built-in Helvetica has no glyph for ₹ / € / £, so register DejaVu Sans which
+// covers all the currency symbols we format.
+Font.register({
+  family: "DejaVu",
+  fonts: [
+    { src: path.join(process.cwd(), "public/fonts/DejaVuSans.ttf") },
+    { src: path.join(process.cwd(), "public/fonts/DejaVuSans-Bold.ttf"), fontWeight: "bold" },
+  ],
+})
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: "Helvetica",
+    fontFamily: "DejaVu",
     fontSize: 10,
     padding: 48,
     backgroundColor: "#ffffff",
@@ -131,10 +142,6 @@ const styles = StyleSheet.create({
   },
 })
 
-function fmt(n: number) {
-  return n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
 interface LineItem {
   description: string
   qty: number
@@ -156,12 +163,14 @@ interface DocumentData {
   taxRate?: number
   notes?: string
   paymentTerms?: string
+  currency?: string
 }
 
 function InvoicePDF({ data }: { data: DocumentData }) {
   const subtotal = data.items.reduce((s, i) => s + i.qty * i.rate, 0)
   const taxAmt = data.taxRate ? subtotal * (data.taxRate / 100) : 0
   const total = subtotal + taxAmt
+  const fmt = (n: number) => fmtCurrency(n, data.currency || "INR")
   const docLabel = data.documentType.charAt(0).toUpperCase() + data.documentType.slice(1)
 
   return React.createElement(
