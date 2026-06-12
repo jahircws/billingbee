@@ -89,7 +89,7 @@ export async function GET(
     }),
     prisma.organization.findUnique({
       where: { id: orgId },
-      select: { name: true, plan: true, logo: true, address: true, email: true, phone: true },
+      select: { name: true, plan: true, logo: true, address: true, email: true, phone: true, gstin: true, pan: true, state: true },
     }),
   ])
 
@@ -100,6 +100,30 @@ export async function GET(
   const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
   const isPro = org?.plan !== "free"
+
+  // ---- GST tax-type determination (CGST Rule 46) ----------------------------
+  // The place of supply / tax type is derived from the GSTIN state codes, NOT
+  // from whatever label the user happened to store on the line item. A supply
+  // is intra-state when supplier and recipient share a state code → CGST+SGST;
+  // otherwise it is inter-state → IGST.
+  const supplierGstin = org?.gstin?.trim() || null
+  const recipientGstin = (invoice.client as { gstin?: string | null }).gstin?.trim() || null
+  const supplierStateCode = supplierGstin?.slice(0, 2) || null
+  const posStateCode = recipientGstin?.slice(0, 2) || null
+  // Only treat as a GST tax invoice when the supplier is registered.
+  const isGstInvoice = !!supplierGstin
+  // Default to intra-state when we can't compare (safer than over-charging IGST).
+  const isInterState =
+    !!supplierStateCode && !!posStateCode && supplierStateCode !== posStateCode
+  const taxAmount = Number(invoice.taxAmount)
+  // Representative rate: the max line rate (correct when all lines share a rate,
+  // which is the common case for a single-rate invoice).
+  const gstRate = invoice.items.reduce((m, i) => Math.max(m, Number(i.taxRate)), 0)
+  const halfRate = gstRate / 2
+  const placeOfSupply = (invoice.client as { state?: string | null }).state || null
+
+  const gstComponentLabel = (rate: number) =>
+    isInterState ? `IGST ${rate}%` : `CGST ${rate / 2}% + SGST ${rate / 2}%`
 
   const doc = (
     <Document>
@@ -120,9 +144,11 @@ export async function GET(
             {org?.address && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>{org.address}</Text>}
             {org?.email && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.email}</Text>}
             {org?.phone && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.phone}</Text>}
+            {supplierGstin && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>GSTIN: {supplierGstin}</Text>}
+            {org?.pan && <Text style={{ ...styles.value, color: "#6b7280" }}>PAN: {org.pan}</Text>}
           </View>
           <View>
-            <Text style={styles.invoiceTitle}>INVOICE</Text>
+            <Text style={styles.invoiceTitle}>{isGstInvoice ? "TAX INVOICE" : "INVOICE"}</Text>
             <Text style={styles.invoiceNumber}>{invoice.invoiceNumber}</Text>
           </View>
         </View>
@@ -156,6 +182,15 @@ export async function GET(
               <Text style={styles.label}>Status</Text>
               <Text style={styles.value}>{invoice.status}</Text>
             </View>
+            {isGstInvoice && placeOfSupply && (
+              <View style={{ marginTop: 8, alignItems: "flex-end" }}>
+                <Text style={styles.label}>Place of supply</Text>
+                <Text style={styles.value}>
+                  {placeOfSupply}
+                  {posStateCode ? ` (${posStateCode})` : ""}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -171,13 +206,24 @@ export async function GET(
         </View>
         {invoice.items.map((item) => (
           <View key={item.id} style={styles.tableRow}>
-            <Text style={{ ...styles.td, ...styles.descCol }}>{item.description}</Text>
+            <View style={styles.descCol}>
+              <Text style={styles.td}>{item.description}</Text>
+              {(item as { hsn?: string | null }).hsn && (
+                <Text style={{ ...styles.td, fontSize: 8, color: "#9ca3af" }}>
+                  HSN/SAC: {(item as { hsn?: string | null }).hsn}
+                </Text>
+              )}
+            </View>
             <Text style={{ ...styles.td, ...styles.numCol }}>{Number(item.quantity)}</Text>
             <Text style={{ ...styles.td, ...styles.numCol }}>{fmt(item.unitPrice)}</Text>
             <Text style={{ ...styles.td, ...styles.numCol }}>
-              {(item as { taxName?: string | null }).taxName && (item as { taxName?: string | null }).taxName !== "None"
-                ? `${(item as { taxName?: string | null }).taxName} ${Number(item.taxRate)}%`
-                : `${Number(item.taxRate)}%`}
+              {Number(item.taxRate) > 0
+                ? isGstInvoice
+                  ? gstComponentLabel(Number(item.taxRate))
+                  : `${(item as { taxName?: string | null }).taxName && (item as { taxName?: string | null }).taxName !== "None"
+                      ? `${(item as { taxName?: string | null }).taxName} `
+                      : ""}${Number(item.taxRate)}%`
+                : "—"}
             </Text>
             <Text style={{ ...styles.td, ...styles.numCol }}>{fmt(item.total)}</Text>
           </View>
@@ -186,14 +232,34 @@ export async function GET(
         {/* Totals */}
         <View style={styles.totals}>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalLabel}>{isGstInvoice ? "Taxable value" : "Subtotal"}</Text>
             <Text style={styles.totalValue}>{fmt(invoice.subtotal)}</Text>
           </View>
-          {Number(invoice.taxAmount) > 0 && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Tax</Text>
-              <Text style={styles.totalValue}>{fmt(invoice.taxAmount)}</Text>
-            </View>
+          {taxAmount > 0 && (
+            isGstInvoice ? (
+              isInterState ? (
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>IGST {gstRate}%</Text>
+                  <Text style={styles.totalValue}>{fmt(taxAmount)}</Text>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>CGST {halfRate}%</Text>
+                    <Text style={styles.totalValue}>{fmt(taxAmount / 2)}</Text>
+                  </View>
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>SGST {halfRate}%</Text>
+                    <Text style={styles.totalValue}>{fmt(taxAmount / 2)}</Text>
+                  </View>
+                </>
+              )
+            ) : (
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Tax</Text>
+                <Text style={styles.totalValue}>{fmt(taxAmount)}</Text>
+              </View>
+            )
           )}
           <View style={{ ...styles.divider, width: 176, marginVertical: 6 }} />
           <View style={styles.totalRow}>
@@ -213,6 +279,29 @@ export async function GET(
             </>
           )}
         </View>
+
+        {/* GST declaration + signatory */}
+        {isGstInvoice && (
+          <>
+            <View style={styles.divider} />
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ ...styles.value, color: "#6b7280" }}>
+                  Tax is payable on reverse charge: No
+                </Text>
+                <Text style={{ ...styles.value, color: "#6b7280", marginTop: 2 }}>
+                  {isInterState
+                    ? "Inter-state supply — IGST applicable."
+                    : "Intra-state supply — CGST + SGST applicable."}
+                </Text>
+              </View>
+              <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+                <Text style={{ ...styles.value, marginTop: 24 }}>For {org?.name ?? "Your Business"}</Text>
+                <Text style={{ ...styles.label, marginTop: 20 }}>Authorised Signatory</Text>
+              </View>
+            </View>
+          </>
+        )}
 
         {/* Notes */}
         {invoice.notes && (

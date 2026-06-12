@@ -51,8 +51,9 @@ export default async function EditInvoicePage({ params }: Props) {
     autoFollowUp: serialized.autoFollowUp,
     isRecurring: serialized.isRecurring ?? false,
     recurringFrequency: (serialized.recurringCron === "0 9 * * 1" ? "weekly" : serialized.recurringCron === "0 9 1 1,4,7,10 *" ? "quarterly" : "monthly") as "weekly" | "monthly" | "quarterly",
-    items: serialized.items.map((item: { description: string; quantity: unknown; unitPrice: unknown; taxRate: unknown; taxName?: string | null; taxType?: string | null; discount: unknown }) => ({
+    items: serialized.items.map((item: { description: string; hsn?: string | null; quantity: unknown; unitPrice: unknown; taxRate: unknown; taxName?: string | null; taxType?: string | null; discount: unknown }) => ({
       description: item.description,
+      hsn: item.hsn ?? "",
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice),
       taxRate: Number(item.taxRate),

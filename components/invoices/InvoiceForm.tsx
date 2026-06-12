@@ -16,6 +16,7 @@ interface Client {
 
 interface LineItem {
   description: string
+  hsn: string
   quantity: number
   unitPrice: number
   taxRate: number
@@ -111,6 +112,7 @@ export default function InvoiceForm({
     initialData?.items ?? [
       {
         description: defaultDescription ?? "",
+        hsn: "",
         quantity: 1,
         unitPrice: defaultAmount ?? 0,
         taxRate: 0,
@@ -147,8 +149,9 @@ export default function InvoiceForm({
       if (ex.dueDate) setDueDate(ex.dueDate)
       if (ex.notes) { setNotes(ex.notes); setShowNotesTerms(true) }
       if (ex.items?.length) {
-        setItems(ex.items.map((i: { description: string; qty: number; rate: number }) => ({
+        setItems(ex.items.map((i: { description: string; qty: number; rate: number; hsn?: string }) => ({
           description: i.description ?? "",
+          hsn: i.hsn ?? "",
           quantity: i.qty ?? 1,
           unitPrice: i.rate ?? 0,
           taxRate: 0,
@@ -215,7 +218,7 @@ export default function InvoiceForm({
   }, [saveDraft])
 
   function addItem() {
-    setItems((prev) => [...prev, { description: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: "GST", taxType: "PERCENTAGE", discount: 0 }])
+    setItems((prev) => [...prev, { description: "", hsn: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: "GST", taxType: "PERCENTAGE", discount: 0 }])
   }
 
   function removeItem(idx: number) {
@@ -226,7 +229,7 @@ export default function InvoiceForm({
     setItems((prev) =>
       prev.map((item, i) =>
         i === idx
-          ? { ...item, [field]: typeof value === "string" && field !== "description" && field !== "taxName" && field !== "taxType" ? Number(value) : value }
+          ? { ...item, [field]: typeof value === "string" && field !== "description" && field !== "hsn" && field !== "taxName" && field !== "taxType" ? Number(value) : value }
           : item
       )
     )
@@ -287,6 +290,7 @@ export default function InvoiceForm({
       discountAmount: actualDiscount || undefined,
       items: items.map((i) => ({
         description: i.description,
+        hsn: i.hsn,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
         taxRate: i.taxRate,
@@ -541,7 +545,8 @@ export default function InvoiceForm({
         <div className="space-y-3">
           {/* Column headers */}
           <div className="grid grid-cols-12 gap-2 px-1">
-            <span className="col-span-4 text-xs text-gray-400">Description</span>
+            <span className="col-span-3 text-xs text-gray-400">Description</span>
+            <span className="col-span-1 text-xs text-gray-400 text-center">HSN/SAC</span>
             <span className="col-span-1 text-xs text-gray-400 text-center">Qty</span>
             <span className="col-span-2 text-xs text-gray-400 text-right">Price</span>
             <span className="col-span-2 text-xs text-gray-400 text-center">Tax %/₹</span>
@@ -551,11 +556,17 @@ export default function InvoiceForm({
             <div key={idx} className="space-y-1.5">
               <div className="grid grid-cols-12 gap-2 items-center">
                 <input
-                  className="col-span-4 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="col-span-3 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="Description"
                   value={item.description}
                   onChange={(e) => updateItem(idx, "description", e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, idx)}
+                />
+                <input
+                  className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="HSN"
+                  value={item.hsn}
+                  onChange={(e) => updateItem(idx, "hsn", e.target.value)}
                 />
                 <input
                   className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"

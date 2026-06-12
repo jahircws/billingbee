@@ -12,6 +12,7 @@ import { generatePaymentToken } from "@/lib/payment-token"
 
 interface LineItemInput {
   description: string
+  hsn?: string
   quantity: number
   unitPrice: number
   taxRate?: number
@@ -63,6 +64,7 @@ export async function createInvoice(input: CreateInvoiceInput) {
       : discountedSubtotal * ((item.taxRate ?? 0) / 100)
     return {
       description: item.description,
+      hsn: item.hsn?.trim() || null,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       taxRate: item.taxRate ?? 0,
@@ -198,6 +200,7 @@ export async function updateInvoiceWithItems(invoiceId: string, input: CreateInv
       : discountedSubtotal * ((item.taxRate ?? 0) / 100)
     return {
       description: item.description,
+      hsn: item.hsn?.trim() || null,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       taxRate: item.taxRate ?? 0,
@@ -332,6 +335,7 @@ export async function duplicateInvoice(invoiceId: string) {
       items: {
         create: source.items.map((item) => ({
           description: item.description,
+          hsn: item.hsn,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           taxRate: item.taxRate,
