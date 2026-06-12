@@ -1,0 +1,23 @@
+# BillingBee scheduled jobs (EC2 system cron)
+#
+# Previously defined in vercel.json, which only ran on Vercel deployments.
+# Beta/production run on EC2 (nginx + `next start`), so these must be driven
+# by the system crontab instead. Install with:  crontab deploy/crontab.example
+#
+# Replace BASE_URL with the server's own origin and set CRON_SECRET to match
+# the app's CRON_SECRET env var. Each endpoint authenticates differently:
+#   - /api/cron/collections   -> header  x-cron-secret: $CRON_SECRET
+#   - /api/cron/trial-expiry  -> header  Authorization: Bearer $CRON_SECRET
+#   - /api/health             -> no auth
+
+BASE_URL=http://127.0.0.1:3000
+CRON_SECRET=__set_me__
+
+# Collections reminders — daily 09:00
+0 9 * * *  curl -fsS -H "x-cron-secret: $CRON_SECRET" "$BASE_URL/api/cron/collections" >/dev/null 2>&1
+
+# Trial-expiry emails — daily 10:00
+0 10 * * * curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$BASE_URL/api/cron/trial-expiry" >/dev/null 2>&1
+
+# Health check — weekly, Sunday 00:00
+0 0 * * 0  curl -fsS "$BASE_URL/api/health" >/dev/null 2>&1
