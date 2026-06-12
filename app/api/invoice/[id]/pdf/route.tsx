@@ -89,7 +89,7 @@ export async function GET(
     }),
     prisma.organization.findUnique({
       where: { id: orgId },
-      select: { name: true, plan: true, logo: true, address: true, email: true, phone: true, gstin: true, pan: true, state: true },
+      select: { name: true, plan: true, logo: true, address: true, city: true, state: true, pincode: true, email: true, phone: true, gstin: true, pan: true },
     }),
   ])
 
@@ -125,6 +125,18 @@ export async function GET(
   const gstComponentLabel = (rate: number) =>
     isInterState ? `IGST ${rate}%` : `CGST ${rate / 2}% + SGST ${rate / 2}%`
 
+  // City, State – Pincode line, composed from the separate address fields.
+  const cityStateLine = (city?: string | null, state?: string | null, pincode?: string | null) => {
+    const locality = [city, state].filter(Boolean).join(", ")
+    return [locality, pincode].filter(Boolean).join(" - ") || null
+  }
+  const supplierCityState = cityStateLine(org?.city, org?.state, org?.pincode)
+  const clientCityState = cityStateLine(
+    (invoice.client as { city?: string | null }).city,
+    (invoice.client as { state?: string | null }).state,
+    (invoice.client as { pincode?: string | null }).pincode,
+  )
+
   const doc = (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -142,6 +154,7 @@ export async function GET(
             )}
             <Text style={styles.orgName}>{org?.name ?? "Your Business"}</Text>
             {org?.address && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>{org.address}</Text>}
+            {supplierCityState && <Text style={{ ...styles.value, color: "#6b7280" }}>{supplierCityState}</Text>}
             {org?.email && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.email}</Text>}
             {org?.phone && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.phone}</Text>}
             {supplierGstin && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>GSTIN: {supplierGstin}</Text>}
@@ -163,6 +176,7 @@ export async function GET(
             {invoice.client.email && <Text style={styles.value}>{invoice.client.email}</Text>}
             {invoice.client.phone && <Text style={styles.value}>{invoice.client.phone}</Text>}
             {invoice.client.address && <Text style={styles.value}>{invoice.client.address}</Text>}
+            {clientCityState && <Text style={styles.value}>{clientCityState}</Text>}
             {(invoice.client as { gstin?: string | null }).gstin && (
               <Text style={{ ...styles.value, color: "#6b7280" }}>GSTIN: {(invoice.client as { gstin?: string | null }).gstin}</Text>
             )}
