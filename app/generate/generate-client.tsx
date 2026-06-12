@@ -239,6 +239,7 @@ export default function GenerateClient() {
   const [mobilePreview, setMobilePreview] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [showDownloadGate, setShowDownloadGate] = useState(false)
 
   const previewDebounce = useRef<NodeJS.Timeout | null>(null)
   const [previewForm, setPreviewForm] = useState<FormState>(form)
@@ -425,6 +426,7 @@ export default function GenerateClient() {
   }
 
   async function handleDownloadPDF() {
+    setShowDownloadGate(false)
     setPdfLoading(true)
     try {
       const res = await fetch("/api/generate/pdf", {
@@ -876,7 +878,7 @@ export default function GenerateClient() {
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
-                  onClick={handleDownloadPDF}
+                  onClick={() => setShowDownloadGate(true)}
                   disabled={pdfLoading}
                   className="bg-white/20 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 transition-colors"
                 >
@@ -897,6 +899,44 @@ export default function GenerateClient() {
         </>
         )}
       </div>
+
+      {/* Download gate — capture signup before PDF leaves */}
+      {showDownloadGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-xl">
+            <button
+              onClick={() => setShowDownloadGate(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <Sparkles size={24} className="text-emerald-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Sign up free to download &amp; save</h2>
+            <p className="text-sm text-gray-500 leading-relaxed mb-6">
+              Create a free account to download your {form.docType}, save it, and send it with a
+              payment link. No credit card required.
+            </p>
+            <button
+              onClick={handleSaveAndRegister}
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors w-full"
+            >
+              Sign up free
+              <ArrowRight size={14} />
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={pdfLoading}
+              className="text-xs text-gray-400 hover:text-gray-600 mt-4 inline-flex items-center gap-1.5"
+            >
+              {pdfLoading ? <Loader2 size={12} className="animate-spin" /> : null}
+              Download without saving
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

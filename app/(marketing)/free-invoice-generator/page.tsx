@@ -7,17 +7,17 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "Free Invoice Generator — Create & Download GST Invoice PDF | BillingBee",
-    "Create professional GST invoices online for free. Download PDF instantly. No signup required. Supports CGST/SGST, Razorpay payment links, and custom branding.",
+    "Free Invoice Generator — Create & Download Invoice PDF | BillingBee",
+    "Create professional invoices online for free in any currency. Download PDF instantly. No signup required. Supports custom taxes, Stripe payment links, and custom branding.",
     "/free-invoice-generator",
     {
       keywords: [
-        "free invoice generator India",
-        "GST invoice generator online free",
+        "free invoice generator",
+        "invoice generator online free",
         "create invoice PDF free",
-        "free billing software India",
+        "free billing software",
         "invoice maker no signup",
-        "free GST invoice download",
+        "free invoice download",
         "online invoice generator for freelancers",
       ],
     }
@@ -33,19 +33,19 @@ export const metadata: Metadata = {
       offers: {
         "@type": "Offer",
         price: "0",
-        priceCurrency: "INR",
+        priceCurrency: "USD",
       },
       description:
-        "Free online invoice generator for Indian freelancers and businesses. Create GST-compliant invoices and download as PDF. No account required.",
+        "Free online invoice generator for freelancers and businesses worldwide. Create invoices in any currency and download as PDF. No account required.",
     }),
   },
 }
 
 const FEATURES = [
-  "GST-compliant with CGST/SGST split",
+  "Custom tax lines (GST, VAT & more)",
   "PDF download in seconds",
   "Add your logo & brand colours",
-  "UPI & Razorpay payment links",
+  "Stripe payment links",
   "Multiple currency support",
   "No signup for first invoice",
   "Auto invoice numbering",
@@ -61,7 +61,7 @@ const STEPS = [
   {
     n: "2",
     title: "Add your details",
-    desc: "Business name, GSTIN, logo — or skip for a quick invoice",
+    desc: "Business name, tax ID, logo — or skip for a quick invoice",
   },
   {
     n: "3",
@@ -95,12 +95,12 @@ export default function FreeInvoiceGeneratorPage() {
             Free PDF download — no credit card
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-5">
-            Free GST Invoice Generator
+            Free Invoice Generator
             <br />
-            <span className="text-emerald-600">for Indian Freelancers</span>
+            <span className="text-emerald-600">for Freelancers Worldwide</span>
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-            Create professional, GST-compliant invoices with AI in under 60 seconds.
+            Create professional, tax-ready invoices in any currency with AI in under 60 seconds.
             Download as PDF. Share a payment link. No signup needed for your first invoice.
           </p>
           <Link
@@ -146,13 +146,13 @@ export default function FreeInvoiceGeneratorPage() {
           </div>
 
           <div className="bg-emerald-600 rounded-2xl p-8 text-white">
-            <h2 className="text-xl font-bold mb-4">Built for Indian freelancers</h2>
+            <h2 className="text-xl font-bold mb-4">Built for freelancers everywhere</h2>
             <p className="text-emerald-100 text-sm mb-6 leading-relaxed">
-              BillingBee understands Indian tax rules, Razorpay UPI flows, and the way freelancers
-              actually work. Not a generic invoicing tool — built specifically for India.
+              BillingBee works in any currency, supports tax rules worldwide, and fits the way
+              freelancers actually work — with built-in GST support for users in India.
             </p>
             <ul className="space-y-2 text-sm text-emerald-100 mb-6">
-              {["CGST + SGST automatically calculated", "GSTIN validation built-in", "INR with locale-aware formatting", "Razorpay UPI payment links"].map((f) => (
+              {["Any currency with locale-aware formatting", "Custom tax lines (VAT, GST, sales tax)", "GST CGST/SGST support for India", "Stripe payment links"].map((f) => (
                 <li key={f} className="flex items-center gap-2">
                   <Check size={13} className="text-emerald-300 shrink-0" />
                   {f}
@@ -183,12 +183,12 @@ export default function FreeInvoiceGeneratorPage() {
                 a: "No signup is needed for your first invoice. After that, creating a free account lets you save invoices, track payments, and set up automated reminders.",
               },
               {
-                q: "Is the invoice GST compliant?",
-                a: "Yes. BillingBee automatically calculates CGST, SGST, IGST, and includes all mandatory GST fields. Your invoices are CA-ready.",
+                q: "Does it support taxes and GST?",
+                a: "Yes. BillingBee handles custom tax lines in any currency — VAT, sales tax, and more. For India, it automatically calculates CGST, SGST, and IGST with all mandatory GST fields, so your invoices are accountant-ready.",
               },
               {
                 q: "Can clients pay online?",
-                a: "Yes. Every invoice includes an optional Razorpay payment link — your clients can pay via UPI, debit/credit card, or net banking.",
+                a: "Yes. Every invoice includes an optional Stripe payment link — your clients can pay by card, wallet, or bank transfer. Razorpay is also available for users in India.",
               },
             ].map(({ q, a }) => (
               <div key={q} className="border-b border-gray-100 pb-5 last:border-0 last:pb-0">

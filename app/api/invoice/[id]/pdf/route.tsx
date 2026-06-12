@@ -101,6 +101,10 @@ export async function GET(
         {/* Header */}
         <View style={styles.header}>
           <View>
+            {org?.logo && (
+              // eslint-disable-next-line jsx-a11y/alt-text
+              <Image src={org.logo} style={{ maxHeight: 44, maxWidth: 160, marginBottom: 8, objectFit: "contain" }} />
+            )}
             <Text style={styles.orgName}>{org?.name ?? "Your Business"}</Text>
             {org?.address && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>{org.address}</Text>}
             {org?.email && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.email}</Text>}

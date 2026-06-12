@@ -19,17 +19,17 @@ import {
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "BillingBee — AI-Powered Invoicing for Indian Freelancers & SMBs",
-    "Create GST-compliant invoices in seconds with natural language AI. Accept Razorpay & Stripe payments. Auto-send reminders. Trusted by 700+ freelancers.",
+    "BillingBee — AI-Powered Invoicing for Freelancers & Small Businesses",
+    "Create professional invoices in any currency in seconds with natural language AI. Accept Stripe payments. Auto-send reminders. Trusted by 700+ freelancers worldwide.",
     "/",
     {
       keywords: [
-        "invoice software India",
-        "GST invoice generator",
+        "invoice software",
+        "online invoice generator",
         "AI invoicing tool",
         "freelancer billing app",
-        "online invoice maker India",
-        "Razorpay invoice",
+        "online invoice maker",
+        "multi-currency invoicing",
       ],
     }
   ),
@@ -56,28 +56,28 @@ export const metadata: Metadata = {
         operatingSystem: "Web",
         url: "https://billingbee.co",
         description:
-          "AI-powered invoicing software for Indian freelancers and small businesses. Create GST invoices with natural language, accept payments, and automate collections.",
+          "AI-powered invoicing software for freelancers and small businesses worldwide. Create invoices in any currency with natural language, accept payments, and automate collections.",
         offers: [
           {
             "@type": "Offer",
             name: "Free",
             price: "0",
-            priceCurrency: "INR",
+            priceCurrency: "USD",
             description: "5 invoices/month, basic AI, PDF download",
           },
           {
             "@type": "Offer",
             name: "Pro",
-            price: "999",
-            priceCurrency: "INR",
+            price: "9.99",
+            priceCurrency: "USD",
             billingIncrement: "P1M",
             description: "Unlimited invoices, AI collections, payment links",
           },
           {
             "@type": "Offer",
             name: "Business",
-            price: "2499",
-            priceCurrency: "INR",
+            price: "24.99",
+            priceCurrency: "USD",
             billingIncrement: "P1M",
             description: "Team seats, white-label, API access, priority support",
           },
@@ -177,7 +177,7 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 mb-6">
           <Sparkles size={12} />
-          Trusted by 700+ Indian freelancers
+          Trusted by 700+ freelancers worldwide
         </div>
 
         <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight tracking-tight mb-6">
@@ -187,8 +187,8 @@ export default function HomePage() {
         </h1>
 
         <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Just say &ldquo;Invoice Acme Corp ₹25,000 for design work&rdquo; — BillingBee AI creates a
-          GST-ready PDF, sends it, and follows up automatically.
+          Just say &ldquo;Invoice Acme Corp $2,500 for design work&rdquo; — BillingBee AI creates a
+          polished, tax-ready PDF, sends it, and follows up automatically.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
@@ -210,8 +210,8 @@ export default function HomePage() {
         <div className="flex items-center justify-center gap-6 text-sm text-gray-400 flex-wrap">
           {[
             "No credit card required",
-            "GST-compliant PDFs",
-            "Razorpay & Stripe built-in",
+            "Tax-ready PDFs",
+            "Stripe payments built-in",
           ].map((s) => (
             <span key={s} className="flex items-center gap-1.5">
               <Check size={14} className="text-emerald-500" />
@@ -233,17 +233,17 @@ export default function HomePage() {
           <FeatureCard
             icon={Sparkles}
             title="Natural language invoicing"
-            description="Just describe what you did. AI fills in client details, amounts, GST, and due dates automatically."
+            description="Just describe what you did. AI fills in client details, amounts, taxes, and due dates automatically."
           />
           <FeatureCard
             icon={FileText}
-            title="GST-compliant PDFs"
-            description="Every invoice is GST-ready with CGST/SGST split, GSTIN, and proper invoice numbering."
+            title="Tax-ready PDFs"
+            description="Every invoice supports custom tax lines, any currency, and sequential numbering — plus built-in GST support for India."
           />
           <FeatureCard
             icon={CreditCard}
             title="Instant payment links"
-            description="Accept payments via Razorpay (UPI, cards, net banking) or Stripe. Payment link auto-included in every invoice."
+            description="Accept payments via Stripe — cards, wallets, and bank transfers. Payment link auto-included in every invoice."
           />
           <FeatureCard
             icon={Users}
@@ -273,7 +273,7 @@ export default function HomePage() {
               {
                 step: "1",
                 title: "Describe the work",
-                desc: "\"Invoice TechCorp ₹50,000 for website development, due in 15 days\"",
+                desc: "\"Invoice TechCorp $5,000 for website development, due in 15 days\"",
               },
               {
                 step: "2",
@@ -283,7 +283,7 @@ export default function HomePage() {
               {
                 step: "3",
                 title: "Get paid",
-                desc: "Client clicks the payment link, pays via UPI or card. You get notified instantly.",
+                desc: "Client clicks the payment link, pays by card or bank transfer. You get notified instantly.",
               },
             ].map(({ step, title, desc }) => (
               <div key={step}>
@@ -301,7 +301,7 @@ export default function HomePage() {
       {/* Testimonials */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">Loved by freelancers across India</h2>
+          <h2 className="text-3xl font-black text-gray-900 mb-3">Loved by freelancers worldwide</h2>
           <div className="flex items-center justify-center gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star key={i} size={16} className="fill-amber-400 text-amber-400" />
@@ -313,17 +313,17 @@ export default function HomePage() {
           <Testimonial
             quote="I used to spend 2 hours every week on invoices. Now it takes 5 minutes. The AI just gets it."
             name="Priya Sharma"
-            role="UX Designer, Bangalore"
+            role="UX Designer"
           />
           <Testimonial
-            quote="GST calculations used to terrify me. BillingBee handles all of it. My CA loves the exports."
+            quote="Tax calculations used to terrify me. BillingBee handles all of it. My accountant loves the exports."
             name="Rahul Mehta"
-            role="Full-stack Developer, Mumbai"
+            role="Full-stack Developer, Remote"
           />
           <Testimonial
             quote="The payment link feature alone is worth it. Clients pay the same day now instead of chasing them for weeks."
             name="Ananya Krishnan"
-            role="Content Strategist, Chennai"
+            role="Content Strategist"
           />
         </div>
       </section>
@@ -333,7 +333,7 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto px-4 text-center text-white">
           <h2 className="text-3xl font-black mb-4">Start free. No credit card needed.</h2>
           <p className="text-emerald-100 mb-8 text-lg">
-            Free plan includes 5 invoices/month, PDF downloads, and GST calculations.
+            Free plan includes 5 invoices/month, PDF downloads, and automatic tax calculations.
             Upgrade when you&apos;re ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -383,7 +383,7 @@ export default function HomePage() {
               <Zap size={10} className="text-white" />
             </div>
             <span className="font-semibold text-gray-600">BillingBee</span>
-            <span>— AI Invoicing for India</span>
+            <span>— AI Invoicing for freelancers everywhere</span>
           </div>
           <div className="flex items-center gap-4 flex-wrap justify-center">
             <Link href="/plans-price" className="hover:text-gray-600 transition-colors">Pricing</Link>
