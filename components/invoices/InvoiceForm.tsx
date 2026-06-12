@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Trash2, ChevronDown, Upload, X } from "lucide-react"
 import { createInvoice, updateInvoiceWithItems } from "@/app/actions/invoices"
-import { createQuote } from "@/app/actions/quote"
+import { createQuote, updateQuoteWithItems } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
 import { isValidEmail } from "@/lib/sanitize"
+import { computeInvoiceTotals } from "@/lib/invoice-totals"
 import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Client {
@@ -34,8 +35,8 @@ interface InitialData {
   notes?: string
   terms?: string
   currency: string
-  autoFollowUp: boolean
-  isRecurring: boolean
+  autoFollowUp?: boolean
+  isRecurring?: boolean
   recurringFrequency?: "weekly" | "monthly" | "quarterly"
   discountAmount?: number
   items: LineItem[]
@@ -47,9 +48,19 @@ interface OrgTax {
   rate: number
 }
 
+interface SavedItem {
+  id: string
+  name: string
+  description?: string | null
+  unitPrice: number
+  taxRate: number
+  hsn?: string | null
+}
+
 interface Props {
   type?: "invoice" | "quote"
   clients: Client[]
+  savedItems?: SavedItem[]
   orgTaxes?: OrgTax[]
   defaultClientId?: string
   defaultClientName?: string
@@ -66,17 +77,6 @@ const DRAFT_KEY = "billingbee_draft_invoice"
 
 const DEFAULT_TAX_NAMES = ["GST", "IGST", "CGST+SGST", "None"]
 
-function calcItem(item: LineItem) {
-  const subtotal = item.quantity * item.unitPrice
-  const discountedSubtotal = item.taxType === "FIXED"
-    ? subtotal
-    : subtotal - subtotal * (item.discount / 100)
-  const tax = item.taxType === "FIXED"
-    ? item.taxRate
-    : discountedSubtotal * (item.taxRate / 100)
-  return discountedSubtotal + tax
-}
-
 export default function InvoiceForm({
   type = "invoice",
   clients,
@@ -90,6 +90,7 @@ export default function InvoiceForm({
   defaultCurrency = "INR",
   initialData,
   orgTaxes = [],
+  savedItems = [],
 }: Props) {
   const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : DEFAULT_TAX_NAMES
   const editMode = !!initialData
@@ -179,14 +180,15 @@ export default function InvoiceForm({
   const [localClients, setLocalClients] = useState(clients)
 
   const [currency, setCurrency] = useState(initialData?.currency ?? defaultCurrency)
-  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
-  const totalTax = items.reduce((s, i) => {
-    const base = i.taxType === "FIXED" ? i.quantity * i.unitPrice : i.quantity * i.unitPrice * (1 - i.discount / 100)
-    return s + (i.taxType === "FIXED" ? i.taxRate : base * (i.taxRate / 100))
-  }, 0)
-  const itemsTotal = items.reduce((s, i) => s + calcItem(i), 0)
-  const actualDiscount = discountType === "PERCENTAGE" ? itemsTotal * (discountAmount / 100) : discountAmount
-  const total = itemsTotal - actualDiscount
+  const netSubtotal = items.reduce(
+    (s, i) => s + (i.taxType === "FIXED" ? i.quantity * i.unitPrice : i.quantity * i.unitPrice * (1 - i.discount / 100)),
+    0
+  )
+  const actualDiscount = discountType === "PERCENTAGE" ? netSubtotal * (discountAmount / 100) : discountAmount
+  const invoiceTotals = computeInvoiceTotals(items, actualDiscount)
+  const subtotal = invoiceTotals.subtotal
+  const totalTax = invoiceTotals.taxAmount
+  const total = invoiceTotals.total
   const fmt = (n: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2 }).format(n)
 
@@ -237,6 +239,26 @@ export default function InvoiceForm({
           : item
       )
     )
+  }
+
+  // When a saved product is picked from the datalist, fill price/tax/hsn/description
+  function applySavedItem(idx: number, name: string): boolean {
+    const match = savedItems.find((s) => s.name === name)
+    if (!match) return false
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === idx
+          ? {
+              ...item,
+              description: match.description || match.name,
+              unitPrice: Number(match.unitPrice),
+              taxRate: Number(match.taxRate),
+              hsn: match.hsn || item.hsn,
+            }
+          : item
+      )
+    )
+    return true
   }
 
   function handleKeyDown(e: React.KeyboardEvent, idx: number) {
@@ -314,7 +336,9 @@ export default function InvoiceForm({
 
     let result: Record<string, unknown>
     if (editMode && initialData) {
-      result = await updateInvoiceWithItems(initialData.invoiceId, payload) as Record<string, unknown>
+      result = type === "quote"
+        ? await updateQuoteWithItems(initialData.invoiceId, payload) as Record<string, unknown>
+        : await updateInvoiceWithItems(initialData.invoiceId, payload) as Record<string, unknown>
     } else if (type === "invoice") {
       result = await createInvoice(payload) as Record<string, unknown>
     } else {
@@ -554,6 +578,13 @@ export default function InvoiceForm({
       {/* Line items */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
         <h3 className="text-sm font-semibold text-gray-700">Items</h3>
+        {savedItems.length > 0 && (
+          <datalist id="bb-saved-items">
+            {savedItems.map((s) => (
+              <option key={s.id} value={s.name} />
+            ))}
+          </datalist>
+        )}
 
         <div className="space-y-3">
           {/* Column headers */}
@@ -571,8 +602,12 @@ export default function InvoiceForm({
                 <input
                   className="col-span-3 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="Description"
+                  list={savedItems.length > 0 ? "bb-saved-items" : undefined}
                   value={item.description}
-                  onChange={(e) => updateItem(idx, "description", e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (!applySavedItem(idx, val)) updateItem(idx, "description", val)
+                  }}
                   onKeyDown={(e) => handleKeyDown(e, idx)}
                 />
                 <input

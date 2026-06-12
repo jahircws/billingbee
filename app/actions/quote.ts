@@ -4,6 +4,9 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
+import { computeInvoiceTotals } from "@/lib/invoice-totals"
+import { sendQuoteEmail } from "@/lib/email"
+import { fmtCurrency } from "@/lib/currency"
 import { addDays } from "date-fns"
 
 interface LineItemInput {
@@ -11,6 +14,8 @@ interface LineItemInput {
   quantity: number
   unitPrice: number
   taxRate?: number
+  taxType?: string
+  discount?: number
 }
 
 interface QuoteInput {
@@ -19,6 +24,7 @@ interface QuoteInput {
   currency?: string
   notes?: string
   terms?: string
+  discountAmount?: number
   items: LineItemInput[]
 }
 
@@ -66,24 +72,19 @@ export async function createQuote(input: QuoteInput) {
   const count = await prisma.quote.count({ where: { orgId } })
   const quoteNumber = `QUO-${String(count + 1).padStart(3, "0")}`
 
-  const lineItems = input.items.map((item, idx) => {
-    const subtotal = item.quantity * item.unitPrice
-    const taxAmount = subtotal * ((item.taxRate ?? 0) / 100)
-    return {
-      description: item.description,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      taxRate: item.taxRate ?? 0,
-      taxAmount,
-      discount: 0,
-      total: subtotal + taxAmount,
-      sortOrder: idx,
-    }
-  })
+  const totals = computeInvoiceTotals(input.items, input.discountAmount ?? 0)
+  const lineItems = input.items.map((item, idx) => ({
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    taxRate: item.taxRate ?? 0,
+    taxAmount: totals.lines[idx].taxAmount,
+    discount: item.discount ?? 0,
+    total: totals.lines[idx].total,
+    sortOrder: idx,
+  }))
 
-  const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
-  const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
-  const total = subtotal + taxAmount
+  const { subtotal, taxAmount, discountAmount, total } = totals
 
   const quote = await prisma.quote.create({
     data: {
@@ -96,7 +97,7 @@ export async function createQuote(input: QuoteInput) {
       currency: (input.currency ?? "INR") as never,
       subtotal,
       taxAmount,
-      discountAmount: 0,
+      discountAmount,
       total,
       notes: input.notes,
       terms: input.terms,
@@ -126,6 +127,70 @@ export async function updateQuote(quoteId: string, data: Partial<QuoteInput> & {
     },
   })
   return { quote: serialize(quote) }
+}
+
+export async function updateQuoteWithItems(quoteId: string, input: QuoteInput) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const existing = await prisma.quote.findUnique({ where: { id: quoteId, orgId } })
+  if (!existing) return { error: "Not found" }
+
+  const totals = computeInvoiceTotals(input.items, input.discountAmount ?? 0)
+  const lineItems = input.items.map((item, idx) => ({
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    taxRate: item.taxRate ?? 0,
+    taxAmount: totals.lines[idx].taxAmount,
+    discount: item.discount ?? 0,
+    total: totals.lines[idx].total,
+    sortOrder: idx,
+  }))
+  const { subtotal, taxAmount, discountAmount, total } = totals
+
+  await prisma.$transaction([
+    prisma.quoteItem.deleteMany({ where: { quoteId } }),
+    prisma.quote.update({
+      where: { id: quoteId },
+      data: {
+        clientId: input.clientId,
+        currency: (input.currency ?? "INR") as never,
+        expiryDate: input.expiryDate ? new Date(input.expiryDate) : existing.expiryDate,
+        notes: input.notes ?? null,
+        terms: input.terms ?? null,
+        subtotal,
+        taxAmount,
+        discountAmount,
+        total,
+        items: { create: lineItems },
+      },
+    }),
+  ])
+  return { quote: serialize(await prisma.quote.findUnique({ where: { id: quoteId } })) }
+}
+
+export async function sendQuote(quoteId: string) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const quote = await prisma.quote.findUnique({
+    where: { id: quoteId, orgId },
+    include: { client: { select: { name: true, email: true } }, org: { select: { name: true, slug: true } } },
+  })
+  if (!quote) return { error: "Not found" }
+  if (!quote.client.email) return { error: "Client has no email address" }
+
+  await prisma.quote.update({ where: { id: quoteId }, data: { status: "SENT" as never } })
+
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXTAUTH_URL ?? "https://billingbee.co"
+  const quoteUrl = `${base}/portal/${quote.org.slug}/quote/${quote.id}`
+  const amount = fmtCurrency(Number(quote.total), quote.currency)
+  sendQuoteEmail(quote.client.name, quote.client.email, quote.org.name, quote.quoteNumber, amount, quoteUrl).catch(() => {})
+
+  return { success: true }
 }
 
 export async function deleteQuote(quoteId: string) {

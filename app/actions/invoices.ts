@@ -10,6 +10,7 @@ import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 import { format, addDays } from "date-fns"
 import { sendInvoiceSentEmail } from "@/lib/email"
 import { generatePaymentToken } from "@/lib/payment-token"
+import { computeInvoiceTotals } from "@/lib/invoice-totals"
 
 interface LineItemInput {
   description: string
@@ -55,33 +56,23 @@ export async function createInvoice(input: CreateInvoiceInput) {
     ? new Date(input.dueDate)
     : addDays(issueDate, 30)
 
-  // Compute totals
-  const lineItems = input.items.map((item) => {
-    const subtotal = item.quantity * item.unitPrice
-    const itemDiscount = item.discount ?? 0
-    const discountedSubtotal = subtotal - (item.taxType === "FIXED" ? 0 : subtotal * (itemDiscount / 100))
-    const taxAmount = item.taxType === "FIXED"
-      ? (item.taxRate ?? 0)
-      : discountedSubtotal * ((item.taxRate ?? 0) / 100)
-    return {
-      description: item.description,
-      hsn: item.hsn?.trim() || null,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      taxRate: item.taxRate ?? 0,
-      taxName: item.taxName ?? "GST",
-      taxType: item.taxType ?? "PERCENTAGE",
-      taxAmount,
-      discount: itemDiscount,
-      total: discountedSubtotal + taxAmount,
-      sortOrder: 0,
-    }
-  })
+  // Compute totals (tax applied to the post-discount taxable base — see lib/invoice-totals)
+  const totals = computeInvoiceTotals(input.items, input.discountAmount ?? 0)
+  const lineItems = input.items.map((item, idx) => ({
+    description: item.description,
+    hsn: item.hsn?.trim() || null,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    taxRate: item.taxRate ?? 0,
+    taxName: item.taxName ?? "GST",
+    taxType: item.taxType ?? "PERCENTAGE",
+    taxAmount: totals.lines[idx].taxAmount,
+    discount: item.discount ?? 0,
+    total: totals.lines[idx].total,
+    sortOrder: 0,
+  }))
 
-  const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
-  const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
-  const discountAmount = input.discountAmount ?? 0
-  const total = subtotal + taxAmount - discountAmount
+  const { subtotal, taxAmount, discountAmount, total } = totals
 
   // Auto follow-up: Pro orgs get it on by default, free orgs get false
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } })
@@ -192,32 +183,22 @@ export async function updateInvoiceWithItems(invoiceId: string, input: CreateInv
   const existing = await prisma.invoice.findUnique({ where: { id: invoiceId, orgId } })
   if (!existing) return { error: "Not found" }
 
-  const lineItems = input.items.map((item) => {
-    const subtotal = item.quantity * item.unitPrice
-    const itemDiscount = item.discount ?? 0
-    const discountedSubtotal = subtotal - (item.taxType === "FIXED" ? 0 : subtotal * (itemDiscount / 100))
-    const taxAmount = item.taxType === "FIXED"
-      ? (item.taxRate ?? 0)
-      : discountedSubtotal * ((item.taxRate ?? 0) / 100)
-    return {
-      description: item.description,
-      hsn: item.hsn?.trim() || null,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      taxRate: item.taxRate ?? 0,
-      taxName: item.taxName ?? "GST",
-      taxType: item.taxType ?? "PERCENTAGE",
-      taxAmount,
-      discount: itemDiscount,
-      total: discountedSubtotal + taxAmount,
-      sortOrder: 0,
-    }
-  })
+  const totals = computeInvoiceTotals(input.items, input.discountAmount ?? 0)
+  const lineItems = input.items.map((item, idx) => ({
+    description: item.description,
+    hsn: item.hsn?.trim() || null,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    taxRate: item.taxRate ?? 0,
+    taxName: item.taxName ?? "GST",
+    taxType: item.taxType ?? "PERCENTAGE",
+    taxAmount: totals.lines[idx].taxAmount,
+    discount: item.discount ?? 0,
+    total: totals.lines[idx].total,
+    sortOrder: 0,
+  }))
 
-  const subtotal = lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
-  const taxAmount = lineItems.reduce((s, i) => s + i.taxAmount, 0)
-  const discountAmount = input.discountAmount ?? 0
-  const total = subtotal + taxAmount - discountAmount
+  const { subtotal, taxAmount, discountAmount, total } = totals
 
   const amountPaid = Number(existing.amountPaid)
   const amountDue = Math.max(0, total - amountPaid)
