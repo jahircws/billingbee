@@ -6,16 +6,16 @@ import { Zap, ArrowRight, Download, FileText } from "lucide-react"
 export const revalidate = 86400
 
 export const metadata: Metadata = generatePageMetadata(
-  "Free Invoice Templates & Resources for Indian Freelancers | BillingBee",
-  "Download free GST invoice templates for designers, developers, consultants, and agencies. Excel, Word, and PDF formats. Ready to use in India.",
+  "Free Invoice Templates & Resources for Freelancers | BillingBee",
+  "Download free invoice templates for designers, developers, consultants, and agencies. Excel, Word, and PDF formats. Multi-currency, with GST support for India.",
   "/free-invoice-resources",
   {
     keywords: [
-      "free invoice template India",
-      "GST invoice template download",
+      "free invoice template",
+      "invoice template download",
       "invoice format Word Excel PDF",
       "freelancer invoice template",
-      "consultant invoice template India",
+      "consultant invoice template",
       "free billing template",
     ],
   }
@@ -117,7 +117,7 @@ export default function FreeInvoiceResourcesPage() {
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-5">
             Free Invoice Templates
             <br />
-            <span className="text-emerald-600">for Indian Freelancers</span>
+            <span className="text-emerald-600">for Freelancers Worldwide</span>
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed mb-8">
             Download ready-to-use invoice templates for designers, developers, consultants, and agencies.
@@ -181,7 +181,7 @@ export default function FreeInvoiceResourcesPage() {
         <div className="bg-emerald-600 rounded-2xl p-10 text-center text-white">
           <h2 className="text-2xl font-black mb-3">Skip the template. Use AI instead.</h2>
           <p className="text-emerald-100 mb-6 max-w-xl mx-auto">
-            Instead of filling in a template, just tell BillingBee what you did — AI creates a professional, GST-ready invoice in seconds.
+            Instead of filling in a template, just tell BillingBee what you did — AI creates a professional, tax-ready invoice in any currency in seconds.
           </p>
           <Link
             href="/generate"

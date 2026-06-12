@@ -8,12 +8,12 @@ export const revalidate = 3600
 export function generateMetadata(): Metadata {
   const meta = generatePageMetadata(
     "Free Invoice Generator — Create & Download in 60 Seconds | BillingBee",
-    "Generate a professional GST invoice, quote, or proposal with AI. Download free as PDF. No signup needed. Trusted by 700+ Indian freelancers.",
+    "Generate a professional invoice, quote, or proposal with AI in any currency. Download free as PDF. No signup needed. Trusted by 700+ freelancers worldwide.",
     "/generate",
     {
       keywords: [
-        "free invoice generator India",
-        "GST invoice maker online",
+        "free invoice generator",
+        "invoice maker online",
         "AI invoice generator",
         "free invoice PDF download",
         "invoice without signup",
@@ -32,28 +32,28 @@ export function generateMetadata(): Metadata {
         operatingSystem: "Web",
         url: "https://billingbee.co/generate",
         description:
-          "Generate professional GST invoices, quotes, and proposals with AI. Free. No signup required.",
+          "Generate professional invoices, quotes, and proposals with AI in any currency. Free. No signup required.",
         offers: [
           {
             "@type": "Offer",
             name: "Free",
             price: "0",
-            priceCurrency: "INR",
+            priceCurrency: "USD",
             description: "5 invoices/month — no signup required for first invoice",
           },
           {
             "@type": "Offer",
             name: "Pro",
-            price: "999",
-            priceCurrency: "INR",
+            price: "9.99",
+            priceCurrency: "USD",
             billingIncrement: "P1M",
-            description: "Unlimited invoices, AI collections, Razorpay payment links",
+            description: "Unlimited invoices, AI collections, Stripe payment links",
           },
           {
             "@type": "Offer",
             name: "Business",
-            price: "2499",
-            priceCurrency: "INR",
+            price: "24.99",
+            priceCurrency: "USD",
             billingIncrement: "P1M",
             description: "Team seats, white-label portal, API access",
           },
