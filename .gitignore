@@ -9,6 +9,9 @@ out/
 dist/
 build/
 
+# SSH / private keys — never commit
+*.pem
+
 # Environment variables
 .env
 .env.local
