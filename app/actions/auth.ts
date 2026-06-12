@@ -7,6 +7,7 @@ import { signIn, signOut } from "@/auth"
 import prisma from "@/lib/db"
 import DOMPurify from "isomorphic-dompurify"
 import { sendWelcomeEmail } from "@/lib/email"
+import { validatePassword } from "@/lib/sanitize"
 import { addDays } from "date-fns"
 
 interface PendingDocItem {
@@ -52,8 +53,9 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     return { error: "Missing required fields" }
   }
 
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters" }
+  const passwordError = validatePassword(password)
+  if (passwordError) {
+    return { error: passwordError }
   }
 
   if (password !== confirmPassword) {

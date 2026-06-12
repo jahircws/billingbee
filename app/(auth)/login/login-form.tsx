@@ -3,6 +3,7 @@
 import { useActionState } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { loginStaff } from "@/app/actions/auth"
@@ -57,10 +58,9 @@ export function LoginForm({ callbackUrl, registered }: Props) {
               Forgot password?
             </Link>
           </div>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="current-password"
             placeholder="••••••••"
             required

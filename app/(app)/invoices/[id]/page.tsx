@@ -38,7 +38,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   if (!invoice) notFound()
 
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
-  const currency = org?.currency ?? "INR"
+  const currency = invoice.currency ?? org?.currency ?? "INR"
   const fmt = (n: unknown) => fmtCurrency(Number(n), currency)
 
   const statusColor: Record<string, string> = {

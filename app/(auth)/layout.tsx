@@ -43,7 +43,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm">© 2025 BillingBee. All rights reserved.</p>
+        <p className="text-gray-600 text-sm">© {new Date().getFullYear()} BillingBee. All rights reserved.</p>
       </div>
 
       {/* Right panel — form */}

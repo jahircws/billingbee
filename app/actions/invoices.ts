@@ -1,6 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
@@ -267,6 +268,9 @@ export async function updateInvoice(invoiceId: string, data: Partial<CreateInvoi
       ...(data.status ? { status: data.status as never } : {}),
     },
   })
+  revalidatePath("/dashboard")
+  revalidatePath("/invoices")
+  revalidatePath(`/invoices/${invoiceId}`)
   return { invoice: serialize(updated) }
 }
 
@@ -279,6 +283,8 @@ export async function deleteInvoice(invoiceId: string) {
   if (!existing) return { error: "Not found" }
 
   await prisma.invoice.delete({ where: { id: invoiceId } })
+  revalidatePath("/dashboard")
+  revalidatePath("/invoices")
   return { success: true }
 }
 
@@ -290,13 +296,39 @@ export async function updateInvoiceStatus(invoiceId: string, status: string) {
   const existing = await prisma.invoice.findUnique({ where: { id: invoiceId, orgId } })
   if (!existing) return { error: "Not found" }
 
-  const invoice = await prisma.invoice.update({
-    where: { id: invoiceId },
-    data: {
-      status: status as never,
-      ...(status === "PAID" ? { amountPaid: existing.total, amountDue: 0 } : {}),
-    },
-  })
+  // Record a manual payment when transitioning to PAID (skip if already paid)
+  const justMarkedPaid = status === "PAID" && existing.status !== "PAID"
+
+  const [invoice] = await prisma.$transaction([
+    prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        status: status as never,
+        ...(status === "PAID" ? { amountPaid: existing.total, amountDue: 0, paidAt: new Date() } : {}),
+      },
+    }),
+    ...(justMarkedPaid
+      ? [
+          prisma.payment.create({
+            data: {
+              orgId,
+              invoiceId,
+              clientId: existing.clientId,
+              amount: existing.amountDue,
+              currency: existing.currency,
+              method: "OTHER",
+              status: "captured",
+              paidAt: new Date(),
+              notes: "Marked paid manually",
+            },
+          }),
+        ]
+      : []),
+  ])
+
+  revalidatePath("/dashboard")
+  revalidatePath("/invoices")
+  revalidatePath(`/invoices/${invoiceId}`)
   return { invoice: serialize(invoice) }
 }
 

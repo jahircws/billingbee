@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { registerOrg } from "@/app/actions/auth"
@@ -112,12 +113,11 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
             <Label htmlFor="password" className="text-sm font-medium text-gray-700">
               Password
             </Label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete="new-password"
-              placeholder="8+ characters"
+              placeholder="8+ chars, letter & number"
               required
               className="h-11 text-base"
             />
@@ -126,10 +126,9 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
             <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
               Confirm
             </Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
               autoComplete="new-password"
               placeholder="Repeat password"
               required
@@ -148,11 +147,11 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
           />
           <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed cursor-pointer">
             I agree to the{" "}
-            <Link href="/terms" className="underline" style={{ color: "#10b981" }}>
+            <Link href="/terms-service" className="underline" style={{ color: "#10b981" }}>
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="underline" style={{ color: "#10b981" }}>
+            <Link href="/privacy-policy" className="underline" style={{ color: "#10b981" }}>
               Privacy Policy
             </Link>
           </Label>

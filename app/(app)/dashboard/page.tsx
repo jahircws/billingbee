@@ -60,6 +60,7 @@ async function getAttentionData(orgId: string) {
       ? {
           client: lastPayment.invoice.client.name,
           amount: Number(lastPayment.amount),
+          currency: lastPayment.currency,
           date: format(lastPayment.createdAt, "d MMM"),
         }
       : null,
@@ -142,7 +143,7 @@ function AttentionCard({
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 interface DashboardProps {
-  searchParams: Promise<{ upgraded?: string }>
+  searchParams: Promise<{ upgraded?: string; verified?: string }>
 }
 
 export default async function DashboardPage({ searchParams }: DashboardProps) {
@@ -150,7 +151,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   if (!session?.user?.orgId) redirect("/login")
 
   const orgId = session.user.orgId
-  const { upgraded } = await searchParams
+  const { upgraded, verified } = await searchParams
 
   const userId = session.user.userId
 
@@ -203,6 +204,28 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           </div>
         )}
 
+        {/* Email verification result */}
+        {verified === "success" && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-xl">✅</span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-800">Email verified!</p>
+              <p className="text-xs text-emerald-600">Your account is fully active. Thanks for confirming your email.</p>
+            </div>
+          </div>
+        )}
+        {(verified === "invalid" || verified === "expired") && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">
+                {verified === "expired" ? "Verification link expired" : "Verification link invalid"}
+              </p>
+              <p className="text-xs text-amber-700">Please request a new verification email to confirm your address.</p>
+            </div>
+          </div>
+        )}
+
 
         {/* Attention cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-4">
@@ -230,7 +253,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           <AttentionCard
             icon={CheckCircle}
             label="Last payment"
-            value={attention.lastPayment ? `${attention.lastPayment.client} paid ${fmt(attention.lastPayment.amount)}` : "No payments yet"}
+            value={attention.lastPayment ? `${attention.lastPayment.client} paid ${fmtCurrencyShort(attention.lastPayment.amount, attention.lastPayment.currency)}` : "No payments yet"}
             sub={attention.lastPayment ? attention.lastPayment.date : undefined}
             colorClass={attention.lastPayment ? "border-emerald-400" : "border-gray-200"}
             href="/invoices?status=PAID"

@@ -6,6 +6,7 @@ import { Plus, Trash2, ChevronDown, Upload, X } from "lucide-react"
 import { createInvoice, updateInvoiceWithItems } from "@/app/actions/invoices"
 import { createQuote } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
+import { isValidEmail } from "@/lib/sanitize"
 import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Client {
@@ -94,6 +95,9 @@ export default function InvoiceForm({
   const editMode = !!initialData
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Block invoice dates from previous calendar years
+  const minIssueDate = `${new Date().getFullYear()}-01-01`
 
   const [clientId, setClientId] = useState(initialData?.clientId ?? defaultClientId ?? "")
   const [issueDate, setIssueDate] = useState(initialData?.issueDate ?? "")
@@ -244,8 +248,12 @@ export default function InvoiceForm({
 
   async function handleCreateClient() {
     if (!newClientName.trim()) return
+    if (newClientEmail.trim() && !isValidEmail(newClientEmail.trim())) {
+      setError("Please enter a valid email address for the client")
+      return
+    }
     setCreatingClient(true)
-    const result = await createClient({ name: newClientName.trim(), email: newClientEmail || undefined })
+    const result = await createClient({ name: newClientName.trim(), email: newClientEmail.trim() || undefined })
     setCreatingClient(false)
     if ("error" in result) {
       setError(result.error ?? "Failed to create client")
@@ -266,6 +274,10 @@ export default function InvoiceForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!clientId) { showError("Select a client"); return }
+    if (issueDate && issueDate < minIssueDate) {
+      showError(`Invoice date can't be in a previous year (on or after ${minIssueDate})`)
+      return
+    }
     if (items.some((i) => !i.description.trim())) { showError("All items need a description"); return }
 
     setSubmitting(true)
@@ -473,6 +485,7 @@ export default function InvoiceForm({
             <input
               type="date"
               value={issueDate}
+              min={minIssueDate}
               onChange={(e) => setIssueDate(e.target.value)}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
