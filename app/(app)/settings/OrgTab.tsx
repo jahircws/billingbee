@@ -106,6 +106,7 @@ export default function OrgTab({ org }: { org: Org }) {
     if (res.ok) {
       setMessage("Saved")
       router.refresh()
+      setTimeout(() => setMessage(""), 3000)
     } else {
       setMessage("Failed to save")
     }

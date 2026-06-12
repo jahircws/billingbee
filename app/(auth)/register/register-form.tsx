@@ -51,6 +51,7 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
       </div>
 
       <form
+        key={state?.error ? "retry" : "initial"}
         action={action}
         className="space-y-5"
         onSubmit={() => {
@@ -74,6 +75,7 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
             type="text"
             autoComplete="organization"
             placeholder="Leave blank if you don't have a business name"
+            defaultValue={state?.values?.orgName ?? ""}
             className="h-11 text-base"
           />
         </div>
@@ -89,6 +91,7 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
             autoComplete="name"
             placeholder="Jane Doe"
             required
+            defaultValue={state?.values?.name ?? ""}
             className="h-11 text-base"
           />
         </div>
@@ -104,6 +107,7 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
             autoComplete="email"
             placeholder="jane@acme.com"
             required
+            defaultValue={state?.values?.email ?? ""}
             className="h-11 text-base"
           />
         </div>

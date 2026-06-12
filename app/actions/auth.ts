@@ -49,17 +49,20 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
 
   const confirmPassword = sanitize(formData.get("confirmPassword"))
 
+  // Echoed back on error so the form keeps non-sensitive fields filled (passwords excluded)
+  const values = { name, email, orgName: rawOrgName }
+
   if (!email || !password || !name || baseSlug.length < 2) {
-    return { error: "Missing required fields" }
+    return { error: "Missing required fields", values }
   }
 
   const passwordError = validatePassword(password)
   if (passwordError) {
-    return { error: passwordError }
+    return { error: passwordError, values }
   }
 
   if (password !== confirmPassword) {
-    return { error: "Passwords do not match" }
+    return { error: "Passwords do not match", values }
   }
 
   // Parse pending doc from free tool if present
@@ -75,7 +78,7 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } })
-    if (existing) return { error: "Email already in use" }
+    if (existing) return { error: "Email already in use", values }
 
     let orgSlug = baseSlug
     const slugTaken = await prisma.organization.findUnique({ where: { slug: orgSlug } })
@@ -181,7 +184,7 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     // Fire-and-forget welcome email
     sendWelcomeEmail(name, email, orgName).catch(() => {})
   } catch {
-    return { error: "Registration failed. Please try again." }
+    return { error: "Registration failed. Please try again.", values }
   }
 
   const destination = createdDocPath ?? (callbackUrl || "/dashboard")

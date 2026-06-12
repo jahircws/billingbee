@@ -26,7 +26,7 @@ function UsageBar({ label, current, limit }: { label: string; current: number; l
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-600">{label}</span>
         <span className={`font-medium ${isNear ? "text-red-600" : "text-gray-800"}`}>
-          {limit === null ? `${current} (unlimited)` : `${current} / ${limit}`}
+          {limit === null ? "Unlimited" : `${current} / ${limit}`}
         </span>
       </div>
       {limit !== null && (
