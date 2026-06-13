@@ -49,9 +49,14 @@ export default async function InvoicesPage({ searchParams }: Props) {
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
   ])
-  const orgCurrency = org?.currency ?? "INR"
-  const total = invoices.reduce((s, i) => s + Number(i.total), 0)
-  const fmt = (n: number) => fmtCurrency(n, orgCurrency)
+  const totalsPerCurrency = invoices.reduce<Record<string, number>>((acc, i) => {
+    const c = i.currency ?? org?.currency ?? "INR"
+    acc[c] = (acc[c] ?? 0) + Number(i.total)
+    return acc
+  }, {})
+  const totalDisplay = Object.entries(totalsPerCurrency)
+    .map(([c, amt]) => fmtCurrency(amt, c))
+    .join(" · ")
 
   const statuses = ["DRAFT", "UNPAID", "PAID", "OVERDUE"]
 
@@ -63,7 +68,7 @@ export default async function InvoicesPage({ searchParams }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm text-gray-500">
-            {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} · {fmt(total)} total
+            {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} · {totalDisplay} total
           </p>
           <Link
             href="/invoices/new"

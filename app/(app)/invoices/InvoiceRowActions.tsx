@@ -118,6 +118,15 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
                   Edit
                 </Link>
               )}
+              {isDraft && (
+                <button
+                  onClick={() => run("marksent", () => updateInvoiceStatus(invoiceId, "UNPAID"))}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700"
+                >
+                  <Send className="w-3.5 h-3.5 text-indigo-500" />
+                  Mark as sent
+                </button>
+              )}
               {clientEmail && !isPaid && (
                 <button
                   onClick={() => run("send", () => sendInvoice(invoiceId))}
