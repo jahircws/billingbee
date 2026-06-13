@@ -26,6 +26,14 @@ export async function scheduleCollections(orgId: string, invoiceId: string, dueD
   await prisma.collectionEvent.createMany({ data: events, skipDuplicates: true })
 }
 
+// Cancel any pending touches and lay down a fresh sequence anchored to the
+// current due date. Used when the due date or autoFollowUp flag changes on an
+// edit, so the schedule never goes stale. Already-sent touches are left intact.
+export async function rescheduleCollections(orgId: string, invoiceId: string, dueDate: Date) {
+  await cancelCollections(orgId, invoiceId)
+  await scheduleCollections(orgId, invoiceId, dueDate)
+}
+
 export async function cancelCollections(orgId: string, invoiceId: string) {
   await prisma.collectionEvent.updateMany({
     where: { orgId, invoiceId, status: "PENDING" },

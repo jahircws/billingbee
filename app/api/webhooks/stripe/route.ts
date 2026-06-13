@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import prisma from "@/lib/db"
 import { sendPaymentReceivedEmail, sendPaymentReceiptEmail } from "@/lib/email"
+import { cancelCollections } from "@/app/actions/collections"
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
+    // Stop any pending follow-ups now that the invoice is paid
+    await cancelCollections(orgId, invoiceId)
+
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true, email: true, orgUsers: { where: { role: "OWNER" }, select: { user: { select: { email: true } } }, take: 1 } },
@@ -55,7 +59,7 @@ export async function POST(req: NextRequest) {
     const clientData = (updatedInvoice as unknown as { client: { name: string; email: string | null } }).client
 
     if (staffEmail) {
-      sendPaymentReceivedEmail(invoiceNum, clientData.name, amount, currency, staffEmail, org?.name ?? "BillingBee").catch(() => {})
+      sendPaymentReceivedEmail(invoiceNum, clientData.name, amount, currency, staffEmail, org?.name ?? "BillingBee", invoiceId).catch(() => {})
     }
     if (clientData.email) {
       sendPaymentReceiptEmail(invoiceNum, org?.name ?? "BillingBee", amount, currency, clientData.name, clientData.email).catch(() => {})

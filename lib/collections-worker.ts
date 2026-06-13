@@ -117,7 +117,7 @@ Return JSON only: { "subject": string, "textBody": string, "htmlBody": string }`
   if (error) {
     await prisma.collectionEvent.update({
       where: { id: event.id },
-      data: { status: "FAILED", errorMsg: error, subject, htmlBody, textBody },
+      data: { status: "FAILED", errorMsg: error, subject, htmlBody, textBody, attempts: { increment: 1 } },
     })
     return "error"
   }

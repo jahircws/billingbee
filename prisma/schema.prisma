@@ -621,6 +621,7 @@ model CollectionEvent {
   htmlBody    String?          @db.Text
   textBody    String?          @db.Text
   errorMsg    String?
+  attempts    Int              @default(0) // failed send count; retried up to MAX_ATTEMPTS in the cron
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 

@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/db"
 import { processEvent } from "@/lib/collections-worker"
 
-export const maxDuration = 300 // 5 min — Vercel Pro limit
+export const maxDuration = 300 // 5 min cap (driven by EC2 system crontab, daily 09:00)
+
+const MAX_ATTEMPTS = 3 // give up on a touch after this many failed sends
 
 export async function GET(req: NextRequest) {
   // Verify cron secret — reject if wrong or missing
@@ -13,11 +15,16 @@ export async function GET(req: NextRequest) {
 
   const now = new Date()
 
-  // Fetch all PENDING events due now, with invoice still unpaid
-  const events = await prisma.collectionEvent.findMany({
+  // Fetch due events: PENDING, or FAILED with retries left. Skip paid/draft
+  // invoices here so they never eat into the per-run budget.
+  const due = await prisma.collectionEvent.findMany({
     where: {
-      status: "PENDING",
       scheduledAt: { lte: now },
+      invoice: { status: { notIn: ["PAID", "DRAFT"] } },
+      OR: [
+        { status: "PENDING" },
+        { status: "FAILED", attempts: { lt: MAX_ATTEMPTS } },
+      ],
     },
     include: {
       invoice: {
@@ -28,7 +35,17 @@ export async function GET(req: NextRequest) {
       },
     },
     orderBy: { scheduledAt: "asc" },
-    take: 100, // cap per run to stay within timeout
+    take: 200,
+  })
+
+  // Burst guard: send at most one reminder per invoice per run. A freshly-sent
+  // overdue invoice can have several touches due at once — they trickle out one
+  // per daily run instead of arriving together.
+  const seenInvoices = new Set<string>()
+  const events = due.filter((e) => {
+    if (seenInvoices.has(e.invoiceId)) return false
+    seenInvoices.add(e.invoiceId)
+    return true
   })
 
   let processed = 0
@@ -46,7 +63,7 @@ export async function GET(req: NextRequest) {
       errors.push(`Event ${event.id}: ${msg}`)
       await prisma.collectionEvent.update({
         where: { id: event.id },
-        data: { status: "FAILED", errorMsg: msg },
+        data: { status: "FAILED", errorMsg: msg, attempts: { increment: 1 } },
       })
     }
   }

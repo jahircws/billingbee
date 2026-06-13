@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
-import { scheduleCollections } from "@/app/actions/collections"
+import { scheduleCollections, cancelCollections, rescheduleCollections } from "@/app/actions/collections"
 import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 import { format, addDays } from "date-fns"
 import { sendInvoiceSentEmail } from "@/lib/email"
@@ -227,6 +227,22 @@ export async function updateInvoiceWithItems(invoiceId: string, input: CreateInv
     }),
   ])
 
+  // Keep the follow-up schedule in sync with edits (skip paid invoices)
+  if (existing.status !== "PAID") {
+    const newDueDate = input.dueDate ? new Date(input.dueDate) : existing.dueDate
+    const newAutoFollowUp = input.autoFollowUp ?? existing.autoFollowUp
+    const dueDateChanged =
+      !!input.dueDate && newDueDate?.getTime() !== existing.dueDate?.getTime()
+    const followUpChanged =
+      input.autoFollowUp !== undefined && input.autoFollowUp !== existing.autoFollowUp
+
+    if (followUpChanged && !newAutoFollowUp) {
+      await cancelCollections(orgId, invoiceId)
+    } else if (newAutoFollowUp && newDueDate && (dueDateChanged || followUpChanged)) {
+      await rescheduleCollections(orgId, invoiceId, newDueDate)
+    }
+  }
+
   return { invoiceId }
 }
 
@@ -249,6 +265,25 @@ export async function updateInvoice(invoiceId: string, data: Partial<CreateInvoi
       ...(data.status ? { status: data.status as never } : {}),
     },
   })
+
+  // Keep the follow-up schedule in sync with due-date / autoFollowUp changes
+  if (existing.status !== "PAID") {
+    const newDueDate = data.dueDate ? new Date(data.dueDate) : existing.dueDate
+    const newAutoFollowUp = data.autoFollowUp ?? existing.autoFollowUp
+    const dueDateChanged =
+      !!data.dueDate && newDueDate?.getTime() !== existing.dueDate?.getTime()
+    const followUpChanged =
+      data.autoFollowUp !== undefined && data.autoFollowUp !== existing.autoFollowUp
+
+    if (data.status === "PAID") {
+      await cancelCollections(orgId, invoiceId)
+    } else if (followUpChanged && !newAutoFollowUp) {
+      await cancelCollections(orgId, invoiceId)
+    } else if (newAutoFollowUp && newDueDate && (dueDateChanged || followUpChanged)) {
+      await rescheduleCollections(orgId, invoiceId, newDueDate)
+    }
+  }
+
   revalidatePath("/dashboard")
   revalidatePath("/invoices")
   revalidatePath(`/invoices/${invoiceId}`)
@@ -306,6 +341,11 @@ export async function updateInvoiceStatus(invoiceId: string, status: string) {
         ]
       : []),
   ])
+
+  // Stop any pending follow-ups once the invoice is paid
+  if (justMarkedPaid) {
+    await cancelCollections(orgId, invoiceId)
+  }
 
   revalidatePath("/dashboard")
   revalidatePath("/invoices")
@@ -390,6 +430,14 @@ export async function sendInvoice(invoiceId: string, paymentUrl?: string) {
       sentAt: new Date(),
     },
   })
+
+  // Re-anchor the follow-up sequence to the actual send. The schedule was laid
+  // down at draft creation off the due date; if the invoice sat in draft past
+  // its due date, anchor from today so reminders don't all fire at once.
+  if (invoice.autoFollowUp && invoice.dueDate) {
+    const anchor = invoice.dueDate > new Date() ? invoice.dueDate : new Date()
+    await rescheduleCollections(orgId, invoiceId, anchor)
+  }
 
   sendInvoiceSentEmail(
     {
