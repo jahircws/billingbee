@@ -413,15 +413,15 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white py-8">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center gap-3 mb-6">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center gap-4 mb-8 pb-8 border-b border-gray-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/badges/nvidia-inception-program-badge.svg"
             alt="BillingBee is a member of the NVIDIA Inception program"
-            style={{ width: 140, height: "auto" }}
+            style={{ width: 280, height: "auto" }}
             className="p-2"
           />
-          <p className="text-xs text-gray-400 text-center max-w-xl">
+          <p className="text-sm font-medium text-gray-600 text-center max-w-xl">
             BillingBee is a member of the NVIDIA Inception program.
           </p>
         </div>
