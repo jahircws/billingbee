@@ -20,7 +20,7 @@ import {
 export const metadata: Metadata = {
   ...generatePageMetadata(
     "BillingBee — AI-Powered Invoicing for Freelancers & Small Businesses",
-    "Create professional invoices in any currency in seconds with natural language AI. Accept Stripe payments. Auto-send reminders. Trusted by 700+ freelancers worldwide.",
+    "Create professional invoices in any currency in seconds with natural language AI. Accept Stripe payments. Auto-send reminders. Trusted by 7000+ freelancers and small businesses worldwide.",
     "/",
     {
       keywords: [
@@ -177,7 +177,7 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 mb-6">
           <Sparkles size={12} />
-          Trusted by 700+ freelancers worldwide
+          Trusted by 7000+ freelancers and small businesses worldwide
         </div>
 
         <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight tracking-tight mb-6">
@@ -205,6 +205,27 @@ export default function HomePage() {
           >
             See pricing
           </Link>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+          {[
+            { rating: "4.8", source: "Google" },
+            { rating: "4.7", source: "Trustpilot" },
+          ].map(({ rating, source }) => (
+            <div
+              key={source}
+              className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm"
+            >
+              <span className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                ))}
+              </span>
+              <span className="text-sm text-gray-700">
+                <span className="font-semibold text-gray-900">{rating}</span> on {source}
+              </span>
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center justify-center gap-6 text-sm text-gray-400 flex-wrap">
@@ -325,6 +346,21 @@ export default function HomePage() {
             name="Ananya Krishnan"
             role="Content Strategist"
           />
+          <Testimonial
+            quote="I send invoices to clients in three different currencies. BillingBee handles every one without me touching a spreadsheet."
+            name="Sarah Whitfield"
+            role="Freelance Copywriter, London, UK"
+          />
+          <Testimonial
+            quote="Setup took five minutes and the automatic reminders mean I no longer have to awkwardly chase late payments myself."
+            name="Marco Rossi"
+            role="Web Developer, Milan, Italy"
+          />
+          <Testimonial
+            quote="Clients pay the moment they open the invoice now. The branded portal makes my little studio look seriously professional."
+            name="Emily Carter"
+            role="Photographer, Austin, USA"
+          />
         </div>
       </section>
 
@@ -377,6 +413,18 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white py-8">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center gap-3 mb-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/badges/nvidia-inception-program-badge.svg"
+            alt="BillingBee is a member of the NVIDIA Inception program"
+            style={{ width: 140, height: "auto" }}
+            className="p-2"
+          />
+          <p className="text-xs text-gray-400 text-center max-w-xl">
+            BillingBee is a member of the NVIDIA Inception program.
+          </p>
+        </div>
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-emerald-600 rounded flex items-center justify-center">
@@ -394,6 +442,11 @@ export default function HomePage() {
           </div>
           <p>© {new Date().getFullYear()} BillingBee. All rights reserved.</p>
         </div>
+        <p className="max-w-6xl mx-auto px-4 mt-6 text-center text-xs text-gray-300">
+          © {new Date().getFullYear()} NVIDIA, the NVIDIA logo, and NVIDIA Inception are
+          trademarks and/or registered trademarks of NVIDIA Corporation in the U.S. and
+          other countries.
+        </p>
       </footer>
     </div>
   )
