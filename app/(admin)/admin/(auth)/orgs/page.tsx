@@ -6,13 +6,17 @@ import InlinePlanSelect from "./InlinePlanSelect"
 
 export const dynamic = "force-dynamic"
 
+const PAGE_SIZE = 50
+
 interface PageProps {
-  searchParams: Promise<{ plan?: string; q?: string }>
+  searchParams: Promise<{ plan?: string; q?: string; page?: string }>
 }
 
 export default async function AdminOrgsPage({ searchParams }: PageProps) {
   const adminSession = await requireAdminSession()
-  const { plan, q } = await searchParams
+  const { plan, q, page: pageParam } = await searchParams
+
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1)
 
   const where: Record<string, unknown> = {}
   if (plan && plan !== "all") where.plan = plan
@@ -24,21 +28,35 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
     ]
   }
 
-  const orgs = await prisma.organization.findMany({
-    where,
-    include: {
-      _count: { select: { invoices: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  })
+  const [orgs, total] = await Promise.all([
+    prisma.organization.findMany({
+      where,
+      include: {
+        _count: { select: { invoices: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.organization.count({ where }),
+  ])
+
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  function pageUrl(p: number) {
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    if (plan && plan !== "all") params.set("plan", plan)
+    params.set("page", String(p))
+    return `?${params.toString()}`
+  }
 
   return (
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Organizations</h1>
-          <p className="text-gray-400 text-sm mt-1">{orgs.length} results</p>
+          <p className="text-gray-400 text-sm mt-1">{total.toLocaleString()} organizations</p>
         </div>
       </div>
 
@@ -117,6 +135,33 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
           <p className="text-center text-gray-500 py-12">No organizations found</p>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-gray-500 text-sm">
+            Page {page} of {totalPages} &mdash; showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total.toLocaleString()}
+          </p>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link
+                href={pageUrl(page - 1)}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm rounded-lg px-4 py-2"
+              >
+                ← Prev
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link
+                href={pageUrl(page + 1)}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm rounded-lg px-4 py-2"
+              >
+                Next →
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
