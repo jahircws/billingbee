@@ -41,6 +41,7 @@ export default async function ClientPage({ params }: Props) {
           id: true,
           invoiceNumber: true,
           status: true,
+          currency: true,
           total: true,
           amountDue: true,
           amountPaid: true,
@@ -64,12 +65,21 @@ export default async function ClientPage({ params }: Props) {
   if (!client) notFound()
 
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
-  const currency = org?.currency ?? "INR"
-  const fmt = (n: unknown) => fmtCurrency(Number(n), currency)
+  const orgCurrency = org?.currency ?? "INR"
 
-  const totalBilled = client.invoices.reduce((s, i) => s + Number(i.total), 0)
-  const totalPaid = client.invoices.reduce((s, i) => s + Number(i.amountPaid), 0)
-  const totalOutstanding = client.invoices.reduce((s, i) => s + Number(i.amountDue), 0)
+  // Group totals by each invoice's own currency (no FX conversion).
+  const byCurrency = new Map<string, { billed: number; paid: number; outstanding: number }>()
+  for (const i of client.invoices) {
+    const cur = i.currency ?? orgCurrency
+    const acc = byCurrency.get(cur) ?? { billed: 0, paid: 0, outstanding: 0 }
+    acc.billed += Number(i.total)
+    acc.paid += Number(i.amountPaid)
+    acc.outstanding += Number(i.amountDue)
+    byCurrency.set(cur, acc)
+  }
+  const totals = byCurrency.size > 0
+    ? [...byCurrency.entries()]
+    : [[orgCurrency, { billed: 0, paid: 0, outstanding: 0 }] as const]
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -116,20 +126,29 @@ export default async function ClientPage({ params }: Props) {
           invoices={client.invoices}
         />
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Billed</p>
-            <p className="text-sm font-bold text-gray-900">{fmt(totalBilled)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Paid</p>
-            <p className="text-sm font-bold text-emerald-600">{fmt(totalPaid)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Outstanding</p>
-            <p className="text-sm font-bold text-red-500">{fmt(totalOutstanding)}</p>
-          </div>
+        {/* Stats — one row per currency (no FX conversion) */}
+        <div className="space-y-3">
+          {totals.map(([cur, t]) => (
+            <div key={cur} className="space-y-1">
+              {totals.length > 1 && (
+                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">{cur}</p>
+              )}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
+                  <p className="text-xs text-gray-400 mb-1">Billed</p>
+                  <p className="text-sm font-bold text-gray-900">{fmtCurrency(t.billed, cur)}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
+                  <p className="text-xs text-gray-400 mb-1">Paid</p>
+                  <p className="text-sm font-bold text-emerald-600">{fmtCurrency(t.paid, cur)}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
+                  <p className="text-xs text-gray-400 mb-1">Outstanding</p>
+                  <p className="text-sm font-bold text-red-500">{fmtCurrency(t.outstanding, cur)}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Invoice history */}
@@ -155,7 +174,7 @@ export default async function ClientPage({ params }: Props) {
                         {invoice.invoiceNumber}
                       </Link>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-semibold text-gray-900">{fmt(invoice.total)}</td>
+                    <td className="py-2.5 px-4 text-right font-semibold text-gray-900">{fmtCurrency(invoice.total, invoice.currency ?? orgCurrency)}</td>
                     <td className="py-2.5 px-4 text-center">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[invoice.status] ?? "bg-gray-100 text-gray-600"}`}>
                         {invoice.status}
