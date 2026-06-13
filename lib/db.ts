@@ -14,9 +14,14 @@ function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL ?? process.env.DIRECT_DATABASE_URL;
 
   const sslCertPath = process.env.PG_SSL_CERT;
+  // On EC2 (same VPC as RDS) ssl=undefined works fine — internal network.
+  // Locally, the connection goes over the internet and RDS requires SSL.
+  // NODE_ENV=development → always enable SSL with self-signed cert allowed.
   const ssl = sslCertPath
     ? { ca: fs.readFileSync(sslCertPath).toString() }
-    : undefined;
+    : process.env.NODE_ENV !== "production"
+      ? { rejectUnauthorized: false }
+      : undefined;
 
   const pool = new Pool({
     connectionString,

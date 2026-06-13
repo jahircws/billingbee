@@ -346,5 +346,3 @@ export async function updateProposalStatus(proposalId: string, status: string) {
   return { proposal: serialize(proposal) }
 }
 
-// Moved to app/actions/contract.ts — re-exported here for any callers that import from proposal
-export { signContract } from "@/app/actions/contract"

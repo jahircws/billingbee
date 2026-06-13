@@ -45,3 +45,14 @@ prisma/migrations/
 # Email campaign CSVs — contain PII, never commit
 scripts/email-segments/
 *.segment-*.csv
+
+# SSH keys — never commit private keys
+open-ssh-private-key
+*.pem
+id_rsa
+id_ed25519
+
+# Data exports — contain PII
+scripts/contacts-export.csv
+scripts/**/*.csv
+.github/workflows/
