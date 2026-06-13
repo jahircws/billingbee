@@ -31,9 +31,10 @@ export async function generateContractContent(data: {
   scope: string
   deliverables: string
   amount: number
-  currency: "INR" | "USD" | string
+  currency: "INR" | "USD" | "GBP" | "EUR" | "AED" | string
   timeline: string
   orgName: string
+  governingLaw?: string
 }): Promise<{ content: string } | { error: string }> {
   try {
     const session = await auth()
@@ -54,6 +55,7 @@ Scope of work: ${data.scope}
 Deliverables: ${data.deliverables}
 Project timeline: ${data.timeline}
 Total payment amount: ${amountFormatted} (${data.currency})
+${data.governingLaw ? `Governing law: ${data.governingLaw}` : ""}
 `.trim()
 
     const message = await anthropic.messages.create({
@@ -70,7 +72,7 @@ Always include these sections:
 6. Revision Policy (maximum 2 rounds of revisions included)
 7. Intellectual Property (work-for-hire: all IP transfers to client upon receipt of full payment)
 8. Confidentiality (one paragraph)
-9. Governing Law (Laws of India; disputes subject to courts in India)
+9. Governing Law (use the governingLaw value from context if provided, otherwise default to Laws of India; disputes subject to courts in the applicable jurisdiction)
 10. Signature Block (two columns: freelancer and client, with name/date fields)
 
 Keep the total contract under 600 words. Use the real values provided — no placeholders like [INSERT]. Write in plain, professional English.`,

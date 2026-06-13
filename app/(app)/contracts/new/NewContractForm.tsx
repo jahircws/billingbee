@@ -31,6 +31,7 @@ export default function NewContractForm({ clients, orgName }: Props) {
   const [aiScope, setAiScope] = useState("")
   const [aiDeliverables, setAiDeliverables] = useState("")
   const [aiTimeline, setAiTimeline] = useState("")
+  const [aiGoverningLaw, setAiGoverningLaw] = useState("")
   const [aiAmount, setAiAmount] = useState("")
   const [aiCurrency, setAiCurrency] = useState("INR")
   const [aiLoading, setAiLoading] = useState(false)
@@ -53,6 +54,7 @@ export default function NewContractForm({ clients, orgName }: Props) {
       timeline: aiTimeline,
       amount: Number(aiAmount),
       currency: aiCurrency,
+      ...(aiGoverningLaw.trim() ? { governingLaw: aiGoverningLaw.trim() } : {}),
     })
     if ("error" in result) {
       setAiError(result.error)
@@ -205,6 +207,17 @@ export default function NewContractForm({ clients, orgName }: Props) {
                   value={aiTimeline}
                   onChange={(e) => setAiTimeline(e.target.value)}
                   placeholder="e.g. 3 weeks from project kick-off"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">Governing Law (optional)</label>
+                <input
+                  type="text"
+                  value={aiGoverningLaw}
+                  onChange={(e) => setAiGoverningLaw(e.target.value)}
+                  placeholder="e.g. Laws of India, State of New York, Laws of England and Wales"
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
