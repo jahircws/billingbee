@@ -199,12 +199,134 @@ export default function OrgTab({ org }: { org: Org }) {
           onChange={(e) => set("currency", e.target.value)}
           className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
         >
-          <option value="INR">INR — Indian Rupee</option>
-          <option value="USD">USD — US Dollar</option>
-          <option value="EUR">EUR — Euro</option>
-          <option value="GBP">GBP — British Pound</option>
-          <option value="AED">AED — UAE Dirham</option>
-          <option value="SGD">SGD — Singapore Dollar</option>
+          <optgroup label="South Asia">
+            <option value="INR">INR — Indian Rupee</option>
+            <option value="PKR">PKR — Pakistani Rupee</option>
+            <option value="BDT">BDT — Bangladeshi Taka</option>
+            <option value="LKR">LKR — Sri Lankan Rupee</option>
+            <option value="NPR">NPR — Nepalese Rupee</option>
+            <option value="MVR">MVR — Maldivian Rufiyaa</option>
+          </optgroup>
+          <optgroup label="North America">
+            <option value="USD">USD — US Dollar</option>
+            <option value="CAD">CAD — Canadian Dollar</option>
+            <option value="MXN">MXN — Mexican Peso</option>
+          </optgroup>
+          <optgroup label="Europe">
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — British Pound</option>
+            <option value="CHF">CHF — Swiss Franc</option>
+            <option value="SEK">SEK — Swedish Krona</option>
+            <option value="NOK">NOK — Norwegian Krone</option>
+            <option value="DKK">DKK — Danish Krone</option>
+            <option value="PLN">PLN — Polish Złoty</option>
+            <option value="CZK">CZK — Czech Koruna</option>
+            <option value="HUF">HUF — Hungarian Forint</option>
+            <option value="RON">RON — Romanian Leu</option>
+            <option value="BGN">BGN — Bulgarian Lev</option>
+            <option value="ISK">ISK — Icelandic Króna</option>
+            <option value="UAH">UAH — Ukrainian Hryvnia</option>
+            <option value="RSD">RSD — Serbian Dinar</option>
+            <option value="BAM">BAM — Bosnia-Herzegovina Mark</option>
+            <option value="MKD">MKD — Macedonian Denar</option>
+            <option value="MDL">MDL — Moldovan Leu</option>
+          </optgroup>
+          <optgroup label="East Asia">
+            <option value="JPY">JPY — Japanese Yen</option>
+            <option value="CNY">CNY — Chinese Yuan</option>
+            <option value="KRW">KRW — South Korean Won</option>
+            <option value="TWD">TWD — Taiwan Dollar</option>
+            <option value="HKD">HKD — Hong Kong Dollar</option>
+            <option value="MNT">MNT — Mongolian Tögrög</option>
+          </optgroup>
+          <optgroup label="Southeast Asia">
+            <option value="SGD">SGD — Singapore Dollar</option>
+            <option value="MYR">MYR — Malaysian Ringgit</option>
+            <option value="THB">THB — Thai Baht</option>
+            <option value="PHP">PHP — Philippine Peso</option>
+            <option value="IDR">IDR — Indonesian Rupiah</option>
+            <option value="VND">VND — Vietnamese Dong</option>
+            <option value="KHR">KHR — Cambodian Riel</option>
+            <option value="BND">BND — Brunei Dollar</option>
+            <option value="MOP">MOP — Macanese Pataca</option>
+            <option value="LAK">LAK — Lao Kip</option>
+          </optgroup>
+          <optgroup label="Central Asia">
+            <option value="KZT">KZT — Kazakhstani Tenge</option>
+            <option value="UZS">UZS — Uzbekistani Som</option>
+            <option value="AZN">AZN — Azerbaijani Manat</option>
+            <option value="GEL">GEL — Georgian Lari</option>
+            <option value="AMD">AMD — Armenian Dram</option>
+            <option value="KGS">KGS — Kyrgystani Som</option>
+            <option value="TJS">TJS — Tajikistani Somoni</option>
+            <option value="TMT">TMT — Turkmenistani Manat</option>
+          </optgroup>
+          <optgroup label="Middle East &amp; North Africa">
+            <option value="AED">AED — UAE Dirham</option>
+            <option value="SAR">SAR — Saudi Riyal</option>
+            <option value="QAR">QAR — Qatari Riyal</option>
+            <option value="KWD">KWD — Kuwaiti Dinar</option>
+            <option value="BHD">BHD — Bahraini Dinar</option>
+            <option value="OMR">OMR — Omani Rial</option>
+            <option value="JOD">JOD — Jordanian Dinar</option>
+            <option value="ILS">ILS — Israeli Shekel</option>
+            <option value="IQD">IQD — Iraqi Dinar</option>
+            <option value="EGP">EGP — Egyptian Pound</option>
+            <option value="MAD">MAD — Moroccan Dirham</option>
+            <option value="TND">TND — Tunisian Dinar</option>
+            <option value="DZD">DZD — Algerian Dinar</option>
+          </optgroup>
+          <optgroup label="Sub-Saharan Africa">
+            <option value="ZAR">ZAR — South African Rand</option>
+            <option value="NGN">NGN — Nigerian Naira</option>
+            <option value="KES">KES — Kenyan Shilling</option>
+            <option value="GHS">GHS — Ghanaian Cedi</option>
+            <option value="ETB">ETB — Ethiopian Birr</option>
+            <option value="TZS">TZS — Tanzanian Shilling</option>
+            <option value="UGX">UGX — Ugandan Shilling</option>
+            <option value="RWF">RWF — Rwandan Franc</option>
+            <option value="MUR">MUR — Mauritian Rupee</option>
+            <option value="XAF">XAF — Central African CFA Franc</option>
+            <option value="XOF">XOF — West African CFA Franc</option>
+            <option value="ZMW">ZMW — Zambian Kwacha</option>
+            <option value="BWP">BWP — Botswana Pula</option>
+            <option value="SCR">SCR — Seychellois Rupee</option>
+            <option value="MZN">MZN — Mozambican Metical</option>
+            <option value="AOA">AOA — Angolan Kwanza</option>
+            <option value="MGA">MGA — Malagasy Ariary</option>
+            <option value="CDF">CDF — Congolese Franc</option>
+            <option value="MWK">MWK — Malawian Kwacha</option>
+            <option value="CVE">CVE — Cape Verdean Escudo</option>
+          </optgroup>
+          <optgroup label="Latin America">
+            <option value="BRL">BRL — Brazilian Real</option>
+            <option value="ARS">ARS — Argentine Peso</option>
+            <option value="CLP">CLP — Chilean Peso</option>
+            <option value="COP">COP — Colombian Peso</option>
+            <option value="PEN">PEN — Peruvian Sol</option>
+            <option value="UYU">UYU — Uruguayan Peso</option>
+            <option value="BOB">BOB — Bolivian Boliviano</option>
+            <option value="GTQ">GTQ — Guatemalan Quetzal</option>
+            <option value="HNL">HNL — Honduran Lempira</option>
+            <option value="DOP">DOP — Dominican Peso</option>
+            <option value="TTD">TTD — Trinidad &amp; Tobago Dollar</option>
+            <option value="JMD">JMD — Jamaican Dollar</option>
+            <option value="CRC">CRC — Costa Rican Colón</option>
+            <option value="PYG">PYG — Paraguayan Guaraní</option>
+            <option value="NIO">NIO — Nicaraguan Córdoba</option>
+            <option value="GYD">GYD — Guyanese Dollar</option>
+            <option value="SRD">SRD — Surinamese Dollar</option>
+          </optgroup>
+          <optgroup label="Pacific">
+            <option value="AUD">AUD — Australian Dollar</option>
+            <option value="NZD">NZD — New Zealand Dollar</option>
+            <option value="FJD">FJD — Fijian Dollar</option>
+            <option value="PGK">PGK — Papua New Guinean Kina</option>
+            <option value="XPF">XPF — CFP Franc</option>
+          </optgroup>
+          <optgroup label="Caribbean">
+            <option value="XCD">XCD — East Caribbean Dollar</option>
+          </optgroup>
         </select>
       </div>
 

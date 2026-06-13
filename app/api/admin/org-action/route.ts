@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAdminSession } from "@/lib/admin-auth"
 import prisma from "@/lib/db"
 import { addDays } from "date-fns"
-import { SignJWT } from "jose"
-
-const APP_SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET ?? "nextauth-secret-placeholder"
-)
+import { encode } from "next-auth/jwt"
 
 export async function POST(req: NextRequest) {
   const adminSession = await getAdminSession()
@@ -52,12 +48,17 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "impersonate") {
-    // Find the org owner
     const ownerLink = await prisma.orgUser.findFirst({
       where: { orgId, role: "OWNER" },
       include: { user: true },
     })
     if (!ownerLink) return NextResponse.json({ error: "No owner found" }, { status: 400 })
+
+    // Find the org slug for the redirect
+    const orgFull = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { slug: true },
+    })
 
     await prisma.adminLog.create({
       data: {
@@ -70,24 +71,33 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Issue a short-lived impersonation JWT (1 hour)
-    const token = await new SignJWT({
-      sub: ownerLink.userId,
-      email: ownerLink.user.email,
-      orgId,
-      orgName: org.name,
-      role: "OWNER",
-      userType: "STAFF",
-      impersonatedBy: adminSession.adminId,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("1h")
-      .sign(APP_SECRET)
+    const secure = process.env.NODE_ENV === "production"
+    const cookieName = secure ? "__Secure-authjs.session-token" : "authjs.session-token"
 
-    const res = NextResponse.json({ ok: true, redirectTo: "/dashboard" })
-    res.cookies.set("impersonate_token", token, {
+    // Encode a real NextAuth v5 session token so the app treats this as a
+    // normal authenticated session for the org owner.
+    const sessionToken = await encode({
+      token: {
+        sub: ownerLink.userId,
+        email: ownerLink.user.email,
+        name: ownerLink.user.name,
+        userId: ownerLink.userId,
+        orgId,
+        orgName: org.name,
+        orgSlug: orgFull?.slug,
+        role: "OWNER",
+        userType: "STAFF",
+        impersonatedBy: adminSession.adminId,
+      },
+      secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "nextauth-secret-placeholder",
+      salt: cookieName,
+      maxAge: 3600,
+    })
+
+    const res = NextResponse.json({ ok: true, redirectTo: `/dashboard` })
+    res.cookies.set(cookieName, sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure,
       sameSite: "lax",
       maxAge: 3600,
       path: "/",

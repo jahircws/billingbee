@@ -2,7 +2,30 @@ import prisma from "@/lib/db"
 import { Currency } from "@/lib/generated/prisma/client"
 
 // All currencies BillingBee supports (mirrors the Currency enum in schema.prisma).
-export const CURRENCIES: Currency[] = ["INR", "USD", "EUR", "GBP", "AUD", "CAD", "SGD", "AED"]
+export const CURRENCIES: Currency[] = [
+  // South Asia
+  "INR", "PKR", "BDT", "LKR", "NPR", "MVR",
+  // North America
+  "USD", "CAD", "MXN",
+  // Europe
+  "EUR", "GBP", "CHF", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "RON", "BGN", "ISK", "UAH", "RSD", "BAM", "MKD", "MDL",
+  // East Asia
+  "JPY", "CNY", "KRW", "TWD", "HKD", "MNT",
+  // Southeast Asia
+  "SGD", "MYR", "THB", "PHP", "IDR", "VND", "KHR", "BND", "MOP", "LAK",
+  // Central Asia
+  "KZT", "UZS", "AZN", "GEL", "AMD", "KGS", "TJS", "TMT",
+  // Middle East & North Africa
+  "AED", "SAR", "QAR", "KWD", "BHD", "OMR", "JOD", "ILS", "IQD", "EGP", "MAD", "TND", "DZD",
+  // Sub-Saharan Africa
+  "ZAR", "NGN", "KES", "GHS", "ETB", "TZS", "UGX", "RWF", "MUR", "XAF", "XOF", "ZMW", "BWP", "SCR", "MZN", "AOA", "MGA", "CDF", "MWK", "CVE",
+  // Latin America
+  "BRL", "ARS", "CLP", "COP", "PEN", "UYU", "BOB", "GTQ", "HNL", "DOP", "TTD", "JMD", "CRC", "PYG", "NIO", "GYD", "SRD",
+  // Pacific
+  "AUD", "NZD", "FJD", "PGK", "XPF",
+  // Caribbean
+  "XCD",
+]
 
 // We anchor every stored rate to USD: one row per currency per day with
 // base = USD, rate = units of `quote` per 1 USD (exactly what open.er-api.com

@@ -24,6 +24,10 @@ export default function OrgActions({ org, adminId }: Props) {
     const data = await res.json()
     setLoading(null)
     if (!res.ok) { setError(data.error ?? "Action failed"); return }
+    if (data.redirectTo) {
+      window.location.href = data.redirectTo
+      return
+    }
     router.refresh()
   }
 

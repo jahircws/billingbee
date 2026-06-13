@@ -15,10 +15,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/login")
   }
 
+  const isImpersonating = !!(session.user as { impersonatedBy?: string }).impersonatedBy
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {isImpersonating && (
+          <div className="bg-amber-500 text-black text-xs font-medium px-4 py-2 flex items-center justify-between shrink-0">
+            <span>Impersonating <strong>{session.user?.name || session.user?.email}</strong> ({session.user?.orgName})</span>
+            <a href="/admin" className="underline font-semibold">← Back to Admin</a>
+          </div>
+        )}
         {children}
       </div>
       <MobileNav />

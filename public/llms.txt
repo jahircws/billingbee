@@ -9,7 +9,7 @@ BillingBee lets you create, send, and manage invoices using natural language com
 ## Key Features
 
 - Natural language invoice creation
-- Multi-currency support (30+ currencies)
+- Multi-currency support (100+ currencies)
 - Payment integrations: Stripe, Razorpay, PayPal, UPI
 - Client portal for online payments (no sign-up needed for clients)
 - Automated payment reminders

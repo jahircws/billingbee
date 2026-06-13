@@ -283,7 +283,7 @@ export default function HomePage() {
           <FeatureCard
             icon={Globe}
             title="Built for India, works everywhere"
-            description="GST-compliant invoices, Razorpay and UPI support, INR billing. Plus 30+ currencies for international clients."
+            description="GST-compliant invoices, Razorpay and UPI support, INR billing. Plus 100+ currencies for international clients."
           />
         </div>
       </section>
@@ -340,12 +340,12 @@ export default function HomePage() {
             Your clients are global. Your invoicing should be too.
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg leading-relaxed">
-            Send invoices in USD, EUR, GBP, INR, or 30+ other currencies. Accept payments via Stripe in the US,
+            Send invoices in USD, EUR, GBP, INR, or 100+ other currencies. Accept payments via Stripe in the US,
             Razorpay in India, or PayPal anywhere. BillingBee handles the currency — you handle the work.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
             {[
-              { icon: Globe, label: "30+ currencies" },
+              { icon: Globe, label: "100+ currencies" },
               { icon: CreditCard, label: "Stripe · Razorpay · PayPal" },
               { icon: Check, label: "GST-ready for India" },
               { icon: Zap, label: "UPI support" },

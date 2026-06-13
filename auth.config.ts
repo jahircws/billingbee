@@ -11,7 +11,7 @@ export const authConfig = {
         token.orgName = (user as { orgName?: string }).orgName
         token.orgSlug = (user as { orgSlug?: string }).orgSlug
         token.role = (user as { role?: string }).role
-        token.userType = (user as { userType?: string }).userType
+        token.userType = (user as { userType?: "STAFF" | "CLIENT" }).userType
         token.clientId = (user as { clientId?: string }).clientId
       }
       return token
@@ -25,6 +25,7 @@ export const authConfig = {
       session.user.role = token.role as string | undefined
       session.user.userType = token.userType as "STAFF" | "CLIENT" | undefined
       session.user.clientId = token.clientId as string | undefined
+      ;(session.user as { impersonatedBy?: string }).impersonatedBy = token.impersonatedBy as string | undefined
       return session
     },
   },

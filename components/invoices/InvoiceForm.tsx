@@ -533,9 +533,39 @@ export default function InvoiceForm({
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               >
-                {["USD","EUR","GBP","INR","AUD","CAD","SGD","AED","JPY"].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
+                <optgroup label="South Asia">
+                  {["INR","PKR","BDT","LKR","NPR","MVR"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="North America">
+                  {["USD","CAD","MXN"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Europe">
+                  {["EUR","GBP","CHF","SEK","NOK","DKK","PLN","CZK","HUF","RON","BGN","ISK","UAH","RSD","BAM","MKD","MDL"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="East Asia">
+                  {["JPY","CNY","KRW","TWD","HKD","MNT"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Southeast Asia">
+                  {["SGD","MYR","THB","PHP","IDR","VND","KHR","BND","MOP","LAK"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Central Asia">
+                  {["KZT","UZS","AZN","GEL","AMD","KGS","TJS","TMT"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Middle East &amp; North Africa">
+                  {["AED","SAR","QAR","KWD","BHD","OMR","JOD","ILS","IQD","EGP","MAD","TND","DZD"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Sub-Saharan Africa">
+                  {["ZAR","NGN","KES","GHS","ETB","TZS","UGX","RWF","MUR","XAF","XOF","ZMW","BWP","SCR","MZN","AOA","MGA","CDF","MWK","CVE"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Latin America">
+                  {["BRL","ARS","CLP","COP","PEN","UYU","BOB","GTQ","HNL","DOP","TTD","JMD","CRC","PYG","NIO","GYD","SRD"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Pacific">
+                  {["AUD","NZD","FJD","PGK","XPF"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
+                <optgroup label="Caribbean">
+                  {["XCD"].map(c => <option key={c} value={c}>{c}</option>)}
+                </optgroup>
               </select>
               <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
