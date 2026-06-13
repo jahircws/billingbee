@@ -246,7 +246,7 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-black text-gray-900 mb-3">Everything you need to get paid</h2>
           <p className="text-gray-500 max-w-xl mx-auto">
-            From invoice creation to payment collection — all in one place, powered by AI.
+            From first pitch to final payment — all in one place, powered by AI.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -256,9 +256,9 @@ export default function HomePage() {
             description="Just describe what you did. AI fills in client details, amounts, taxes, and due dates automatically."
           />
           <FeatureCard
-            icon={Globe}
-            title="Built for India, works everywhere"
-            description="GST-compliant invoices, Razorpay and UPI support, INR billing. Plus 30+ currencies for international clients."
+            icon={FileText}
+            title="AI proposal generator"
+            description="Describe the project, AI writes the proposal. Client accepts in the portal. One click converts it to a contract, then an invoice."
           />
           <FeatureCard
             icon={CreditCard}
@@ -272,13 +272,18 @@ export default function HomePage() {
           />
           <FeatureCard
             icon={BarChart3}
-            title="Revenue analytics"
-            description="See monthly revenue, overdue amounts, top clients, and cash flow — updated in real time."
+            title="AI cashflow forecast"
+            description="Claude analyses 12 months of payment history, names your late-paying clients, and tells you what to expect next month — in plain English."
           />
           <FeatureCard
             icon={Shield}
             title="Client portal (no sign-up needed)"
             description="Clients get a branded portal to view invoices, download PDFs, and pay — without creating an account."
+          />
+          <FeatureCard
+            icon={Globe}
+            title="Built for India, works everywhere"
+            description="GST-compliant invoices, Razorpay and UPI support, INR billing. Plus 30+ currencies for international clients."
           />
         </div>
       </section>
@@ -286,24 +291,34 @@ export default function HomePage() {
       {/* How it works */}
       <section className="bg-white py-16 border-y border-gray-100">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">From conversation to cash in 3 steps</h2>
-          <p className="text-gray-500 mb-12">No forms. No spreadsheets. Just talk to your AI assistant.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-3xl font-black text-gray-900 mb-3">From first pitch to final payment</h2>
+          <p className="text-gray-500 mb-12">No forms. No spreadsheets. No juggling three separate tools.</p>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {[
               {
                 step: "1",
-                title: "Describe the work",
-                desc: "\"Invoice TechCorp $5,000 for website development, due in 15 days\"",
+                title: "Win the work",
+                desc: "Describe the project — AI writes a professional proposal. Client signs in their portal.",
               },
               {
                 step: "2",
-                title: "Review & send",
-                desc: "AI creates the invoice. Review, tweak if needed, then send with one click.",
+                title: "Invoice instantly",
+                desc: "\"Invoice TechCorp $5,000 for website development, due in 15 days\" — done in 30 seconds.",
               },
               {
                 step: "3",
+                title: "Send & collect",
+                desc: "Invoice goes out with a payment link. AI chases late payments so you don't have to.",
+              },
+              {
+                step: "4",
                 title: "Get paid",
-                desc: "Client clicks the payment link, pays by card, bank transfer, UPI, or PayPal. You get notified instantly.",
+                desc: "Client pays by card, bank transfer, UPI, or PayPal. You get notified instantly.",
+              },
+              {
+                step: "5",
+                title: "Know what's next",
+                desc: "AI analyses your payment history and tells you what to expect next month — by name.",
               },
             ].map(({ step, title, desc }) => (
               <div key={step}>
@@ -433,6 +448,8 @@ export default function HomePage() {
                 "Unlimited invoices",
                 "AI collections & reminders",
                 "Payment links (Stripe, Razorpay, PayPal)",
+                "AI cashflow forecast",
+                "AI proposal generator",
                 "White-label client portal",
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
