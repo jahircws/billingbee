@@ -818,25 +818,35 @@ model AIUsageLog {
 // ---------------------------------------------------------------------------
 
 model Contract {
-  id         String         @id @default(cuid())
-  orgId      String
-  clientId   String
-  proposalId String?        @unique
-  title      String
-  status     ContractStatus @default(DRAFT)
-  content    String         @db.Text
-  signedAt   DateTime?
-  signedBy   String?
-  ipAddress  String?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  orgId         String
+  clientId      String
+  proposalId    String?        @unique
+  invoiceId     String?
+  title         String
+  status        ContractStatus @default(DRAFT)
+  content       String         @db.Text
+  // Portal delivery
+  token         String?        @unique
+  sentAt        DateTime?
+  viewedAt      DateTime?
+  // Signing proof
+  signedAt      DateTime?
+  signedBy      String?
+  signatureData String?        @db.Text
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   client   Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   proposal Proposal?    @relation(fields: [proposalId], references: [id])
 
   @@index([orgId])
+  @@index([orgId, status])
   @@index([clientId])
+  @@index([token])
 }
 
 // ---------------------------------------------------------------------------
