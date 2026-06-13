@@ -47,44 +47,19 @@ const PLANS = [
       "Full reports & exports",
       "Priority email support",
     ],
-    missing: ["API access", "Dedicated account manager"],
-  },
-  {
-    id: "business",
-    name: "Business",
-    monthly: 24.99,
-    annual: 19.99,
-    description: "For agencies and teams managing multiple clients.",
-    cta: "Contact sales",
-    ctaHref: "/contact",
-    popular: false,
-    features: [
-      "Everything in Pro",
-      "5 team members",
-      "API access",
-      "Dedicated account manager",
-      "Custom invoice domain",
-      "SLA: 4-hour response",
-      "Custom integrations",
-      "Audit log",
-    ],
     missing: [],
   },
 ]
 
 const COMPARE_FEATURES = [
-  { label: "Invoices/month", free: "5", pro: "Unlimited", biz: "Unlimited" },
-  { label: "Clients", free: "3", pro: "Unlimited", biz: "Unlimited" },
-  { label: "AI invoice generation", free: true, pro: true, biz: true },
-  { label: "AI payment follow-ups", free: false, pro: true, biz: true },
-  { label: "Payment links", free: false, pro: true, biz: true },
-  { label: "PDF — no watermark", free: false, pro: true, biz: true },
-  { label: "White-label client portal", free: false, pro: true, biz: true },
-  { label: "Cashflow forecast", free: false, pro: true, biz: true },
-  { label: "Team members", free: "1", pro: "1", biz: "5" },
-  { label: "API access", free: false, pro: false, biz: true },
-  { label: "Dedicated account manager", free: false, pro: false, biz: true },
-  { label: "SLA support", free: false, pro: false, biz: true },
+  { label: "Invoices/month", free: "5", pro: "Unlimited" },
+  { label: "Clients", free: "3", pro: "Unlimited" },
+  { label: "AI invoice generation", free: true, pro: true },
+  { label: "AI payment follow-ups", free: false, pro: true },
+  { label: "Payment links", free: false, pro: true },
+  { label: "PDF — no watermark", free: false, pro: true },
+  { label: "White-label client portal", free: false, pro: true },
+  { label: "Cashflow forecast", free: false, pro: true },
 ]
 
 const FAQ = [
@@ -184,7 +159,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plan cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 gap-6 mb-16 max-w-2xl mx-auto">
           {PLANS.map((plan) => {
             const price = annual ? plan.annual : plan.monthly
 
@@ -261,10 +236,9 @@ export default function PricingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left px-6 py-4 font-semibold text-gray-700 w-2/5">Feature</th>
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700 w-2/4">Feature</th>
                   <th className="px-4 py-4 font-semibold text-gray-700 text-center">Free</th>
                   <th className="px-4 py-4 font-semibold text-emerald-600 text-center bg-emerald-50/60">Pro</th>
-                  <th className="px-4 py-4 font-semibold text-gray-700 text-center">Business</th>
                 </tr>
               </thead>
               <tbody>
@@ -273,7 +247,6 @@ export default function PricingPage() {
                     <td className="px-6 py-3 text-gray-700 font-medium">{row.label}</td>
                     <td className="px-4 py-3"><Cell value={row.free} /></td>
                     <td className="px-4 py-3 bg-emerald-50/30"><Cell value={row.pro} /></td>
-                    <td className="px-4 py-3"><Cell value={row.biz} /></td>
                   </tr>
                 ))}
               </tbody>

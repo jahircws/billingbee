@@ -6,8 +6,8 @@ export const revalidate = 3600
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "Pricing — Free, Pro & Business Plans | BillingBee",
-    "BillingBee pricing: Free (5 invoices/mo), Pro $9.99/mo (unlimited + AI collections), Business $24.99/mo (teams + white-label). Cancel anytime.",
+    "Pricing — Free & Pro Plans | BillingBee",
+    "BillingBee pricing: Free forever (5 invoices/mo) or Pro $9.99/mo — unlimited invoices, AI collections, payment links via Stripe, Razorpay & PayPal. Cancel anytime.",
     "/plans-price",
     {
       keywords: [
@@ -40,14 +40,6 @@ export const metadata: Metadata = {
           priceCurrency: "USD",
           billingIncrement: "P1M",
           description: "Unlimited invoices, AI collections, payment links, full reports",
-        },
-        {
-          "@type": "Offer",
-          name: "Business",
-          price: "24.99",
-          priceCurrency: "USD",
-          billingIncrement: "P1M",
-          description: "Team seats, white-label portal, API access, priority support",
         },
       ],
     }),

@@ -20,7 +20,7 @@ import {
 export const metadata: Metadata = {
   ...generatePageMetadata(
     "BillingBee — AI-Powered Invoicing for Freelancers & Small Businesses",
-    "Create professional invoices in any currency in seconds with natural language AI. Accept Stripe payments. Auto-send reminders. Trusted by 7000+ freelancers and small businesses worldwide.",
+    "Create professional invoices in any currency in 30 seconds with AI. Accept Stripe, Razorpay & PayPal payments. Auto-send reminders. Trusted by 7,000+ freelancers worldwide.",
     "/",
     {
       keywords: [
@@ -72,14 +72,6 @@ export const metadata: Metadata = {
             priceCurrency: "USD",
             billingIncrement: "P1M",
             description: "Unlimited invoices, AI collections, payment links",
-          },
-          {
-            "@type": "Offer",
-            name: "Business",
-            price: "24.99",
-            priceCurrency: "USD",
-            billingIncrement: "P1M",
-            description: "Team seats, white-label, API access, priority support",
           },
         ],
         aggregateRating: {
@@ -177,18 +169,18 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 mb-6">
           <Sparkles size={12} />
-          Trusted by 7000+ freelancers and small businesses worldwide
+          Trusted by 7,000+ freelancers worldwide
         </div>
 
         <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight tracking-tight mb-6">
-          Invoice in seconds.
+          Your AI invoicing assistant.
           <br />
-          <span className="text-emerald-600">Get paid faster.</span>
+          <span className="text-emerald-600">Invoice done in 30 seconds.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
           Just say &ldquo;Invoice Acme Corp $2,500 for design work&rdquo; — BillingBee AI creates a
-          polished, tax-ready PDF, sends it, and follows up automatically.
+          polished, tax-ready PDF, sends it, and follows up automatically. No forms. No spreadsheets.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
@@ -207,15 +199,35 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+        <div className="flex items-center justify-center gap-6 text-sm text-gray-400 flex-wrap">
+          {[
+            "No credit card required",
+            "Stripe · Razorpay · PayPal",
+            "Any currency, any country",
+          ].map((s) => (
+            <span key={s} className="flex items-center gap-1.5">
+              <Check size={14} className="text-emerald-500" />
+              {s}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* Social proof bar */}
+      <section className="border-y border-gray-100 bg-white py-5">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/badges/nvidia-inception-program-badge.svg"
+            alt="BillingBee is a member of the NVIDIA Inception program"
+            style={{ width: 160, height: "auto" }}
+          />
+          <div className="h-px sm:h-8 w-16 sm:w-px bg-gray-200" />
           {[
             { rating: "4.8", source: "Google" },
             { rating: "4.7", source: "Trustpilot" },
           ].map(({ rating, source }) => (
-            <div
-              key={source}
-              className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm"
-            >
+            <div key={source} className="inline-flex items-center gap-2">
               <span className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
@@ -225,19 +237,6 @@ export default function HomePage() {
                 <span className="font-semibold text-gray-900">{rating}</span> on {source}
               </span>
             </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-center gap-6 text-sm text-gray-400 flex-wrap">
-          {[
-            "No credit card required",
-            "Tax-ready PDFs",
-            "Stripe payments built-in",
-          ].map((s) => (
-            <span key={s} className="flex items-center gap-1.5">
-              <Check size={14} className="text-emerald-500" />
-              {s}
-            </span>
           ))}
         </div>
       </section>
@@ -257,14 +256,14 @@ export default function HomePage() {
             description="Just describe what you did. AI fills in client details, amounts, taxes, and due dates automatically."
           />
           <FeatureCard
-            icon={FileText}
-            title="Tax-ready PDFs"
-            description="Every invoice supports custom tax lines, any currency, and sequential numbering — plus built-in GST support for India."
+            icon={Globe}
+            title="Built for India, works everywhere"
+            description="GST-compliant invoices, Razorpay and UPI support, INR billing. Plus 30+ currencies for international clients."
           />
           <FeatureCard
             icon={CreditCard}
-            title="Instant payment links"
-            description="Accept payments via Stripe — cards, wallets, and bank transfers. Payment link auto-included in every invoice."
+            title="Payment links that work everywhere"
+            description="Accept payments via Stripe, Razorpay, or PayPal — cards, UPI, wallets, and bank transfers. One link works everywhere."
           />
           <FeatureCard
             icon={Users}
@@ -278,7 +277,7 @@ export default function HomePage() {
           />
           <FeatureCard
             icon={Shield}
-            title="Client portal"
+            title="Client portal (no sign-up needed)"
             description="Clients get a branded portal to view invoices, download PDFs, and pay — without creating an account."
           />
         </div>
@@ -287,7 +286,7 @@ export default function HomePage() {
       {/* How it works */}
       <section className="bg-white py-16 border-y border-gray-100">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">From chat to paid in 3 steps</h2>
+          <h2 className="text-3xl font-black text-gray-900 mb-3">From conversation to cash in 3 steps</h2>
           <p className="text-gray-500 mb-12">No forms. No spreadsheets. Just talk to your AI assistant.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -304,7 +303,7 @@ export default function HomePage() {
               {
                 step: "3",
                 title: "Get paid",
-                desc: "Client clicks the payment link, pays by card or bank transfer. You get notified instantly.",
+                desc: "Client clicks the payment link, pays by card, bank transfer, UPI, or PayPal. You get notified instantly.",
               },
             ].map(({ step, title, desc }) => (
               <div key={step}>
@@ -313,6 +312,32 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Works everywhere callout */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <div className="bg-gray-900 rounded-3xl p-10 md:p-14 text-center">
+          <h2 className="text-3xl font-black text-white mb-4">
+            Your clients are global. Your invoicing should be too.
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg leading-relaxed">
+            Send invoices in USD, EUR, GBP, INR, or 30+ other currencies. Accept payments via Stripe in the US,
+            Razorpay in India, or PayPal anywhere. BillingBee handles the currency — you handle the work.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+            {[
+              { icon: Globe, label: "30+ currencies" },
+              { icon: CreditCard, label: "Stripe · Razorpay · PayPal" },
+              { icon: Check, label: "GST-ready for India" },
+              { icon: Zap, label: "UPI support" },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full">
+                <Icon size={14} className="text-emerald-400" />
+                {label}
               </div>
             ))}
           </div>
@@ -332,21 +357,6 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Testimonial
-            quote="I used to spend 2 hours every week on invoices. Now it takes 5 minutes. The AI just gets it."
-            name="Priya Sharma"
-            role="UX Designer"
-          />
-          <Testimonial
-            quote="Tax calculations used to terrify me. BillingBee handles all of it. My accountant loves the exports."
-            name="Rahul Mehta"
-            role="Full-stack Developer, Remote"
-          />
-          <Testimonial
-            quote="The payment link feature alone is worth it. Clients pay the same day now instead of chasing them for weeks."
-            name="Ananya Krishnan"
-            role="Content Strategist"
-          />
-          <Testimonial
             quote="I send invoices to clients in three different currencies. BillingBee handles every one without me touching a spreadsheet."
             name="Sarah Whitfield"
             role="Freelance Copywriter, London, UK"
@@ -361,23 +371,102 @@ export default function HomePage() {
             name="Emily Carter"
             role="Photographer, Austin, USA"
           />
+          <Testimonial
+            quote="I used to spend 2 hours every week on invoices. Now it takes 5 minutes. The AI just gets it."
+            name="Priya Sharma"
+            role="UX Designer, Bangalore"
+          />
+          <Testimonial
+            quote="Tax calculations used to terrify me. BillingBee handles all of it. My accountant loves the exports."
+            name="Rahul Mehta"
+            role="Full-stack Developer, Remote (US clients)"
+          />
+          <Testimonial
+            quote="The payment link feature alone is worth it. Clients pay the same day now instead of chasing them for weeks."
+            name="Ananya Krishnan"
+            role="Content Strategist"
+          />
         </div>
+      </section>
+
+      {/* Pricing summary */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-black text-gray-900 mb-3">Simple pricing. Free to start.</h2>
+          <p className="text-gray-500">No credit card required. No time limit on the free plan.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-6">
+          {/* Free */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Free</h3>
+              <p className="text-sm text-gray-500 mt-1">Perfect for getting started.</p>
+            </div>
+            <div className="text-4xl font-black text-gray-900 mb-6">Free forever</div>
+            <ul className="space-y-2.5 flex-1 mb-6">
+              {["5 invoices/month", "AI invoice creation", "PDF downloads", "Basic tax support"].map((f) => (
+                <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                  <Check size={14} className="text-emerald-500 shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/generate"
+              className="text-center py-3 rounded-xl font-semibold text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Start free →
+            </Link>
+          </div>
+          {/* Pro */}
+          <div className="bg-white rounded-2xl border-2 border-emerald-500 shadow-lg p-6 flex flex-col relative">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+              <span className="bg-emerald-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow">Most popular</span>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Pro</h3>
+              <p className="text-sm text-gray-500 mt-1">Everything you need to get paid.</p>
+            </div>
+            <div className="text-4xl font-black text-gray-900 mb-6">$9.99<span className="text-base font-normal text-gray-400">/mo</span></div>
+            <ul className="space-y-2.5 flex-1 mb-6">
+              {[
+                "Unlimited invoices",
+                "AI collections & reminders",
+                "Payment links (Stripe, Razorpay, PayPal)",
+                "White-label client portal",
+              ].map((f) => (
+                <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                  <Check size={14} className="text-emerald-500 shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/register?trial=pro"
+              className="text-center py-3 rounded-xl font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+            >
+              Start 14-day trial →
+            </Link>
+          </div>
+        </div>
+        <p className="text-center text-sm text-gray-400">
+          <Link href="/plans-price" className="underline hover:text-gray-600">See full plan details →</Link>
+        </p>
       </section>
 
       {/* CTA banner */}
       <section className="bg-emerald-600 py-16">
         <div className="max-w-3xl mx-auto px-4 text-center text-white">
-          <h2 className="text-3xl font-black mb-4">Start free. No credit card needed.</h2>
+          <h2 className="text-3xl font-black mb-4">Your first invoice takes 30 seconds. It&apos;s free.</h2>
           <p className="text-emerald-100 mb-8 text-lg">
-            Free plan includes 5 invoices/month, PDF downloads, and automatic tax calculations.
-            Upgrade when you&apos;re ready.
+            5 invoices/month, AI invoice creation, PDF downloads, automatic tax. No credit card. No time limit on the free plan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/generate"
               className="inline-flex items-center justify-center gap-2 bg-white text-emerald-700 font-bold px-8 py-4 rounded-2xl text-base hover:bg-emerald-50 transition-all active:scale-95"
             >
-              Create invoice — it&apos;s free
+              Create your first invoice free
               <ArrowRight size={16} />
             </Link>
             <Link
@@ -413,18 +502,6 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white py-8">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center gap-4 mb-8 pb-8 border-b border-gray-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/badges/nvidia-inception-program-badge.svg"
-            alt="BillingBee is a member of the NVIDIA Inception program"
-            style={{ width: 280, height: "auto" }}
-            className="p-2"
-          />
-          <p className="text-sm font-medium text-gray-600 text-center max-w-xl">
-            BillingBee is a member of the NVIDIA Inception program.
-          </p>
-        </div>
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-emerald-600 rounded flex items-center justify-center">

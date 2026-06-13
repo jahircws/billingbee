@@ -1,31 +1,31 @@
 # BillingBee
 
-> BillingBee is an AI-powered invoicing SaaS built for Indian freelancers and small businesses.
+> BillingBee is an AI-powered invoicing SaaS for freelancers and small businesses worldwide, with full support for Indian workflows (GST, Razorpay, UPI).
 
 ## Product
 
-BillingBee lets you create, send, and manage invoices using natural language commands. No forms, no friction — just describe what you need and the AI handles the rest.
+BillingBee lets you create, send, and manage invoices using natural language commands. No forms, no friction — just describe what you need and the AI handles the rest. Invoice ready in 30 seconds.
 
 ## Key Features
 
 - Natural language invoice creation
-- GST-compliant invoices for Indian businesses
-- Client portal for online payments
-- Multi-currency support
-- Payment integrations: Razorpay, Stripe, PayPal
+- Multi-currency support (30+ currencies)
+- Payment integrations: Stripe, Razorpay, PayPal, UPI
+- Client portal for online payments (no sign-up needed for clients)
 - Automated payment reminders
 - Revenue and earnings analytics
 - PDF invoice generation
+- GST-compliant invoices for Indian businesses
 
 ## Pricing
 
-- Free: Basic invoicing, up to 5 clients
-- Pro: $9.99/month — unlimited clients, payment integrations, reminders
-- Business: $24.99/month — team members, advanced analytics, white-labeling
+- Free: Basic invoicing, up to 5 invoices/month, 3 clients — free forever
+- Pro: $9.99/month — unlimited invoices, AI collections, payment links (Stripe, Razorpay, PayPal)
 
 ## Natural Language Commands
 
 - "Create invoice for Acme Corp for ₹50,000 for web design"
+- "Invoice TechCorp $5,000 for website development, due in 15 days"
 - "Show unpaid invoices"
 - "How much did I earn this month?"
 - "Send reminder to clients with overdue invoices"

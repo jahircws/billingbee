@@ -11,19 +11,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://billingbee.co"),
   title: {
-    default: "BillingBee — AI-Powered Invoicing for Indian Freelancers",
+    default: "BillingBee — AI-Powered Invoicing for Freelancers Worldwide",
     template: "%s | BillingBee",
   },
   description:
-    "Create GST invoices in seconds with natural language. Accept payments via Razorpay, Stripe & PayPal. Built for Indian freelancers and small businesses.",
+    "Create invoices in any currency in seconds with AI. Accept payments via Stripe, Razorpay & PayPal. Built for freelancers everywhere — with full GST and UPI support for India.",
   applicationName: "BillingBee",
   keywords: [
-    "invoice software India",
-    "GST invoice generator",
     "AI invoicing",
+    "invoice software",
     "freelancer billing",
-    "Razorpay invoicing",
+    "multi-currency invoicing",
     "online invoice maker",
+    "GST invoice generator",
   ],
   authors: [{ name: "BillingBee" }],
   creator: "BillingBee",
@@ -31,12 +31,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   openGraph: {
     type: "website",
-    locale: "en_IN",
+    locale: "en_US",
     url: "https://billingbee.co",
     siteName: "BillingBee",
-    title: "BillingBee — AI-Powered Invoicing for Indian Freelancers",
+    title: "BillingBee — AI-Powered Invoicing for Freelancers Worldwide",
     description:
-      "Create GST invoices in seconds with natural language. Accept payments via Razorpay, Stripe & PayPal.",
+      "Create invoices in any currency in seconds with AI. Accept payments via Stripe, Razorpay & PayPal. Built for freelancers everywhere — with full GST and UPI support for India.",
     images: [
       {
         url: "/og-image.png",
@@ -48,9 +48,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "BillingBee — AI-Powered Invoicing for Indian Freelancers",
+    title: "BillingBee — AI-Powered Invoicing for Freelancers Worldwide",
     description:
-      "Create GST invoices in seconds with natural language. Accept payments via Razorpay, Stripe & PayPal.",
+      "Create invoices in any currency in seconds with AI. Accept payments via Stripe, Razorpay & PayPal. Built for freelancers everywhere — with full GST and UPI support for India.",
     images: ["/og-image.png"],
     creator: "@billingbee",
   },
@@ -83,7 +83,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-IN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
         {children}
       </body>

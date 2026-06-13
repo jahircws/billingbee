@@ -38,7 +38,7 @@ export const metadata: Metadata = {
           name: "Which payment gateways does BillingBee support?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "BillingBee supports Stripe (cards, wallets, and bank transfers) worldwide, plus Razorpay for users in India. Payment links are automatically included in every invoice.",
+            text: "BillingBee supports Stripe (cards, wallets, and bank transfers) worldwide, Razorpay for India, and PayPal globally. Payment links are automatically included in every invoice.",
           },
         },
         {
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
           name: "Can I cancel my subscription anytime?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes, you can cancel your Pro or Business subscription at any time from Settings → Plan. You'll retain access until the end of your billing period.",
+            text: "Yes, you can cancel your Pro subscription at any time from Settings → Plan. You'll retain access until the end of your billing period.",
           },
         },
       ],
@@ -73,7 +73,7 @@ const FAQS = [
   },
   {
     q: "Which payment gateways does BillingBee support?",
-    a: "BillingBee supports Stripe (cards, wallets, bank transfers) worldwide, plus Razorpay for users in India. Every invoice includes a payment link — your clients click, pay, and you get notified instantly.",
+    a: "BillingBee supports Stripe (cards, wallets, bank transfers) worldwide, Razorpay for India, and PayPal globally. Every invoice includes a payment link — your clients click, pay, and you get notified instantly.",
   },
   {
     q: "How does the AI invoice creation work?",
@@ -93,7 +93,7 @@ const FAQS = [
   },
   {
     q: "Can I customise the invoice template?",
-    a: "Yes. You can add your logo, custom colours, business address, tax IDs (such as GSTIN, VAT, or EIN), bank details, and payment terms. Pro and Business plans support custom branding on the client portal.",
+    a: "Yes. You can add your logo, custom colours, business address, tax IDs (such as GSTIN, VAT, or EIN), bank details, and payment terms. Pro plan supports custom branding on the client portal.",
   },
   {
     q: "What happens when I exceed the free plan limit?",
