@@ -15,6 +15,12 @@ export async function GET(req: NextRequest) {
 
   const now = new Date()
 
+  // Transition UNPAID invoices past their due date → OVERDUE
+  await prisma.invoice.updateMany({
+    where: { status: "UNPAID", dueDate: { lt: now } },
+    data: { status: "OVERDUE" },
+  })
+
   // Fetch due events: PENDING, or FAILED with retries left. Skip paid/draft
   // invoices here so they never eat into the per-run budget.
   const due = await prisma.collectionEvent.findMany({

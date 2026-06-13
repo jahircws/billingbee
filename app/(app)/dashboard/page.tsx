@@ -28,20 +28,23 @@ export const dynamic = "force-dynamic"
 
 // ── Attention cards data ───────────────────────────────────────────────────────
 
-async function getAttentionData(orgId: string) {
+async function getAttentionData(orgId: string, orgCurrency: string) {
   const now = new Date()
   const soon = addDays(now, 7)
 
   const [overdueInvoices, dueSoonInvoices, draftInvoices, lastPayment] = await Promise.all([
     prisma.invoice.findMany({
       where: { orgId, status: "OVERDUE" },
-      select: { amountDue: true },
+      select: { amountDue: true, currency: true },
     }),
     prisma.invoice.findMany({
       where: { orgId, status: "UNPAID", dueDate: { gte: now, lte: soon } },
-      select: { amountDue: true },
+      select: { amountDue: true, currency: true },
     }),
-    prisma.invoice.count({ where: { orgId, status: "DRAFT" } }),
+    prisma.invoice.findMany({
+      where: { orgId, status: "DRAFT" },
+      select: { currency: true },
+    }),
     prisma.payment.findFirst({
       where: { invoice: { orgId } },
       orderBy: { createdAt: "desc" },
@@ -49,13 +52,29 @@ async function getAttentionData(orgId: string) {
     }),
   ])
 
-  const overdueAmount = overdueInvoices.reduce((s, i) => s + Number(i.amountDue), 0)
-  const dueSoonAmount = dueSoonInvoices.reduce((s, i) => s + Number(i.amountDue), 0)
+  const othersByCurrency = (invoices: { currency: string }[]) => {
+    const counts: Record<string, number> = {}
+    for (const i of invoices) {
+      if (i.currency !== orgCurrency) counts[i.currency] = (counts[i.currency] ?? 0) + 1
+    }
+    return Object.entries(counts).map(([currency, count]) => ({ currency, count }))
+  }
+
+  const sumInOrgCurrency = (invoices: { amountDue: unknown; currency: string }[]) => ({
+    amount: invoices.filter((i) => i.currency === orgCurrency).reduce((s, i) => s + Number(i.amountDue), 0),
+    count: invoices.filter((i) => i.currency === orgCurrency).length,
+    others: othersByCurrency(invoices),
+  })
+
+  const overdue = sumInOrgCurrency(overdueInvoices)
+  const dueSoon = sumInOrgCurrency(dueSoonInvoices)
+  const draftsInOrg = draftInvoices.filter((i) => i.currency === orgCurrency).length
+  const draftOthers = othersByCurrency(draftInvoices)
 
   return {
-    overdue: { count: overdueInvoices.length, amount: overdueAmount },
-    dueSoon: { count: dueSoonInvoices.length, amount: dueSoonAmount },
-    drafts: draftInvoices,
+    overdue,
+    dueSoon,
+    drafts: { count: draftsInOrg, others: draftOthers },
     lastPayment: lastPayment
       ? {
           client: lastPayment.invoice.client.name,
@@ -117,25 +136,27 @@ async function getOnboardingState(orgId: string) {
 function AttentionCard({
   icon: Icon,
   label,
-  value,
+  amount,
+  amountColor,
   sub,
   colorClass,
   href,
 }: {
   icon: React.ElementType
   label: string
-  value: string
+  amount: string
+  amountColor?: string
   sub?: string
   colorClass: string
   href?: string
 }) {
   const content = (
-    <div className={`bg-white rounded-xl border-l-4 ${colorClass} p-4 space-y-1 hover:shadow-md transition-shadow`}>
+    <div className={`bg-white rounded-xl border-l-4 ${colorClass} p-4 space-y-1.5 hover:shadow-md transition-shadow`}>
       <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
         <Icon size={13} />
         {label}
       </div>
-      <div className="text-base font-bold text-gray-900 leading-tight">{value}</div>
+      <div className={`text-xl font-semibold leading-tight ${amountColor ?? "text-gray-900"}`}>{amount}</div>
       {sub && <div className="text-xs text-gray-400">{sub}</div>}
     </div>
   )
@@ -158,8 +179,10 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
 
   const userId = session.user.userId
 
+  const orgCurrencyPre = (await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }))?.currency ?? "INR"
+
   const [attention, lastClient, healthScore, org, invoiceCount, clientCount, userRecord, onboarding] = await Promise.all([
-    getAttentionData(orgId),
+    getAttentionData(orgId, orgCurrencyPre),
     getLastClientUsed(orgId),
     calculateHealthScore(orgId),
     prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true, plan: true, planExpiry: true } }),
@@ -235,29 +258,43 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           <AttentionCard
             icon={AlertCircle}
             label="Overdue"
-            value={attention.overdue.count > 0 ? `${attention.overdue.count} invoice${attention.overdue.count !== 1 ? "s" : ""} · ${fmt(attention.overdue.amount)}` : "All clear"}
+            amount={attention.overdue.count > 0 ? fmt(attention.overdue.amount) : "All clear"}
+            amountColor={attention.overdue.count > 0 ? "text-red-600" : undefined}
+            sub={attention.overdue.count > 0
+              ? `${attention.overdue.count} invoice${attention.overdue.count !== 1 ? "s" : ""}${attention.overdue.others.length > 0 ? ` · ${attention.overdue.others.map((o) => `+${o.count} in ${o.currency}`).join(" + ")}` : ""}`
+              : undefined}
             colorClass={attention.overdue.count > 0 ? "border-red-400" : "border-gray-200"}
             href="/invoices?status=OVERDUE"
           />
           <AttentionCard
             icon={Clock}
             label="Due soon"
-            value={attention.dueSoon.count > 0 ? `${attention.dueSoon.count} due this week · ${fmt(attention.dueSoon.amount)}` : "Nothing due soon"}
+            amount={attention.dueSoon.count > 0 ? fmt(attention.dueSoon.amount) : "Nothing due soon"}
+            amountColor={attention.dueSoon.count > 0 ? "text-amber-600" : undefined}
+            sub={attention.dueSoon.count > 0
+              ? `${attention.dueSoon.count} invoice${attention.dueSoon.count !== 1 ? "s" : ""} this week${attention.dueSoon.others.length > 0 ? ` · ${attention.dueSoon.others.map((o) => `+${o.count} in ${o.currency}`).join(" + ")}` : ""}`
+              : undefined}
             colorClass={attention.dueSoon.count > 0 ? "border-amber-400" : "border-gray-200"}
             href="/invoices?status=UNPAID"
           />
           <AttentionCard
             icon={FileText}
             label="Unsent drafts"
-            value={attention.drafts > 0 ? `${attention.drafts} draft${attention.drafts !== 1 ? "s" : ""} ready to send` : "No drafts"}
-            colorClass={attention.drafts > 0 ? "border-blue-400" : "border-gray-200"}
+            amount={attention.drafts.count + attention.drafts.others.reduce((s, o) => s + o.count, 0) > 0
+              ? `${attention.drafts.count + attention.drafts.others.reduce((s, o) => s + o.count, 0)}`
+              : "No drafts"}
+            sub={attention.drafts.count + attention.drafts.others.reduce((s, o) => s + o.count, 0) > 0
+              ? `ready to send${attention.drafts.others.length > 0 ? ` · ${attention.drafts.others.map((o) => `+${o.count} in ${o.currency}`).join(" + ")}` : ""}`
+              : undefined}
+            colorClass={attention.drafts.count + attention.drafts.others.reduce((s, o) => s + o.count, 0) > 0 ? "border-blue-400" : "border-gray-200"}
             href="/invoices?status=DRAFT"
           />
           <AttentionCard
             icon={CheckCircle}
             label="Last payment"
-            value={attention.lastPayment ? `${attention.lastPayment.client} paid ${fmtCurrencyShort(attention.lastPayment.amount, attention.lastPayment.currency)}` : "No payments yet"}
-            sub={attention.lastPayment ? attention.lastPayment.date : undefined}
+            amount={attention.lastPayment ? fmtCurrencyShort(attention.lastPayment.amount, attention.lastPayment.currency) : "No payments yet"}
+            amountColor={attention.lastPayment ? "text-emerald-600" : undefined}
+            sub={attention.lastPayment ? `${attention.lastPayment.client} · ${attention.lastPayment.date}` : undefined}
             colorClass={attention.lastPayment ? "border-emerald-400" : "border-gray-200"}
             href="/invoices?status=PAID"
           />
