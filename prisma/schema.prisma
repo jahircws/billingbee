@@ -279,6 +279,10 @@ model Invoice {
   issueDate       DateTime      @default(now())
   dueDate         DateTime?
   currency        Currency      @default(INR)
+  // Rate from this invoice's currency → the org's base currency, frozen at
+  // issue time. 1 for invoices already in the org currency. Used by health
+  // metrics so cross-currency totals are comparable (see lib/fx.ts).
+  fxRate          Decimal       @db.Decimal(18, 8) @default(1)
   subtotal        Decimal       @db.Decimal(12, 2) @default(0)
   taxAmount       Decimal       @db.Decimal(12, 2) @default(0)
   discountAmount  Decimal       @db.Decimal(12, 2) @default(0)
@@ -602,6 +606,25 @@ model AdminLog {
 
   @@index([adminId])
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// FxRate — daily foreign-exchange rates (open.er-api.com), cached for
+// converting per-invoice currencies into an org's base currency.
+// rate = units of `quote` per 1 unit of `base`. Refreshed by the
+// app/api/cron/fx-rates daily job.
+// ---------------------------------------------------------------------------
+
+model FxRate {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  base      Currency
+  quote     Currency
+  rate      Decimal  @db.Decimal(18, 8)
+  createdAt DateTime @default(now())
+
+  @@unique([date, base, quote])
+  @@index([base, quote, date])
 }
 
 // ---------------------------------------------------------------------------

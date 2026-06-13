@@ -11,6 +11,8 @@ import { format, addDays } from "date-fns"
 import { sendInvoiceSentEmail } from "@/lib/email"
 import { generatePaymentToken } from "@/lib/payment-token"
 import { computeInvoiceTotals } from "@/lib/invoice-totals"
+import { getFxRate } from "@/lib/fx"
+import { Currency } from "@/lib/generated/prisma/client"
 
 interface LineItemInput {
   description: string
@@ -75,9 +77,17 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const { subtotal, taxAmount, discountAmount, total } = totals
 
   // Auto follow-up: Pro orgs get it on by default, free orgs get false
-  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } })
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } })
   const isPro = org?.plan !== "free"
   const autoFollowUp = input.autoFollowUp ?? isPro
+
+  // Freeze the FX rate from the invoice's currency → the org's base currency at
+  // issue time, so health metrics can compare cross-currency totals later.
+  // Falls back to 1 when no rate is available (same currency, or rates not yet
+  // fetched) — additive and safe; a backfill can correct historical rows.
+  const invoiceCurrency = (input.currency ?? "INR") as Currency
+  const baseCurrency = org?.currency ?? "INR"
+  const fxRate = (await getFxRate(invoiceCurrency, baseCurrency, issueDate)) ?? 1
 
   const invoice = await prisma.invoice.create({
     data: {
@@ -87,7 +97,8 @@ export async function createInvoice(input: CreateInvoiceInput) {
       status: "DRAFT",
       issueDate,
       dueDate,
-      currency: (input.currency ?? "INR") as never,
+      currency: invoiceCurrency as never,
+      fxRate,
       subtotal,
       taxAmount,
       discountAmount,
@@ -203,13 +214,20 @@ export async function updateInvoiceWithItems(invoiceId: string, input: CreateInv
   const amountPaid = Number(existing.amountPaid)
   const amountDue = Math.max(0, total - amountPaid)
 
+  // Re-resolve the frozen FX rate in case the currency or issue date changed.
+  const effIssueDate = input.issueDate ? new Date(input.issueDate) : existing.issueDate
+  const invoiceCurrency = (input.currency ?? "INR") as Currency
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const fxRate = (await getFxRate(invoiceCurrency, org?.currency ?? "INR", effIssueDate)) ?? 1
+
   await prisma.$transaction([
     prisma.invoiceItem.deleteMany({ where: { invoiceId } }),
     prisma.invoice.update({
       where: { id: invoiceId },
       data: {
         clientId: input.clientId,
-        currency: (input.currency ?? "INR") as never,
+        currency: invoiceCurrency as never,
+        fxRate,
         issueDate: input.issueDate ? new Date(input.issueDate) : existing.issueDate,
         dueDate: input.dueDate ? new Date(input.dueDate) : existing.dueDate,
         notes: input.notes ?? null,
@@ -367,15 +385,21 @@ export async function duplicateInvoice(invoiceId: string) {
   const count = await prisma.invoice.count({ where: { orgId } })
   const invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`
 
+  // New issue date → re-resolve the frozen FX rate for today.
+  const dupIssueDate = new Date()
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const fxRate = (await getFxRate(source.currency, org?.currency ?? "INR", dupIssueDate)) ?? 1
+
   const invoice = await prisma.invoice.create({
     data: {
       orgId,
       clientId: source.clientId,
       invoiceNumber,
       status: "DRAFT",
-      issueDate: new Date(),
-      dueDate: addDays(new Date(), 30),
+      issueDate: dupIssueDate,
+      dueDate: addDays(dupIssueDate, 30),
       currency: source.currency,
+      fxRate,
       subtotal: source.subtotal,
       taxAmount: source.taxAmount,
       discountAmount: source.discountAmount,

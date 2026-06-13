@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { TrendingUp, Sparkles } from "lucide-react"
+import { TrendingUp, Sparkles, Info } from "lucide-react"
 import type { HealthComponents } from "@/lib/health"
 
 interface Props {
@@ -13,18 +13,15 @@ export default function HealthCard({ score }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/ai/health", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(score),
-    })
+    // The score is recomputed server-side from the session; no need to send it.
+    fetch("/api/ai/health", { method: "POST" })
       .then((r) => r.json())
       .then((d) => {
         setRecommendations(d.recommendations ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const color =
     score.total >= 80
@@ -47,11 +44,23 @@ export default function HealthCard({ score }: Props) {
         <div className="flex items-center gap-2">
           <TrendingUp className={`w-4 h-4 ${color.text}`} />
           <span className="text-sm font-semibold text-gray-700">Business Health</span>
+          <span className="text-[10px] font-medium text-gray-400">({score.baseCurrency})</span>
         </div>
         <div className={`text-2xl font-black ${color.text}`}>
           {score.total}<span className="text-base font-medium text-gray-400">/100</span>
         </div>
       </div>
+
+      {score.limitedData && (
+        <div className="px-5 pt-3">
+          <div className="flex items-start gap-1.5 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
+            <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-amber-700">
+              Limited data — this score may not be reliable yet. {score.limitedDataReason}.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Score bars */}
       <div className="px-5 py-3 grid grid-cols-5 gap-2">

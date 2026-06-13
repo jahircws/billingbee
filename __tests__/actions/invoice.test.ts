@@ -27,6 +27,7 @@ vi.mock("@/lib/plan", () => ({
   invalidatePlanCache: mockInvalidatePlanCache,
 }))
 vi.mock("@/app/actions/collections", () => ({ scheduleCollections: vi.fn() }))
+vi.mock("@/lib/fx", () => ({ getFxRate: vi.fn().mockResolvedValue(1) }))
 
 // ── Import under test ──────────────────────────────────────────────────────
 import {
