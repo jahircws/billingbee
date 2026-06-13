@@ -7,6 +7,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import CreateInvoiceFromContractButton from "./CreateInvoiceFromContractButton"
 import ContractActions from "./ContractActions"
+import SendContractButton from "./SendContractButton"
 
 export const metadata = { ...privateMetadata, title: "Contract" }
 export const dynamic = "force-dynamic"
@@ -29,7 +30,7 @@ export default async function ContractPage({ params }: Props) {
 
   const { id } = await params
 
-  const contract = await prisma.contract.findUnique({
+  const contract = await prisma.contract.findFirst({
     where: { id, orgId },
     include: {
       client: true,
@@ -61,7 +62,10 @@ export default async function ContractPage({ params }: Props) {
             </span>
             {/* Print / Copy actions */}
             <ContractActions content={contract.content} title={contract.title} />
-            {contract.status === "SIGNED" && (
+            {(contract.status === "DRAFT" || contract.status === "SENT") && (
+              <SendContractButton contractId={contract.id} />
+            )}
+            {contract.status === "SIGNED" && !(contract as Record<string, unknown>).invoiceId && (
               <CreateInvoiceFromContractButton
                 contractId={contract.id}
                 clientId={contract.clientId}
@@ -86,6 +90,35 @@ export default async function ContractPage({ params }: Props) {
             {contract.content}
           </div>
         </div>
+
+        {/* Signing audit trail */}
+        {contract.status === "SIGNED" && contract.signedAt && (
+          <div className="mt-5 bg-emerald-50 border border-emerald-200 rounded-xl p-5 space-y-3">
+            <p className="text-sm font-semibold text-emerald-800">Signing record</p>
+            <p className="text-sm text-emerald-700">
+              Signed by <strong>{contract.signedBy}</strong> on{" "}
+              <strong>{format(contract.signedAt, "d MMMM yyyy, h:mm a")}</strong>
+              {contract.ipAddress && <> from IP <strong>{contract.ipAddress}</strong></>}
+            </p>
+            {(() => {
+              const sig = (contract as Record<string, unknown>).signatureData as string | undefined
+              if (!sig) return null
+              if (sig.startsWith("data:image")) {
+                return (
+                  <img src={sig} alt="Signature" className="border border-emerald-200 rounded-lg max-w-xs bg-white" />
+                )
+              }
+              if (sig.startsWith("typed:")) {
+                return (
+                  <p className="text-sm text-emerald-700 italic">
+                    Typed signature: &ldquo;{sig.slice(6)}&rdquo;
+                  </p>
+                )
+              }
+              return null
+            })()}
+          </div>
+        )}
 
         <p className="text-xs text-gray-400 mt-4">Created {format(contract.createdAt, "d MMMM yyyy")}</p>
       </div>
