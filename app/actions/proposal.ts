@@ -346,46 +346,5 @@ export async function updateProposalStatus(proposalId: string, status: string) {
   return { proposal: serialize(proposal) }
 }
 
-export async function signContract(contractId: string) {
-  const session = await auth()
-  if (!session?.user) redirect("/login")
-
-  // Phase 2 — capture client IP from request headers
-  const headersList = await headers()
-  const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headersList.get("x-real-ip") ??
-    null
-
-  // Phase 1 — support both CLIENT (portal) and STAFF sessions
-  if (session.user.userType === "CLIENT") {
-    const clientId = session.user.clientId
-    if (!clientId) redirect("/login")
-
-    const contract = await prisma.contract.update({
-      where: { id: contractId, clientId },
-      data: {
-        status: "SIGNED",
-        signedAt: new Date(),
-        signedBy: session.user.name ?? session.user.email ?? "Client",
-        ipAddress: ip,
-      },
-    })
-    return { contract: serialize(contract) }
-  }
-
-  // Staff signing
-  const orgId = session.user.orgId
-  if (!orgId) redirect("/login")
-
-  const contract = await prisma.contract.update({
-    where: { id: contractId, orgId },
-    data: {
-      status: "SIGNED",
-      signedAt: new Date(),
-      signedBy: session.user.name ?? session.user.email ?? "Staff",
-      ipAddress: ip,
-    },
-  })
-  return { contract: serialize(contract) }
-}
+// Moved to app/actions/contract.ts — re-exported here for any callers that import from proposal
+export { signContract } from "@/app/actions/contract"
