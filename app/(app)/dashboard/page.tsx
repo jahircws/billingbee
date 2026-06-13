@@ -20,7 +20,7 @@ import {
   Users,
   BarChart3,
 } from "lucide-react"
-import { format, addDays } from "date-fns"
+import { format, addDays, startOfDay } from "date-fns"
 import { fmtCurrencyShort } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Dashboard" }
@@ -32,13 +32,15 @@ async function getAttentionData(orgId: string, orgCurrency: string) {
   const now = new Date()
   const soon = addDays(now, 7)
 
+  const todayStart = startOfDay(now)
+
   const [overdueInvoices, dueSoonInvoices, draftInvoices, lastPayment] = await Promise.all([
     prisma.invoice.findMany({
-      where: { orgId, status: "OVERDUE" },
+      where: { orgId, OR: [{ status: "OVERDUE" }, { status: "UNPAID", dueDate: { lt: todayStart } }] },
       select: { amountDue: true, currency: true },
     }),
     prisma.invoice.findMany({
-      where: { orgId, status: "UNPAID", dueDate: { gte: now, lte: soon } },
+      where: { orgId, status: "UNPAID", dueDate: { gte: todayStart, lte: soon } },
       select: { amountDue: true, currency: true },
     }),
     prisma.invoice.findMany({
