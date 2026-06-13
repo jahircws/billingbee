@@ -2,36 +2,43 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { generatePageMetadata } from "@/lib/metadata"
 import {
-  Zap,
   FileText,
+  PenLine,
+  Receipt,
   CreditCard,
-  Users,
-  BarChart3,
-  Shield,
-  Star,
-  ArrowRight,
-  Check,
+  Mail,
   Globe,
-  Sparkles,
+  Zap,
+  Users,
+  TrendingUp,
+  Shield,
+  MessageSquare,
+  CheckCircle,
+  Star,
+  Check,
 } from "lucide-react"
+import { DemoWidget } from "./_demo-widget"
 
-// ── Metadata + JSON-LD ────────────────────────────────────────────────────────
+// ── Step 2 — Metadata ─────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "BillingBee — AI-Powered Invoicing for Freelancers & Small Businesses",
-    "Create professional invoices in any currency in 30 seconds with AI. Accept Stripe, Razorpay & PayPal payments. Auto-send reminders. Trusted by 7,000+ freelancers worldwide.",
+    "BillingBee — AI-Powered Client Revenue Platform for Freelancers",
+    "From proposal to payment — BillingBee writes proposals, signs contracts, collects payments, and follows up automatically. Stripe, Razorpay, PayPal. Free to start.",
     "/",
     {
       keywords: [
-        "invoice software",
-        "online invoice generator",
-        "AI invoicing tool",
-        "freelancer billing app",
-        "online invoice maker",
-        "multi-currency invoicing",
+        "client revenue platform",
+        "AI proposal software",
+        "freelancer business platform",
+        "contract management",
+        "AI collections",
+        "online payment software",
+        "Razorpay invoicing",
+        "GST invoice software",
+        "Stripe payments freelancer",
       ],
-    }
+    },
   ),
   other: {
     "application/ld+json": JSON.stringify([
@@ -52,18 +59,18 @@ export const metadata: Metadata = {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         name: "BillingBee",
-        applicationCategory: "BusinessApplication",
+        applicationCategory: "Client Revenue Platform",
         operatingSystem: "Web",
         url: "https://billingbee.co",
         description:
-          "AI-powered invoicing software for freelancers and small businesses worldwide. Create invoices in any currency with natural language, accept payments, and automate collections.",
+          "From proposal to payment — BillingBee writes proposals, signs contracts, collects payments, and follows up automatically. Stripe, Razorpay, PayPal. Free to start.",
         offers: [
           {
             "@type": "Offer",
             name: "Free",
             price: "0",
             priceCurrency: "USD",
-            description: "5 invoices/month, basic AI, PDF download",
+            description: "5 client documents/month, AI drafting, PDF download",
           },
           {
             "@type": "Offer",
@@ -71,7 +78,8 @@ export const metadata: Metadata = {
             price: "9.99",
             priceCurrency: "USD",
             billingIncrement: "P1M",
-            description: "Unlimited invoices, AI collections, payment links",
+            description:
+              "Unlimited proposals, contracts & invoices, AI collections, payment links",
           },
         ],
         aggregateRating: {
@@ -85,29 +93,58 @@ export const metadata: Metadata = {
   },
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Inline components ─────────────────────────────────────────────────────────
 
-function FeatureCard({
+function BentoCard({
   icon: Icon,
   title,
   description,
+  className = "",
+  dark = false,
+  children,
 }: {
   icon: React.ElementType
   title: string
   description: string
+  className?: string
+  dark?: boolean
+  children?: React.ReactNode
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md transition-shadow">
-      <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
-        <Icon size={20} className="text-emerald-600" />
+    <div
+      className={`rounded-2xl border p-6 md:p-8 transition-all duration-200 overflow-hidden ${
+        dark
+          ? "bg-[#1e2330] border-white/10 hover:border-white/20"
+          : "bg-white border-slate-200 hover:shadow-md hover:border-slate-300"
+      } ${className}`}
+    >
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
+          dark ? "bg-white/10" : "bg-emerald-50"
+        }`}
+      >
+        <Icon size={20} className={dark ? "text-emerald-400" : "text-emerald-500"} />
       </div>
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+      <h3
+        className={`font-semibold mb-2 ${
+          dark ? "text-white text-xl" : "text-slate-900 text-lg"
+        }`}
+      >
+        {title}
+      </h3>
+      <p
+        className={`text-sm leading-relaxed ${
+          dark ? "text-slate-300" : "text-slate-500"
+        }`}
+      >
+        {description}
+      </p>
+      {children && <div className="mt-4">{children}</div>}
     </div>
   )
 }
 
-function Testimonial({
+function TestimonialCard({
   quote,
   name,
   role,
@@ -117,17 +154,73 @@ function Testimonial({
   role: string
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6">
-      <div className="flex gap-0.5 mb-3">
+    <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8">
+      <div className="flex gap-0.5 mb-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+          <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
         ))}
       </div>
-      <p className="text-sm text-gray-700 leading-relaxed mb-4">&ldquo;{quote}&rdquo;</p>
-      <div>
-        <p className="text-sm font-semibold text-gray-900">{name}</p>
-        <p className="text-xs text-gray-400">{role}</p>
+      <p className="text-slate-700 text-sm leading-relaxed">&ldquo;{quote}&rdquo;</p>
+      <div className="mt-6 pt-4 border-t border-slate-200">
+        <p className="text-slate-900 font-semibold text-sm">{name}</p>
+        <p className="text-slate-400 text-xs mt-0.5">{role}</p>
       </div>
+    </div>
+  )
+}
+
+function MiniProposalStatus() {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mt-6">
+      {[
+        { label: "Draft", cls: "bg-slate-100 text-slate-500" },
+        { label: "→", cls: "text-slate-300 text-xs" },
+        { label: "Sent", cls: "bg-blue-50 text-blue-600 border border-blue-200" },
+        { label: "→", cls: "text-slate-300 text-xs" },
+        { label: "Accepted", cls: "bg-emerald-50 text-emerald-600 border border-emerald-200" },
+        { label: "→", cls: "text-slate-300 text-xs" },
+        { label: "Contract generated", cls: "bg-emerald-500 text-white" },
+      ].map(({ label, cls }, i) =>
+        label === "→" ? (
+          <span key={i} className={cls}>
+            {label}
+          </span>
+        ) : (
+          <span key={i} className={`text-xs px-3 py-1 rounded-full font-medium ${cls}`}>
+            {label}
+          </span>
+        ),
+      )}
+    </div>
+  )
+}
+
+function MiniCollectionTimeline() {
+  return (
+    <div className="mt-4 space-y-3">
+      {[
+        { dot: "bg-emerald-500", day: "Day 1", label: "Friendly reminder" },
+        { dot: "bg-amber-500", day: "Day 7", label: "Second notice" },
+        { dot: "bg-red-500", day: "Day 30", label: "Final notice" },
+      ].map(({ dot, day, label }) => (
+        <div key={day} className="flex items-center gap-3">
+          <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
+          <span className="text-xs text-slate-400 w-10 shrink-0">{day}</span>
+          <span className="text-xs text-slate-600 font-medium">{label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function MiniCashflowPreview() {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-xl p-4 mt-6">
+      <p className="text-xs text-emerald-400 font-semibold">✦ AI Forecast</p>
+      <p className="text-sm text-slate-300 leading-relaxed mt-2">
+        &ldquo;Acme Corp typically pays 12 days late. Expect ₹1.2L in the next 30
+        days — your healthiest month this quarter.&rdquo;
+      </p>
     </div>
   )
 }
@@ -136,28 +229,38 @@ function Testimonial({
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Nav */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <Zap size={14} className="text-white" />
+    <div className="min-h-screen bg-white">
+
+      {/* ── Step 3 — Nav ─────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 h-16 flex items-center">
+        <div className="max-w-6xl mx-auto px-4 w-full flex items-center justify-between gap-6">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <Zap size={13} className="text-white" />
             </div>
-            <span className="font-bold text-gray-900">BillingBee</span>
+            <span className="font-bold text-slate-900">BillingBee</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <Link href="/plans-price" className="hover:text-gray-900 transition-colors">Pricing</Link>
-            <Link href="/free-invoice-generator" className="hover:text-gray-900 transition-colors">Free Tools</Link>
-            <Link href="/faq" className="hover:text-gray-900 transition-colors">FAQ</Link>
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            <Link href="/plans-price" className="text-slate-600 hover:text-slate-900 transition-colors">
+              Pricing
+            </Link>
+            <Link href="/free-invoice-generator" className="text-slate-600 hover:text-slate-900 transition-colors">
+              Free Generator
+            </Link>
+            <Link href="/faq" className="text-slate-600 hover:text-slate-900 transition-colors">
+              FAQ
+            </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
+            <Link
+              href="/login"
+              className="hidden sm:block text-sm text-slate-600 hover:text-slate-900 transition-colors"
+            >
               Sign in
             </Link>
             <Link
               href="/register"
-              className="text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-all active:scale-95"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 active:scale-95 min-h-[36px] flex items-center"
             >
               Try free →
             </Link>
@@ -165,64 +268,118 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 mb-6">
-          <Sparkles size={12} />
-          Trusted by 7,000+ freelancers worldwide
-        </div>
+      {/* ── Step 4 — Hero ────────────────────────────────────────────────── */}
+      <section className="bg-[#1e2330] min-h-screen flex flex-col items-center justify-center text-center px-4 py-32 relative overflow-hidden">
+        {/* Radial glow — cannot express in standard Tailwind */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16,185,129,0.12) 0%, transparent 70%)",
+          }}
+        />
+        {/* Dot grid */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
 
-        <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight tracking-tight mb-6">
-          Your AI invoicing assistant.
-          <br />
-          <span className="text-emerald-600">Invoice done in 30 seconds.</span>
-        </h1>
+        <div className="relative z-10 max-w-4xl mx-auto">
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
+            <span>✦</span>
+            AI-Powered Client Revenue Platform
+          </div>
 
-        <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Just say &ldquo;Invoice Acme Corp $2,500 for design work&rdquo; — BillingBee AI creates a
-          polished, tax-ready PDF, sends it, and follows up automatically. No forms. No spreadsheets.
-        </p>
+          {/* H1 — leads with user emotion, not product category */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-8">
+            <span className="block">You do great work.</span>
+            <span className="block">Getting paid shouldn&apos;t</span>
+            <span className="block text-emerald-400">be the complicated part.</span>
+          </h1>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
-          <Link
-            href="/generate"
-            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-4 rounded-2xl text-base transition-all active:scale-95 shadow-lg shadow-emerald-200"
-          >
-            Create your first invoice free
-            <ArrowRight size={16} />
-          </Link>
-          <Link
-            href="/plans-price"
-            className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-semibold px-8 py-4 rounded-2xl text-base transition-all active:scale-95"
-          >
-            See pricing
-          </Link>
-        </div>
+          {/* The one sentence no competitor can say */}
+          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Describe your project — BillingBee writes the proposal, gets the contract
+            signed, handles payment, and follows up automatically until money hits your
+            account.
+          </p>
 
-        <div className="flex items-center justify-center gap-6 text-sm text-gray-400 flex-wrap">
-          {[
-            "No credit card required",
-            "Stripe · Razorpay · PayPal",
-            "Any currency, any country",
-          ].map((s) => (
-            <span key={s} className="flex items-center gap-1.5">
-              <Check size={14} className="text-emerald-500" />
-              {s}
-            </span>
-          ))}
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3.5 rounded-xl font-semibold transition-all duration-200 active:scale-95 min-h-[52px]"
+            >
+              Start for free →
+            </Link>
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center justify-center bg-white/5 hover:bg-white/10 text-white border border-white/20 px-8 py-3.5 rounded-xl font-semibold transition-all duration-200 min-h-[52px]"
+            >
+              See how it works ↓
+            </a>
+          </div>
+
+          {/* Trust microline */}
+          <p className="text-sm text-slate-400">
+            7,000+ professionals · Free to start · No card required
+          </p>
         </div>
       </section>
 
-      {/* Social proof bar */}
-      <section className="border-y border-gray-100 bg-white py-5">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
+      {/* ── Step 5 — Workflow Strip ───────────────────────────────────────── */}
+      <section className="bg-white border-y border-slate-100 py-10">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-center">
+            {[
+              { icon: FileText,  label: "Proposal",    sub: "AI-written in seconds" },
+              { icon: PenLine,   label: "Contract",    sub: "Auto-generated, e-signed" },
+              { icon: Receipt,   label: "Invoice",     sub: "Tax-ready, any currency" },
+              { icon: CreditCard,label: "Payment",     sub: "Stripe · Razorpay · PayPal" },
+              { icon: Mail,      label: "Collections", sub: "6 AI follow-ups, automatic" },
+            ].map(({ icon: Icon, label, sub }, i, arr) => (
+              <div key={label} className="flex items-center">
+                <div className="flex flex-col items-center text-center py-4 md:py-0 px-4">
+                  <Icon size={20} className="text-emerald-500" />
+                  <span className="text-sm font-semibold text-slate-700 mt-2">{label}</span>
+                  <span className="text-xs text-slate-400 mt-0.5">{sub}</span>
+                </div>
+                {i < arr.length - 1 && (
+                  <>
+                    {/* Desktop horizontal connector */}
+                    <div className="hidden md:block w-8 lg:w-12 shrink-0 border-t border-dashed border-slate-200" />
+                    {/* Mobile vertical connector */}
+                    <div className="block md:hidden h-6 w-px border-l border-dashed border-slate-200 self-center" />
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-slate-400 mt-8">
+            The entire revenue journey — one tool — powered by AI.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Step 6 — Trust Bar ───────────────────────────────────────────── */}
+      <section className="bg-white border-b border-slate-100 py-6">
+        <div className="max-w-6xl mx-auto px-4 flex flex-wrap items-center justify-center gap-6 md:gap-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/badges/nvidia-inception-program-badge.svg"
-            alt="BillingBee is a member of the NVIDIA Inception program"
-            style={{ width: 160, height: "auto" }}
+            alt="NVIDIA Inception Program Member"
+            width={130}
+            height={40}
+            className="grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300"
           />
-          <div className="h-px sm:h-8 w-16 sm:w-px bg-gray-200" />
+
+          <div className="hidden md:block h-8 w-px bg-slate-200" />
+
           {[
             { rating: "4.8", source: "Google" },
             { rating: "4.7", source: "Trustpilot" },
@@ -230,318 +387,559 @@ export default function HomePage() {
             <div key={source} className="inline-flex items-center gap-2">
               <span className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                  <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
                 ))}
               </span>
-              <span className="text-sm text-gray-700">
-                <span className="font-semibold text-gray-900">{rating}</span> on {source}
+              <span className="text-sm text-slate-500">
+                <span className="font-semibold text-slate-900">{rating}</span> on {source}
               </span>
+            </div>
+          ))}
+
+          <div className="hidden md:block h-8 w-px bg-slate-200" />
+
+          <div className="flex gap-2 flex-wrap justify-center">
+            {["Stripe", "Razorpay", "PayPal"].map((p) => (
+              <span
+                key={p}
+                className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-lg"
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Step 7 — AI Demo Section ─────────────────────────────────────── */}
+      <section className="bg-slate-50 py-24 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
+            Try it
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mt-3">
+            See it work. Right now. No signup.
+          </h2>
+          <p className="text-slate-500 text-lg mt-4 leading-relaxed">
+            Type a project description — BillingBee AI turns it into a client-ready
+            proposal in seconds.
+          </p>
+        </div>
+
+        <DemoWidget />
+
+        <div className="text-center mt-8">
+          <Link
+            href="/register"
+            className="text-emerald-600 hover:text-emerald-700 text-sm font-medium transition-colors"
+          >
+            Create your first proposal free →
+          </Link>
+          <p className="text-xs text-slate-400 mt-1">
+            No card required. First project in under 5 minutes.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Step 8 — How It Works ────────────────────────────────────────── */}
+      <section id="how-it-works" className="bg-white py-24 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
+            How it works
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mt-3">
+            From first conversation to money in the bank.
+          </h2>
+          <p className="text-slate-500 text-lg mt-4">
+            No Google Docs. No DocuSign. No &ldquo;just following up&rdquo; emails.
+          </p>
+        </div>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+          {[
+            {
+              step: "01",
+              icon: MessageSquare,
+              title: "Describe your project",
+              body: "Write one sentence. BillingBee AI writes the proposal with scope, pricing, and timeline. Your client gets a portal link — no account needed — and signs the contract.",
+            },
+            {
+              step: "02",
+              icon: CheckCircle,
+              title: "Client signs and pays",
+              body: "Your client sees a branded portal. They sign the contract, view the invoice, and pay by card, bank transfer, or UPI. You get an instant notification.",
+            },
+            {
+              step: "03",
+              icon: Zap,
+              title: "You get paid. Automatically followed up.",
+              body: "Money arrives via Stripe, Razorpay, or PayPal. If a client is late, AI sends six escalating reminders — from a friendly nudge to a firm notice — so you never write 'just following up' again.",
+            },
+          ].map(({ step, icon: Icon, title, body }) => (
+            <div key={step} className="relative">
+              <span className="absolute -top-6 -left-2 text-8xl font-bold text-slate-100 select-none pointer-events-none leading-none">
+                {step}
+              </span>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                  <Icon size={24} className="text-emerald-500" />
+                </div>
+                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mt-5">
+                  Step {step}
+                </p>
+                <h3 className="text-xl font-semibold text-slate-900 mt-1">{title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed mt-2">{body}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Features grid */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">Everything you need to get paid</h2>
-          <p className="text-gray-500 max-w-xl mx-auto">
-            From first pitch to final payment — all in one place, powered by AI.
+      {/* ── Step 9 — Features Bento Grid ─────────────────────────────────── */}
+      <section className="bg-slate-50 py-24 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
+            What&apos;s inside
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mt-3">
+            Every tool for the business side of your craft.
+          </h2>
+          <p className="text-slate-500 text-lg mt-4">
+            From the first proposal to the last payment.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <FeatureCard
-            icon={Sparkles}
-            title="Natural language invoicing"
-            description="Just describe what you did. AI fills in client details, amounts, taxes, and due dates automatically."
-          />
-          <FeatureCard
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
+          {/* Card A — Lead card: Proposal + Contract */}
+          <BentoCard
             icon={FileText}
-            title="AI proposal generator"
-            description="Describe the project, AI writes the proposal. Client accepts in the portal. One click converts it to a contract, then an invoice."
-          />
-          <FeatureCard
+            title="Proposal to contract — one click."
+            description="Describe the project in plain English. AI writes a professional proposal with scope, pricing, and timeline. When your client accepts, a contract is auto-generated and sent for signing. No Google Docs. No DocuSign. No lost PDFs."
+            className="md:col-span-2"
+          >
+            <MiniProposalStatus />
+          </BentoCard>
+
+          {/* Card B — Payments */}
+          <BentoCard
             icon={CreditCard}
             title="Payment links that work everywhere"
-            description="Accept payments via Stripe, Razorpay, or PayPal — cards, UPI, wallets, and bank transfers. One link works everywhere."
-          />
-          <FeatureCard
-            icon={Users}
+            description="Cards, UPI, wallets, bank transfers — one link, any currency."
+          >
+            <div className="flex gap-2 flex-wrap mt-2">
+              {["Stripe", "Razorpay", "PayPal"].map((p) => (
+                <span
+                  key={p}
+                  className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1 rounded-lg"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
+          </BentoCard>
+
+          {/* Card C — Collections */}
+          <BentoCard
+            icon={Mail}
             title="Automated collections"
-            description="AI sends polite reminders at 7, 3, and 1 day before due — and escalates overdue invoices automatically."
-          />
-          <FeatureCard
-            icon={BarChart3}
-            title="AI cashflow forecast"
-            description="Claude analyses 12 months of payment history, names your late-paying clients, and tells you what to expect next month — in plain English."
-          />
-          <FeatureCard
+            description="AI sends 6 follow-ups — friendly to firm — automatically."
+          >
+            <MiniCollectionTimeline />
+          </BentoCard>
+
+          {/* Card D — Cashflow (dark) */}
+          <BentoCard
+            icon={TrendingUp}
+            title="AI cashflow forecast — in plain English."
+            description="Claude analyses 12 months of your payment history, names your late-paying clients, and tells you what to expect next month. Not a chart to interpret — a sentence you can act on."
+            className="md:col-span-2"
+            dark
+          >
+            <MiniCashflowPreview />
+          </BentoCard>
+
+          {/* Card E — Client portal */}
+          <BentoCard
             icon={Shield}
-            title="Client portal (no sign-up needed)"
-            description="Clients get a branded portal to view invoices, download PDFs, and pay — without creating an account."
-          />
-          <FeatureCard
-            icon={Globe}
-            title="Built for India, works everywhere"
-            description="GST-compliant invoices, Razorpay and UPI support, INR billing. Plus 100+ currencies for international clients."
-          />
+            title="Client portal — no signup needed"
+            description="Clients sign contracts, view invoices, and pay without creating an account. They see a professional. You get paid faster."
+          >
+            <span className="inline-block mt-4 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium px-3 py-1 rounded-full">
+              Magic link access
+            </span>
+          </BentoCard>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="bg-white py-16 border-y border-gray-100">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">From first pitch to final payment</h2>
-          <p className="text-gray-500 mb-12">No forms. No spreadsheets. No juggling three separate tools.</p>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {[
-              {
-                step: "1",
-                title: "Win the work",
-                desc: "Describe the project — AI writes a professional proposal. Client signs in their portal.",
-              },
-              {
-                step: "2",
-                title: "Invoice instantly",
-                desc: "\"Invoice TechCorp $5,000 for website development, due in 15 days\" — done in 30 seconds.",
-              },
-              {
-                step: "3",
-                title: "Send & collect",
-                desc: "Invoice goes out with a payment link. AI chases late payments so you don't have to.",
-              },
-              {
-                step: "4",
-                title: "Get paid",
-                desc: "Client pays by card, bank transfer, UPI, or PayPal. You get notified instantly.",
-              },
-              {
-                step: "5",
-                title: "Know what's next",
-                desc: "AI analyses your payment history and tells you what to expect next month — by name.",
-              },
-            ].map(({ step, title, desc }) => (
-              <div key={step}>
-                <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-4">
-                  {step}
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Works everywhere callout */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="bg-gray-900 rounded-3xl p-10 md:p-14 text-center">
-          <h2 className="text-3xl font-black text-white mb-4">
-            Your clients are global. Your invoicing should be too.
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg leading-relaxed">
-            Send invoices in USD, EUR, GBP, INR, or 100+ other currencies. Accept payments via Stripe in the US,
-            Razorpay in India, or PayPal anywhere. BillingBee handles the currency — you handle the work.
+      {/* ── Step 10 — Global + India Callout ─────────────────────────────── */}
+      <section className="bg-[#1e2330] py-24 px-4 relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <p className="text-emerald-400 text-xs font-semibold uppercase tracking-widest">
+            Global by default. India-ready.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-            {[
-              { icon: Globe, label: "100+ currencies" },
-              { icon: CreditCard, label: "Stripe · Razorpay · PayPal" },
-              { icon: Check, label: "GST-ready for India" },
-              { icon: Zap, label: "UPI support" },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full">
-                <Icon size={14} className="text-emerald-400" />
-                {label}
+          <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mt-4">
+            Built for wherever you work.
+          </h2>
+          <p className="text-slate-300 text-lg mt-4 leading-relaxed">
+            Most tools are US-first, India-later. BillingBee was designed with both in
+            mind — and built for every market in between.
+          </p>
+        </div>
+
+        <div className="relative z-10 mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {[
+            {
+              icon: Globe,
+              heading: "Global payments",
+              body: "Stripe integration, 100+ currencies. Send in USD, EUR, GBP — FX conversion happens automatically.",
+              tags: ["100+ currencies", "Stripe"],
+            },
+            {
+              icon: Zap,
+              heading: "India-native",
+              body: "Razorpay, UPI support, GST-compliant invoices with INR billing. Everything Indian freelancers need — built in, not bolted on.",
+              tags: ["Razorpay", "UPI", "GST-ready"],
+            },
+            {
+              icon: Users,
+              heading: "Clients anywhere",
+              body: "Your client gets a branded portal link. They sign and pay from any device, any country — no account required.",
+              tags: ["No client signup", "Magic link"],
+            },
+          ].map(({ icon: Icon, heading, body, tags }) => (
+            <div
+              key={heading}
+              className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors"
+            >
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <Icon size={20} className="text-emerald-400" />
               </div>
-            ))}
-          </div>
+              <h3 className="text-lg font-semibold text-white mt-4">{heading}</h3>
+              <p className="text-slate-300 text-sm leading-relaxed mt-2">{body}</p>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {tags.map((t) => (
+                  <span
+                    key={t}
+                    className="bg-white/10 text-slate-300 text-xs font-medium px-3 py-1 rounded-lg"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">Loved by freelancers worldwide</h2>
-          <div className="flex items-center justify-center gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} size={16} className="fill-amber-400 text-amber-400" />
-            ))}
+      {/* ── Step 11 — Testimonials ───────────────────────────────────────── */}
+      <section className="bg-white py-24 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
+            Reviews
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mt-3">
+            From &ldquo;I use three tools for this&rdquo; to
+            <br className="hidden sm:block" /> &ldquo;I just use BillingBee.&rdquo;
+          </h2>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star key={i} size={15} className="fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <span className="text-slate-500 text-sm">4.8 / 5 from 247 reviews</span>
           </div>
-          <p className="text-sm text-gray-400">4.8 / 5 from 247 reviews</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Testimonial
-            quote="I send invoices to clients in three different currencies. BillingBee handles every one without me touching a spreadsheet."
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {/* PLACEHOLDER — replace with real reviews before launch */}
+          <TestimonialCard
+            quote="I used to spend an hour putting together a proposal in Google Docs, email it back and forth, then manually re-enter everything into a separate invoice tool. Now I describe the project, the proposal goes out, the client signs, and the invoice is waiting. Six months in and I haven't opened a spreadsheet once."
             name="Sarah Whitfield"
-            role="Freelance Copywriter, London, UK"
+            role="Freelance Copywriter, London"
           />
-          <Testimonial
-            quote="Setup took five minutes and the automatic reminders mean I no longer have to awkwardly chase late payments myself."
+          {/* PLACEHOLDER — replace with real reviews before launch */}
+          <TestimonialCard
+            quote="I stopped writing 'hey, just following up on that invoice' emails the day I turned on the automatic reminders. My clients know there's a system now. They pay faster because they know the next message is coming either way — from the AI, not from me."
             name="Marco Rossi"
-            role="Web Developer, Milan, Italy"
+            role="Web Developer, Milan"
           />
-          <Testimonial
-            quote="Clients pay the moment they open the invoice now. The branded portal makes my little studio look seriously professional."
-            name="Emily Carter"
-            role="Photographer, Austin, USA"
-          />
-          <Testimonial
-            quote="I used to spend 2 hours every week on invoices. Now it takes 5 minutes. The AI just gets it."
+          {/* PLACEHOLDER — replace with real reviews before launch */}
+          <TestimonialCard
+            quote="My clients are in the US and Europe. I invoice in USD. I pay taxes in India. BillingBee handles both without me thinking about it. Razorpay payouts, GST-ready PDFs, multi-currency — all built in. No other tool I found did all of this."
             name="Priya Sharma"
             role="UX Designer, Bangalore"
           />
-          <Testimonial
-            quote="Tax calculations used to terrify me. BillingBee handles all of it. My accountant loves the exports."
-            name="Rahul Mehta"
-            role="Full-stack Developer, Remote (US clients)"
-          />
-          <Testimonial
-            quote="The payment link feature alone is worth it. Clients pay the same day now instead of chasing them for weeks."
-            name="Ananya Krishnan"
-            role="Content Strategist"
-          />
         </div>
       </section>
 
-      {/* Pricing summary */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">Simple pricing. Free to start.</h2>
-          <p className="text-gray-500">No credit card required. No time limit on the free plan.</p>
+      {/* ── Step 12 — Pricing ────────────────────────────────────────────── */}
+      <section className="bg-slate-50 py-24 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
+            Pricing
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mt-3">
+            Simple pricing. Real value.
+          </h2>
+          <p className="text-slate-500 text-lg mt-4">
+            Start free — no card, no time limit. Pay when BillingBee earns it.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-6">
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Free */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col">
-            <div className="mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Free</h3>
-              <p className="text-sm text-gray-500 mt-1">Perfect for getting started.</p>
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+              Free
+            </p>
+            <div className="mt-2">
+              <span className="text-4xl font-bold text-slate-900">$0</span>
+              <span className="text-slate-400 text-lg ml-1">/month</span>
             </div>
-            <div className="text-4xl font-black text-gray-900 mb-6">Free forever</div>
-            <ul className="space-y-2.5 flex-1 mb-6">
-              {["5 invoices/month", "AI invoice creation", "PDF downloads", "Basic tax support"].map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                  <Check size={14} className="text-emerald-500 shrink-0" />
+            <p className="text-slate-500 text-sm mt-1">For getting started.</p>
+            <div className="border-t border-slate-100 my-6" />
+            <ul className="space-y-3 flex-1">
+              {[
+                "5 client documents per month",
+                "AI proposal & invoice drafting",
+                "Client payment links",
+                "PDF downloads",
+                "Basic tax support",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-3 text-sm text-slate-600">
+                  <Check size={14} className="text-emerald-500 mt-0.5 shrink-0" />
                   {f}
                 </li>
               ))}
             </ul>
             <Link
               href="/generate"
-              className="text-center py-3 rounded-xl font-semibold text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="mt-8 block text-center py-3 rounded-xl font-semibold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all duration-200 min-h-[44px] flex items-center justify-center"
             >
               Start free →
             </Link>
           </div>
+
           {/* Pro */}
-          <div className="bg-white rounded-2xl border-2 border-emerald-500 shadow-lg p-6 flex flex-col relative">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-              <span className="bg-emerald-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow">Most popular</span>
+          <div className="bg-white rounded-2xl border-2 border-emerald-500 p-8 shadow-lg shadow-emerald-500/10 flex flex-col relative">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+              <span className="bg-emerald-500 text-white text-xs font-bold px-4 py-1.5 rounded-full">
+                Most popular
+              </span>
             </div>
-            <div className="mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Pro</h3>
-              <p className="text-sm text-gray-500 mt-1">Everything you need to get paid.</p>
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest">
+              Pro
+            </p>
+            <div className="mt-2">
+              <span className="text-4xl font-bold text-slate-900">$9.99</span>
+              <span className="text-slate-400 text-lg ml-1">/month</span>
             </div>
-            <div className="text-4xl font-black text-gray-900 mb-6">$9.99<span className="text-base font-normal text-gray-400">/mo</span></div>
-            <ul className="space-y-2.5 flex-1 mb-6">
+            <p className="text-slate-500 text-sm mt-1">
+              For professionals who want the business side handled.
+            </p>
+            <div className="border-t border-slate-100 my-6" />
+            <ul className="space-y-3 flex-1">
               {[
-                "Unlimited invoices",
-                "AI collections & reminders",
-                "Payment links (Stripe, Razorpay, PayPal)",
-                "AI cashflow forecast",
-                "AI proposal generator",
+                "Unlimited proposals, contracts & invoices",
+                "AI collections — 6 automated follow-ups",
+                "Stripe, Razorpay & PayPal payments",
+                "AI cashflow forecast + health score",
                 "White-label client portal",
+                "Full financial reports & exports",
               ].map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                  <Check size={14} className="text-emerald-500 shrink-0" />
+                <li key={f} className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check size={14} className="text-emerald-500 mt-0.5 shrink-0" />
                   {f}
                 </li>
               ))}
             </ul>
             <Link
               href="/register?trial=pro"
-              className="text-center py-3 rounded-xl font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+              className="mt-8 block text-center py-3 rounded-xl font-semibold text-sm bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-200 active:scale-[0.98] min-h-[44px] flex items-center justify-center"
             >
-              Start 14-day trial →
+              Start 14-day free trial →
             </Link>
           </div>
         </div>
-        <p className="text-center text-sm text-gray-400">
-          <Link href="/plans-price" className="underline hover:text-gray-600">See full plan details →</Link>
+
+        <p className="text-center mt-8">
+          <Link
+            href="/plans-price"
+            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+          >
+            See full plan comparison →
+          </Link>
         </p>
       </section>
 
-      {/* CTA banner */}
-      <section className="bg-emerald-600 py-16">
-        <div className="max-w-3xl mx-auto px-4 text-center text-white">
-          <h2 className="text-3xl font-black mb-4">Your first invoice takes 30 seconds. It&apos;s free.</h2>
-          <p className="text-emerald-100 mb-8 text-lg">
-            5 invoices/month, AI invoice creation, PDF downloads, automatic tax. No credit card. No time limit on the free plan.
+      {/* ── Step 13 — Final CTA ──────────────────────────────────────────── */}
+      <section className="bg-[#1e2330] py-32 px-4 relative overflow-hidden">
+        {/* Same background pattern as hero */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16,185,129,0.12) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.1]">
+            <span className="block">Your first proposal takes</span>
+            <span className="block text-emerald-400">30 seconds. It&apos;s free.</span>
+          </h2>
+          <p className="text-lg text-slate-300 mt-6">
+            Join 7,000+ professionals running the business side of their craft on
+            BillingBee.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/generate"
-              className="inline-flex items-center justify-center gap-2 bg-white text-emerald-700 font-bold px-8 py-4 rounded-2xl text-base hover:bg-emerald-50 transition-all active:scale-95"
-            >
-              Create your first invoice free
-              <ArrowRight size={16} />
+          <Link
+            href="/register"
+            className="mt-10 inline-flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-all duration-200 active:scale-[0.98] ring-2 ring-emerald-500/20 ring-offset-2 ring-offset-[#1e2330] animate-pulse"
+          >
+            Start for free — no card required →
+          </Link>
+
+          {/* Repeated demo widget */}
+          <DemoWidget />
+          <p className="text-xs text-slate-500 mt-3">
+            Or{" "}
+            <Link href="/register" className="underline hover:text-slate-400 transition-colors">
+              sign up and save your work →
             </Link>
-            <Link
-              href="/plans-price"
-              className="inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white border border-emerald-500 font-semibold px-8 py-4 rounded-2xl text-base transition-all active:scale-95"
-            >
-              Compare plans
-            </Link>
-          </div>
+          </p>
         </div>
       </section>
 
-      {/* Quick links */}
-      <section className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-sm">
-          {[
-            { href: "/free-invoice-generator", label: "Free Invoice Generator", icon: FileText },
-            { href: "/free-invoice-resources", label: "Invoice Templates", icon: Globe },
-            { href: "/plans-price", label: "Pricing", icon: CreditCard },
-            { href: "/faq", label: "FAQ", icon: Sparkles },
-          ].map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all text-gray-600 hover:text-emerald-700"
-            >
-              <Icon size={18} />
-              {label}
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* ── Step 14 — Footer ─────────────────────────────────────────────── */}
+      <footer className="bg-[#1e2330] border-t border-white/5 pt-16 pb-8 px-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white py-8">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-emerald-600 rounded flex items-center justify-center">
-              <Zap size={10} className="text-white" />
-            </div>
-            <span className="font-semibold text-gray-600">BillingBee</span>
-            <span>— AI Invoicing for freelancers everywhere</span>
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-1">
+            <Link href="/" className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center">
+                <Zap size={13} className="text-white" />
+              </div>
+              <span className="font-bold text-white">BillingBee</span>
+            </Link>
+            <p className="text-sm text-slate-400 leading-relaxed max-w-[200px]">
+              AI-powered client revenue platform.
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/badges/nvidia-inception-program-badge.svg"
+              alt="NVIDIA Inception Program Member"
+              width={110}
+              height={34}
+              className="mt-6 opacity-40 hover:opacity-70 transition-opacity duration-200 grayscale"
+            />
           </div>
-          <div className="flex items-center gap-4 flex-wrap justify-center">
-            <Link href="/plans-price" className="hover:text-gray-600 transition-colors">Pricing</Link>
-            <Link href="/faq" className="hover:text-gray-600 transition-colors">FAQ</Link>
-            <Link href="/contact" className="hover:text-gray-600 transition-colors">Contact</Link>
-            <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">Privacy</Link>
-            <Link href="/terms-service" className="hover:text-gray-600 transition-colors">Terms</Link>
+
+          {/* Product */}
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+              Product
+            </p>
+            <ul className="space-y-3">
+              {[
+                { href: "/free-invoice-generator", label: "Free Generator" },
+                { href: "/free-invoice-resources", label: "Templates" },
+                { href: "/plans-price", label: "Pricing" },
+                { href: "/faq", label: "FAQ" },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <p>© {new Date().getFullYear()} BillingBee. All rights reserved.</p>
+
+          {/* Company */}
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+              Company
+            </p>
+            <ul className="space-y-3">
+              {[
+                { href: "/contact", label: "Contact" },
+                { href: "/privacy-policy", label: "Privacy Policy" },
+                { href: "/terms-service", label: "Terms of Service" },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Connect */}
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+              Connect
+            </p>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="https://twitter.com/billingbeeapp"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.74-8.855L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  Twitter / X
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:hello@billingbee.co"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+                >
+                  <Mail size={14} />
+                  hello@billingbee.co
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
-        <p className="max-w-6xl mx-auto px-4 mt-6 text-center text-xs text-gray-300">
-          © {new Date().getFullYear()} NVIDIA, the NVIDIA logo, and NVIDIA Inception are
-          trademarks and/or registered trademarks of NVIDIA Corporation in the U.S. and
-          other countries.
-        </p>
+
+        <div className="max-w-6xl mx-auto border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-slate-500">
+            © {new Date().getFullYear()} BillingBee. All rights reserved.
+          </p>
+          <p className="text-xs text-slate-600 text-center">
+            © {new Date().getFullYear()} NVIDIA, the NVIDIA logo, and Inception are
+            trademarks of NVIDIA Corporation.
+          </p>
+        </div>
       </footer>
+
     </div>
   )
 }
