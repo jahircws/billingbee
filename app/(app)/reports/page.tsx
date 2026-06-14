@@ -9,6 +9,8 @@ import RevenueTab from "./RevenueTab"
 import OutstandingTab from "./OutstandingTab"
 import ExpensesTab from "./ExpensesTab"
 import TaxTab from "./TaxTab"
+import HealthCard from "@/components/dashboard/HealthCard"
+import { calculateHealthScore } from "@/lib/health"
 
 export const metadata = { ...privateMetadata, title: "Reports" }
 export const dynamic = "force-dynamic"
@@ -121,7 +123,10 @@ export default async function ReportsPage({ searchParams }: Props) {
   const totalOutstanding = outstanding.reduce((s, i) => s + Number(i.amountDue), 0)
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0)
 
-  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const [org, healthScore] = await Promise.all([
+    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
+    calculateHealthScore(orgId),
+  ])
   const currency = org?.currency ?? "INR"
 
   return (
@@ -174,6 +179,12 @@ export default async function ReportsPage({ searchParams }: Props) {
           />
         )}
         {tab === "tax" && <TaxTab taxData={taxData} currency={currency} />}
+
+        <div className="mt-8">
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">Business health score</h2>
+          <p className="text-xs text-slate-500 mb-4">AI-powered analysis of your billing patterns</p>
+          <HealthCard score={healthScore} />
+        </div>
       </div>
     </div>
   )
