@@ -60,7 +60,7 @@ export default auth(async (req) => {
     // Token-based contract signing — no session required
     if (pathname.startsWith("/portal/contract/")) return NextResponse.next()
     // Allow portal auth pages: login, forgot-password, reset-password
-    if (/^\/portal\/[^/]+\/(login|forgot-password|reset-password|open)/.test(pathname)) return NextResponse.next()
+    if (/^\/portal\/[^/]+\/(login|forgot-password|reset-password|open|access)/.test(pathname)) return NextResponse.next()
     if (!session || session.user?.userType !== "CLIENT") {
       // Extract orgSlug from /portal/[orgSlug]/...
       const orgSlug = pathname.split("/")[2]

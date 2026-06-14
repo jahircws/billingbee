@@ -625,3 +625,25 @@ export async function sendProposalEmail(
     html: layout(body, `${orgName} has sent you a proposal. Click to review and respond.`),
   })
 }
+
+// ── sendClientMagicLinkEmail ───────────────────────────────────────────────
+
+export async function sendClientMagicLinkEmail(
+  clientName: string,
+  clientEmail: string,
+  orgName: string,
+  accessUrl: string,
+) {
+  const body = `
+    ${h1(`Sign in to ${orgName}'s client portal`)}
+    ${p(`Hi ${clientName}, click the button below to sign in to your portal. This link expires in 7 days.`)}
+    ${btn("Sign in to portal →", accessUrl)}
+    ${divider()}
+    ${p(`If you didn't request this link, you can safely ignore this email.`)}
+  `
+  return sendEmail({
+    to: clientEmail,
+    subject: `Your sign-in link for ${orgName}'s client portal`,
+    html: layout(body, `Sign in to view your invoices and documents from ${orgName}.`),
+  })
+}
