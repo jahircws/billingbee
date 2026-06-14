@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { inviteClient } from "@/app/actions/portal"
+import { sendClientAccessLink } from "@/app/actions/client-portal"
 import { Mail, Check } from "lucide-react"
 
 export default function InviteClientButton({ clientId }: { clientId: string }) {
@@ -11,9 +11,9 @@ export default function InviteClientButton({ clientId }: { clientId: string }) {
   async function handle() {
     if (state === "done") return
     setState("loading")
-    const result = await inviteClient(clientId)
+    const result = await sendClientAccessLink(clientId)
     if ("error" in result) {
-      setMsg(result.error ?? "Failed to send invite")
+      setMsg(result.error ?? "Failed to send link")
       setState("error")
     } else {
       setState("done")
@@ -31,11 +31,11 @@ export default function InviteClientButton({ clientId }: { clientId: string }) {
       className="flex items-center gap-1.5 text-sm border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-60 whitespace-nowrap"
     >
       {state === "done" ? (
-        <><Check className="w-3.5 h-3.5 text-emerald-500" /> Invited</>
+        <><Check className="w-3.5 h-3.5 text-emerald-500" /> Link sent</>
       ) : state === "loading" ? (
         <><span className="animate-spin inline-block w-3.5 h-3.5">⟳</span> Sending…</>
       ) : (
-        <><Mail className="w-3.5 h-3.5" /> Invite to portal</>
+        <><Mail className="w-3.5 h-3.5" /> Send access link</>
       )}
     </button>
   )

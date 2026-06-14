@@ -41,3 +41,31 @@ export async function requestClientMagicLink(orgSlug: string, email: string) {
 
   return { success: true }
 }
+
+export async function sendClientAccessLink(clientId: string) {
+  try {
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { id: true, name: true, email: true, orgId: true, org: { select: { slug: true, name: true } } },
+    })
+    if (!client || !client.email) return { error: "Client has no email address" }
+
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET ?? "fallback-secret")
+    const accessToken = await new SignJWT({
+      clientId: client.id,
+      email: client.email.toLowerCase(),
+      orgSlug: client.org.slug,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(secret)
+
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
+    const accessUrl = `${base}/portal/${client.org.slug}/access?t=${accessToken}`
+
+    await sendClientMagicLinkEmail(client.name, client.email, client.org.name, accessUrl)
+    return { success: true }
+  } catch {
+    return { error: "Failed to send access link" }
+  }
+}
