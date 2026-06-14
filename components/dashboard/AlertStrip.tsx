@@ -4,16 +4,46 @@ import { formatCurrency } from "@/lib/utils"
 
 interface AlertStripData {
   overdueCount: number
-  overdueAmount: number
+  overdueByCurrency: Record<string, number>
   dueSoonCount: number
-  dueSoonAmount: number
+  dueSoonByCurrency: Record<string, number>
   draftCount: number
   unsignedContractCount: number
 }
 
 interface Props {
   data: AlertStripData
-  currency: string
+  currency: string  // org default — used only for ordering currencies in display
+}
+
+// Render amounts for each currency, org currency first, others after
+function CurrencyAmounts({
+  byCurrency,
+  orgCurrency,
+}: {
+  byCurrency: Record<string, number>
+  orgCurrency: string
+}) {
+  const entries = Object.entries(byCurrency).filter(([, v]) => v > 0)
+  if (entries.length === 0) return null
+
+  // Org currency first, then alphabetical
+  entries.sort(([a], [b]) => {
+    if (a === orgCurrency) return -1
+    if (b === orgCurrency) return 1
+    return a.localeCompare(b)
+  })
+
+  return (
+    <div className="text-sm font-semibold text-slate-900 leading-snug">
+      {entries.map(([cur, amt], i) => (
+        <span key={cur}>
+          {i > 0 && <span className="text-slate-300 mx-1">·</span>}
+          {formatCurrency(amt, cur)}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 export default function AlertStrip({ data, currency }: Props) {
@@ -33,9 +63,7 @@ export default function AlertStrip({ data, currency }: Props) {
               <AlertCircle size={12} className="text-red-500" />
               Overdue
             </div>
-            <div className="text-sm font-semibold text-slate-900">
-              {formatCurrency(data.overdueAmount, currency)}
-            </div>
+            <CurrencyAmounts byCurrency={data.overdueByCurrency} orgCurrency={currency} />
             <div className="text-xs text-slate-500 mt-0.5">
               {data.overdueCount} invoice{data.overdueCount !== 1 ? "s" : ""}
             </div>
@@ -50,9 +78,7 @@ export default function AlertStrip({ data, currency }: Props) {
               <Clock size={12} className="text-amber-500" />
               Due soon
             </div>
-            <div className="text-sm font-semibold text-slate-900">
-              {formatCurrency(data.dueSoonAmount, currency)}
-            </div>
+            <CurrencyAmounts byCurrency={data.dueSoonByCurrency} orgCurrency={currency} />
             <div className="text-xs text-slate-500 mt-0.5">
               {data.dueSoonCount} due this week
             </div>

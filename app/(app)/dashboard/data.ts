@@ -13,16 +13,16 @@ export interface ActivityEvent {
 
 export interface DashboardData {
   alertStrip: {
-    overdueCount: number
-    overdueAmount: number
+    overdueCount: number                      // all currencies
+    overdueByCurrency: Record<string, number> // amounts per currency
     dueSoonCount: number
-    dueSoonAmount: number
+    dueSoonByCurrency: Record<string, number>
     draftCount: number
     unsignedContractCount: number
   }
   statCards: {
-    outstanding: number
-    paidThisMonth: number
+    outstandingByCurrency: Record<string, number>  // e.g. { INR: 60900, USD: 40003 }
+    paidThisMonthByCurrency: Record<string, number>
     activeProposals: number
     clientCount: number
   }
@@ -49,7 +49,8 @@ export interface DashboardData {
     sentAt: Date | null
     client: { name: string }
   }>
-  topClients: Array<{ name: string; amount: number; pct: number }>
+  topClients: Array<{ name: string; amount: number; currency: string }>
+  revenueChartCurrency: string  // which currency the chart displays
   recentActivity: ActivityEvent[]
   expenseSnapshot: {
     thisMonth: number
@@ -65,15 +66,15 @@ function emptyData(): DashboardData {
   return {
     alertStrip: {
       overdueCount: 0,
-      overdueAmount: 0,
+      overdueByCurrency: {},
       dueSoonCount: 0,
-      dueSoonAmount: 0,
+      dueSoonByCurrency: {},
       draftCount: 0,
       unsignedContractCount: 0,
     },
     statCards: {
-      outstanding: 0,
-      paidThisMonth: 0,
+      outstandingByCurrency: {},
+      paidThisMonthByCurrency: {},
       activeProposals: 0,
       clientCount: 0,
     },
@@ -82,6 +83,7 @@ function emptyData(): DashboardData {
     pendingProposals: [],
     pendingContracts: [],
     topClients: [],
+    revenueChartCurrency: "INR",
     recentActivity: [],
     expenseSnapshot: { thisMonth: 0, lastMonth: 0, topCategory: null },
     isNewUser: true,
@@ -124,8 +126,8 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
     const prevMonthEnd = endOfMonth(subMonths(now, 1))
     const monthRanges = buildMonthRanges(now)
 
-    // Revenue chart: 6 pairs of queries (paid + outstanding per month)
-    // Both filtered to orgCurrency so amounts are comparable
+    // Revenue chart: 6 pairs of queries filtered to orgCurrency.
+    // A bar chart cannot mix currencies — we show one currency and label it.
     const chartPaidQueries = monthRanges.map((m) =>
       prisma.payment.aggregate({
         where: {
@@ -170,27 +172,27 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       activityProposals,
       ...chartResults
     ] = await Promise.all([
-      // Alert strip — filter to orgCurrency so amounts are meaningful
-      prisma.invoice.aggregate({
+      // Alert strip — groupBy currency to get counts + amounts per currency
+      prisma.invoice.groupBy({
+        by: ["currency"],
         where: {
           orgId,
-          currency: orgCurrency,
           OR: [
             { status: "OVERDUE" },
             { status: "UNPAID", dueDate: { lt: todayStart } },
           ],
         },
-        _count: true,
+        _count: { _all: true },
         _sum: { amountDue: true },
       }),
-      prisma.invoice.aggregate({
+      prisma.invoice.groupBy({
+        by: ["currency"],
         where: {
           orgId,
-          currency: orgCurrency,
           status: "UNPAID",
           dueDate: { gte: todayStart, lte: dueSoonEnd },
         },
-        _count: true,
+        _count: { _all: true },
         _sum: { amountDue: true },
       }),
       prisma.invoice.count({ where: { orgId, status: "DRAFT" } }),
@@ -198,15 +200,16 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         where: { orgId, status: "SENT", signedAt: null },
       }),
 
-      // Stat cards — orgCurrency filter on all monetary fields
-      prisma.invoice.aggregate({
-        where: { orgId, currency: orgCurrency, status: { in: ["UNPAID", "OVERDUE"] } },
+      // Stat cards — groupBy currency so all currencies are represented
+      prisma.invoice.groupBy({
+        by: ["currency"],
+        where: { orgId, status: { in: ["UNPAID", "OVERDUE"] } },
         _sum: { amountDue: true },
       }),
-      prisma.payment.aggregate({
+      prisma.payment.groupBy({
+        by: ["currency"],
         where: {
           orgId,
-          currency: orgCurrency,
           createdAt: { gte: thisMonthStart, lte: thisMonthEnd },
         },
         _sum: { amount: true },
@@ -257,15 +260,15 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         },
       }),
 
-      // Top clients: payments this month in orgCurrency only
+      // Top clients: all currencies — each payment carries its own currency
       prisma.payment.findMany({
         where: {
           orgId,
-          currency: orgCurrency,
           createdAt: { gte: thisMonthStart, lte: thisMonthEnd },
         },
         select: {
           amount: true,
+          currency: true,
           invoice: {
             select: {
               client: { select: { id: true, name: true } },
@@ -351,22 +354,22 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       outstanding: Number(chartOutstandingResults[i]?._sum?.amountDue ?? 0),
     }))
 
-    // ── Process top clients ───────────────────────────────────────────────────
-    const clientTotals = new Map<string, { name: string; amount: number }>()
+    // ── Process top clients — group by clientId + currency ───────────────────
+    // Key: `${clientId}::${currency}` so USD and INR payments for the same
+    // client are tracked separately (amounts cannot be summed cross-currency).
+    const clientTotals = new Map<string, { name: string; amount: number; currency: string }>()
     for (const p of thisMonthPayments) {
       const client = p.invoice?.client
       if (!client) continue
-      const existing = clientTotals.get(client.id) ?? { name: client.name, amount: 0 }
+      const key = `${client.id}::${p.currency}`
+      const existing = clientTotals.get(key) ?? { name: client.name, amount: 0, currency: p.currency as string }
       existing.amount += Number(p.amount)
-      clientTotals.set(client.id, existing)
+      clientTotals.set(key, existing)
     }
-    const sortedClients = [...clientTotals.values()].sort((a, b) => b.amount - a.amount).slice(0, 5)
-    const topAmount = sortedClients[0]?.amount ?? 0
-    const topClients = sortedClients.map((c) => ({
-      name: c.name,
-      amount: c.amount,
-      pct: topAmount > 0 ? Math.round((c.amount / topAmount) * 100) : 0,
-    }))
+    // Sort by numeric amount (best we can do without FX normalisation)
+    const topClients = [...clientTotals.values()]
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5)
 
     // ── Process expense top category ──────────────────────────────────────────
     let topCategoryName: string | null = null
@@ -417,22 +420,41 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
 
     const isNewUser = normalizedInvoices.length === 0 && clientCount === 0
 
+    // Helper: collapse groupBy rows into Record<currency, amount>
+    type GroupByRow = { currency: string; _count: { _all: number }; _sum: { amountDue?: unknown } }
+    type PayGroupByRow = { currency: string; _sum: { amount?: unknown } }
+
+    function toAmountMap(rows: GroupByRow[]): Record<string, number> {
+      const m: Record<string, number> = {}
+      for (const r of rows) m[r.currency as string] = Number(r._sum.amountDue ?? 0)
+      return m
+    }
+    function toPayAmountMap(rows: PayGroupByRow[]): Record<string, number> {
+      const m: Record<string, number> = {}
+      for (const r of rows) m[r.currency as string] = Number(r._sum.amount ?? 0)
+      return m
+    }
+    function totalCount(rows: GroupByRow[]): number {
+      return rows.reduce((s, r) => s + r._count._all, 0)
+    }
+
     return {
       alertStrip: {
-        overdueCount: overdueAgg._count,
-        overdueAmount: Number(overdueAgg._sum.amountDue ?? 0),
-        dueSoonCount: dueSoonAgg._count,
-        dueSoonAmount: Number(dueSoonAgg._sum.amountDue ?? 0),
+        overdueCount: totalCount(overdueAgg as unknown as GroupByRow[]),
+        overdueByCurrency: toAmountMap(overdueAgg as unknown as GroupByRow[]),
+        dueSoonCount: totalCount(dueSoonAgg as unknown as GroupByRow[]),
+        dueSoonByCurrency: toAmountMap(dueSoonAgg as unknown as GroupByRow[]),
         draftCount,
         unsignedContractCount,
       },
       statCards: {
-        outstanding: Number(outstandingAgg._sum.amountDue ?? 0),
-        paidThisMonth: Number(paidThisMonthAgg._sum.amount ?? 0),
+        outstandingByCurrency: toAmountMap(outstandingAgg as unknown as GroupByRow[]),
+        paidThisMonthByCurrency: toPayAmountMap(paidThisMonthAgg as unknown as PayGroupByRow[]),
         activeProposals,
         clientCount,
       },
       revenueChart,
+      revenueChartCurrency: orgCurrency as string,
       recentInvoices: normalizedInvoices,
       pendingProposals,
       pendingContracts,

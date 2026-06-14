@@ -180,7 +180,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <TopClients clients={data.topClients} currency={currency} />
+          <TopClients clients={data.topClients} />
           <ActivityFeed events={data.recentActivity} />
           <ExpenseSnapshot
             thisMonth={data.expenseSnapshot.thisMonth}

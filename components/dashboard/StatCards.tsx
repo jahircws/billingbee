@@ -2,44 +2,45 @@ import { DollarSign, TrendingUp, FileSignature, Users } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
 interface StatCardsData {
-  outstanding: number
-  paidThisMonth: number
+  outstandingByCurrency: Record<string, number>
+  paidThisMonthByCurrency: Record<string, number>
   activeProposals: number
   clientCount: number
 }
 
 interface Props {
   data: StatCardsData
-  currency: string
+  currency: string  // org default — shown first
 }
 
-function StatCard({
-  label,
-  value,
-  sub,
-  borderColor,
-  iconBg,
-  iconColor,
-  icon: Icon,
+// Render stacked currency amounts: primary large, others as smaller chips
+function MultiCurrencyValue({
+  byCurrency,
+  orgCurrency,
 }: {
-  label: string
-  value: string
-  sub: string
-  borderColor: string
-  iconBg: string
-  iconColor: string
-  icon: React.ElementType
+  byCurrency: Record<string, number>
+  orgCurrency: string
 }) {
+  const entries = Object.entries(byCurrency).filter(([, v]) => v > 0)
+  if (entries.length === 0) return <span className="text-2xl font-bold text-slate-900">—</span>
+
+  entries.sort(([a], [b]) => {
+    if (a === orgCurrency) return -1
+    if (b === orgCurrency) return 1
+    return a.localeCompare(b)
+  })
+
+  const [primary, ...rest] = entries
   return (
-    <div className={`bg-white rounded-xl border-l-4 ${borderColor} border border-slate-200 shadow-sm p-5 flex items-start gap-3`}>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
-        <Icon size={18} className={iconColor} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-slate-500 mb-1">{label}</p>
-        <p className="text-2xl font-bold text-slate-900 leading-tight">{value}</p>
-        <p className="text-xs text-slate-400 mt-1">{sub}</p>
-      </div>
+    <div>
+      <p className="text-2xl font-bold text-slate-900 leading-tight">
+        {formatCurrency(primary[1], primary[0])}
+      </p>
+      {rest.map(([cur, amt]) => (
+        <p key={cur} className="text-xs text-slate-500 mt-0.5">
+          {formatCurrency(amt, cur)}
+        </p>
+      ))}
     </div>
   )
 }
@@ -47,42 +48,49 @@ function StatCard({
 export default function StatCards({ data, currency }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <StatCard
-        label="Total outstanding"
-        value={formatCurrency(data.outstanding, currency)}
-        sub="unpaid + overdue"
-        borderColor="border-l-amber-400"
-        iconBg="bg-amber-50"
-        iconColor="text-amber-600"
-        icon={DollarSign}
-      />
-      <StatCard
-        label="Paid this month"
-        value={formatCurrency(data.paidThisMonth, currency)}
-        sub="received this month"
-        borderColor="border-l-emerald-400"
-        iconBg="bg-emerald-50"
-        iconColor="text-emerald-600"
-        icon={TrendingUp}
-      />
-      <StatCard
-        label="Active proposals"
-        value={data.activeProposals.toString()}
-        sub="awaiting response"
-        borderColor="border-l-violet-400"
-        iconBg="bg-violet-50"
-        iconColor="text-violet-600"
-        icon={FileSignature}
-      />
-      <StatCard
-        label="Total clients"
-        value={data.clientCount.toString()}
-        sub="all time"
-        borderColor="border-l-sky-400"
-        iconBg="bg-sky-50"
-        iconColor="text-sky-600"
-        icon={Users}
-      />
+      <div className="bg-white rounded-xl border-l-4 border-l-amber-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-50">
+          <DollarSign size={18} className="text-amber-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-500 mb-1">Total outstanding</p>
+          <MultiCurrencyValue byCurrency={data.outstandingByCurrency} orgCurrency={currency} />
+          <p className="text-xs text-slate-400 mt-1">unpaid + overdue</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border-l-4 border-l-emerald-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50">
+          <TrendingUp size={18} className="text-emerald-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-500 mb-1">Paid this month</p>
+          <MultiCurrencyValue byCurrency={data.paidThisMonthByCurrency} orgCurrency={currency} />
+          <p className="text-xs text-slate-400 mt-1">received this month</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border-l-4 border-l-violet-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-violet-50">
+          <FileSignature size={18} className="text-violet-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-500 mb-1">Active proposals</p>
+          <p className="text-2xl font-bold text-slate-900 leading-tight">{data.activeProposals}</p>
+          <p className="text-xs text-slate-400 mt-1">awaiting response</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border-l-4 border-l-sky-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-sky-50">
+          <Users size={18} className="text-sky-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-500 mb-1">Total clients</p>
+          <p className="text-2xl font-bold text-slate-900 leading-tight">{data.clientCount}</p>
+          <p className="text-xs text-slate-400 mt-1">all time</p>
+        </div>
+      </div>
     </div>
   )
 }
