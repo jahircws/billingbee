@@ -634,6 +634,7 @@ model Payment {
   @@index([orgId])
   @@index([invoiceId])
   @@index([gatewayPaymentId])
+  @@index([invoiceId, createdAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -791,6 +792,8 @@ model Proposal {
 
   @@index([orgId])
   @@index([clientId])
+  @@index([orgId, status])
+  @@index([orgId, sentAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -845,6 +848,7 @@ model Contract {
 
   @@index([orgId])
   @@index([orgId, status])
+  @@index([orgId, sentAt])
   @@index([clientId])
   @@index([token])
 }
