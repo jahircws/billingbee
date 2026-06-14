@@ -31,6 +31,7 @@ export interface DashboardData {
     id: string
     invoiceNumber: string
     amountDue: number
+    currency: string
     status: string
     createdAt: Date
     paidAt: Date | null
@@ -106,6 +107,14 @@ function buildMonthRanges(now: Date): Array<{ label: string; start: Date; end: D
 
 async function _getDashboardData(orgId: string): Promise<DashboardData> {
   try {
+    // Fetch org currency first — every monetary query must filter by this.
+    // Never mix currencies: ₹ and $ amounts cannot be summed together.
+    const orgRow = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { currency: true },
+    })
+    const orgCurrency = orgRow?.currency ?? "INR"
+
     const now = new Date()
     const todayStart = startOfDay(now)
     const dueSoonEnd = addDays(now, 7)
@@ -116,10 +125,12 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
     const monthRanges = buildMonthRanges(now)
 
     // Revenue chart: 6 pairs of queries (paid + outstanding per month)
+    // Both filtered to orgCurrency so amounts are comparable
     const chartPaidQueries = monthRanges.map((m) =>
       prisma.payment.aggregate({
         where: {
-          invoice: { orgId },
+          orgId,
+          currency: orgCurrency,
           createdAt: { gte: m.start, lte: m.end },
         },
         _sum: { amount: true },
@@ -129,6 +140,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       prisma.invoice.aggregate({
         where: {
           orgId,
+          currency: orgCurrency,
           issueDate: { gte: m.start, lte: m.end },
           status: { in: ["UNPAID", "OVERDUE"] },
         },
@@ -158,10 +170,11 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       activityProposals,
       ...chartResults
     ] = await Promise.all([
-      // Alert strip
+      // Alert strip — filter to orgCurrency so amounts are meaningful
       prisma.invoice.aggregate({
         where: {
           orgId,
+          currency: orgCurrency,
           OR: [
             { status: "OVERDUE" },
             { status: "UNPAID", dueDate: { lt: todayStart } },
@@ -173,6 +186,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       prisma.invoice.aggregate({
         where: {
           orgId,
+          currency: orgCurrency,
           status: "UNPAID",
           dueDate: { gte: todayStart, lte: dueSoonEnd },
         },
@@ -184,14 +198,15 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         where: { orgId, status: "SENT", signedAt: null },
       }),
 
-      // Stat cards
+      // Stat cards — orgCurrency filter on all monetary fields
       prisma.invoice.aggregate({
-        where: { orgId, status: { in: ["UNPAID", "OVERDUE"] } },
+        where: { orgId, currency: orgCurrency, status: { in: ["UNPAID", "OVERDUE"] } },
         _sum: { amountDue: true },
       }),
       prisma.payment.aggregate({
         where: {
           orgId,
+          currency: orgCurrency,
           createdAt: { gte: thisMonthStart, lte: thisMonthEnd },
         },
         _sum: { amount: true },
@@ -199,7 +214,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       prisma.proposal.count({ where: { orgId, status: "SENT" } }),
       prisma.client.count({ where: { orgId } }),
 
-      // Recent invoices
+      // Recent invoices — all currencies shown (with per-row currency)
       prisma.invoice.findMany({
         where: { orgId },
         orderBy: { createdAt: "desc" },
@@ -208,6 +223,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
           id: true,
           invoiceNumber: true,
           amountDue: true,
+          currency: true,
           status: true,
           createdAt: true,
           paidAt: true,
@@ -241,10 +257,11 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         },
       }),
 
-      // Top clients: payments this month via invoice
+      // Top clients: payments this month in orgCurrency only
       prisma.payment.findMany({
         where: {
           orgId,
+          currency: orgCurrency,
           createdAt: { gte: thisMonthStart, lte: thisMonthEnd },
         },
         select: {
@@ -257,18 +274,18 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         },
       }),
 
-      // Expense snapshot
+      // Expense snapshot — orgCurrency filter
       prisma.expense.aggregate({
-        where: { orgId, date: { gte: thisMonthStart, lte: thisMonthEnd } },
+        where: { orgId, currency: orgCurrency, date: { gte: thisMonthStart, lte: thisMonthEnd } },
         _sum: { amount: true },
       }),
       prisma.expense.aggregate({
-        where: { orgId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
+        where: { orgId, currency: orgCurrency, date: { gte: prevMonthStart, lte: prevMonthEnd } },
         _sum: { amount: true },
       }),
       prisma.expense.groupBy({
         by: ["categoryId"],
-        where: { orgId, date: { gte: thisMonthStart, lte: thisMonthEnd } },
+        where: { orgId, currency: orgCurrency, date: { gte: thisMonthStart, lte: thisMonthEnd } },
         _sum: { amount: true },
         orderBy: { _sum: { amount: "desc" } },
         take: 1,
@@ -395,6 +412,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
     const normalizedInvoices = recentInvoices.map((inv) => ({
       ...inv,
       amountDue: Number(inv.amountDue),
+      currency: inv.currency as string,
     }))
 
     const isNewUser = normalizedInvoices.length === 0 && clientCount === 0

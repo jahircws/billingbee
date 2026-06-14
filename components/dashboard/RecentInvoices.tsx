@@ -22,6 +22,7 @@ interface RecentInvoice {
   id: string
   invoiceNumber: string
   amountDue: number
+  currency: string   // per-invoice currency — may differ from org default
   status: string
   createdAt: Date
   paidAt: Date | null
@@ -30,7 +31,7 @@ interface RecentInvoice {
 
 interface Props {
   invoices: RecentInvoice[]
-  currency: string
+  currency: string  // org default (used for empty state only)
 }
 
 export default function RecentInvoices({ invoices, currency }: Props) {
@@ -68,7 +69,7 @@ export default function RecentInvoices({ invoices, currency }: Props) {
                 {statusLabel[inv.status] ?? inv.status}
               </span>
               <p className="shrink-0 text-sm font-medium text-slate-800">
-                {formatCurrency(inv.amountDue, currency)}
+                {formatCurrency(inv.amountDue, inv.currency)}
               </p>
               <div className="shrink-0 w-20 text-right">
                 {inv.status === "DRAFT" && (
