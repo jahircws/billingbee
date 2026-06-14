@@ -2,22 +2,21 @@
 
 import Link from "next/link"
 import { format, differenceInDays } from "date-fns"
+import { fmtCurrency } from "@/lib/currency"
 
 interface Invoice {
   id: string
   invoiceNumber: string
   clientName: string
   amountDue: number
+  currency: string
   status: string
   dueDate: string | null
 }
 
-import { fmtCurrency } from "@/lib/currency"
-
 interface Props {
   invoices: Invoice[]
-  totalOutstanding: number
-  currency: string
+  totalsByCurrency: Record<string, number>
 }
 
 const statusColor: Record<string, string> = {
@@ -25,20 +24,36 @@ const statusColor: Record<string, string> = {
   OVERDUE: "bg-red-100 text-red-700",
 }
 
-export default function OutstandingTab({ invoices, totalOutstanding, currency }: Props) {
-  const fmt = (n: number) => fmtCurrency(n, currency)
+const statusLabel: Record<string, string> = {
+  UNPAID: "Unpaid",
+  OVERDUE: "Overdue",
+}
+
+export default function OutstandingTab({ invoices, totalsByCurrency }: Props) {
   const now = new Date()
+  const currencies = Object.keys(totalsByCurrency).sort()
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Total outstanding</p>
-        <p className="text-3xl font-black text-red-600">{fmt(totalOutstanding)}</p>
+      {/* Totals — one per currency */}
+      <div className="flex flex-wrap gap-6">
+        {currencies.length === 0 ? (
+          <p className="text-sm text-gray-500">No outstanding invoices. Great work!</p>
+        ) : (
+          currencies.map((cur) => (
+            <div key={cur}>
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+                Outstanding ({cur})
+              </p>
+              <p className="text-3xl font-black text-red-600">
+                {fmtCurrency(totalsByCurrency[cur], cur)}
+              </p>
+            </div>
+          ))
+        )}
       </div>
 
-      {invoices.length === 0 ? (
-        <p className="text-sm text-gray-500 py-8 text-center">No outstanding invoices. Great work!</p>
-      ) : (
+      {invoices.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -65,10 +80,12 @@ export default function OutstandingTab({ invoices, totalOutstanding, currency }:
                         </Link>
                       </td>
                       <td className="py-2.5 px-4 font-medium text-gray-800">{inv.clientName}</td>
-                      <td className="py-2.5 px-4 text-right font-bold text-gray-900">{fmt(inv.amountDue)}</td>
+                      <td className="py-2.5 px-4 text-right font-bold text-gray-900">
+                        {fmtCurrency(inv.amountDue, inv.currency)}
+                      </td>
                       <td className="py-2.5 px-4 text-center">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[inv.status] ?? "bg-gray-100 text-gray-600"}`}>
-                          {inv.status}
+                          {statusLabel[inv.status] ?? inv.status}
                         </span>
                       </td>
                       <td className="py-2.5 px-4 text-right text-red-500 font-medium hidden md:table-cell">

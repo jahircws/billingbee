@@ -120,7 +120,12 @@ export default async function ReportsPage({ searchParams }: Props) {
   const taxData = Object.values(taxByRate).sort((a, b) => a.rate - b.rate)
 
   const totalRevenue = filteredInvoices.reduce((s, i) => s + Number(i.total), 0)
-  const totalOutstanding = outstanding.reduce((s, i) => s + Number(i.amountDue), 0)
+  // Outstanding: group by currency — never mix ₹ and $ into a single sum
+  const outstandingByCurrency: Record<string, number> = {}
+  for (const inv of outstanding) {
+    const cur = inv.currency as string
+    outstandingByCurrency[cur] = (outstandingByCurrency[cur] ?? 0) + Number(inv.amountDue)
+  }
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0)
 
   const [org, healthScore] = await Promise.all([
@@ -161,14 +166,18 @@ export default async function ReportsPage({ searchParams }: Props) {
           />
         )}
         {tab === "outstanding" && (
-          <OutstandingTab invoices={outstanding.map((i) => ({
-            id: i.id,
-            invoiceNumber: i.invoiceNumber,
-            clientName: i.client.name,
-            amountDue: Number(i.amountDue),
-            status: i.status,
-            dueDate: i.dueDate?.toISOString() ?? null,
-          }))} totalOutstanding={totalOutstanding} currency={currency} />
+          <OutstandingTab
+            invoices={outstanding.map((i) => ({
+              id: i.id,
+              invoiceNumber: i.invoiceNumber,
+              clientName: i.client.name,
+              amountDue: Number(i.amountDue),
+              currency: i.currency as string,
+              status: i.status,
+              dueDate: i.dueDate?.toISOString() ?? null,
+            }))}
+            totalsByCurrency={outstandingByCurrency}
+          />
         )}
         {tab === "expenses" && (
           <ExpensesTab
