@@ -15,18 +15,26 @@ export async function getRazorpayConfig(orgId: string): Promise<RazorpayConfig> 
 }
 
 export async function getStripeConfig(orgId: string): Promise<StripeConfig> {
-  const row = await prisma.paymentGatewayConfig.findUnique({
-    where: { orgId_gateway: { orgId, gateway: "STRIPE" } },
-  })
+  const [row, org] = await Promise.all([
+    prisma.paymentGatewayConfig.findUnique({
+      where: { orgId_gateway: { orgId, gateway: "STRIPE" } },
+    }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+  ])
+  if (org?.plan !== "pro") throw new Error("Stripe requires a Pro plan")
   if (!row?.isActive) throw new Error("Stripe not configured")
   const cfg = JSON.parse(decrypt(row.encryptedConfig))
   return { publishableKey: cfg.publishableKey, secretKey: cfg.secretKey, webhookSecret: row.webhookSecret ?? undefined }
 }
 
 export async function getPaypalConfig(orgId: string): Promise<PaypalConfig> {
-  const row = await prisma.paymentGatewayConfig.findUnique({
-    where: { orgId_gateway: { orgId, gateway: "PAYPAL" } },
-  })
+  const [row, org] = await Promise.all([
+    prisma.paymentGatewayConfig.findUnique({
+      where: { orgId_gateway: { orgId, gateway: "PAYPAL" } },
+    }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+  ])
+  if (org?.plan !== "pro") throw new Error("PayPal requires a Pro plan")
   if (!row?.isActive) throw new Error("PayPal not configured")
   const cfg = JSON.parse(decrypt(row.encryptedConfig))
   const mode = (process.env.PAYPAL_MODE ?? "sandbox") as "sandbox" | "live"
@@ -34,9 +42,15 @@ export async function getPaypalConfig(orgId: string): Promise<PaypalConfig> {
 }
 
 export async function getConfiguredGateways(orgId: string): Promise<string[]> {
-  const rows = await prisma.paymentGatewayConfig.findMany({
-    where: { orgId, isActive: true },
-    select: { gateway: true },
-  })
-  return rows.map((r) => r.gateway)
+  const [rows, org] = await Promise.all([
+    prisma.paymentGatewayConfig.findMany({
+      where: { orgId, isActive: true },
+      select: { gateway: true },
+    }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+  ])
+  const isPro = org?.plan === "pro"
+  return rows
+    .map((r) => r.gateway)
+    .filter((g) => isPro || (g !== "STRIPE" && g !== "PAYPAL"))
 }
