@@ -17,9 +17,6 @@ const GST_SUGGESTIONS = [
 export default function CopilotWidget({ username }: { username?: string }) {
   const pathname = usePathname()
 
-  // Dashboard has an inline copilot — hide the floating button there
-  if (pathname === "/dashboard") return null
-
   const isGst = pathname === "/tax"
 
   const [open, setOpen] = useState(false)

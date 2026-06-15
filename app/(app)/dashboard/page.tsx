@@ -11,7 +11,6 @@ import AlertStrip from "@/components/dashboard/AlertStrip"
 import StatCards from "@/components/dashboard/StatCards"
 import RevenueChart from "@/components/dashboard/RevenueChart"
 import RecentInvoices from "@/components/dashboard/RecentInvoices"
-import DashboardCopilot from "@/components/dashboard/DashboardCopilot"
 import QuickActions from "@/components/dashboard/QuickActions"
 import PendingItems from "@/components/dashboard/PendingItems"
 import TopClients from "@/components/dashboard/TopClients"
@@ -151,9 +150,6 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
             <RecentInvoices invoices={data.recentInvoices} currency={currency} />
           </div>
           <div className="space-y-4">
-            <DashboardCopilot
-              recentClientName={data.recentInvoices[0]?.client?.name}
-            />
             <QuickActions />
             <PendingItems
               proposals={data.pendingProposals}
