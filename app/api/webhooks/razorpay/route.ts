@@ -5,18 +5,21 @@ import prisma from "@/lib/db"
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const sig = req.headers.get("x-razorpay-signature") ?? ""
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET ?? ""
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET
 
-  if (secret) {
-    const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
-    const expectedBuf = Buffer.from(expected, "hex")
-    const actualBuf = Buffer.from(sig, "hex")
-    if (
-      expectedBuf.length !== actualBuf.length ||
-      !timingSafeEqual(expectedBuf, actualBuf)
-    ) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
-    }
+  if (!secret) {
+    console.error("RAZORPAY_WEBHOOK_SECRET is not set — webhook handler disabled")
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+  }
+
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
+  const expectedBuf = Buffer.from(expected, "hex")
+  const actualBuf = Buffer.from(sig, "hex")
+  if (
+    expectedBuf.length !== actualBuf.length ||
+    !timingSafeEqual(expectedBuf, actualBuf)
+  ) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
   const event = JSON.parse(rawBody)

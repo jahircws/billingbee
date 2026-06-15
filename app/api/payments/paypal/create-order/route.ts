@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { subDays } from "date-fns"
 import prisma from "@/lib/db"
 import { getPaypalConfig } from "@/lib/gateway-config"
 import { verifyPaymentToken } from "@/lib/payment-token"
@@ -45,6 +46,31 @@ export async function POST(req: NextRequest) {
   const { clientId, clientSecret, mode } = await getPaypalConfig(orgId)
   const { accessToken, base } = await getPaypalAccessToken(clientId, clientSecret, mode)
 
+  let paypalAmount: string
+  let paypalCurrency: string
+  let orderDescription = `Invoice ${invoice.invoiceNumber}`
+
+  if (invoice.currency.toUpperCase() === "INR") {
+    const rate = await prisma.fxRate.findFirst({
+      where: { base: "INR", quote: "USD" },
+      orderBy: { date: "desc" },
+    })
+    if (rate && rate.date >= subDays(new Date(), 2)) {
+      const converted = Math.ceil(Number(invoice.amountDue) * Number(rate.rate) * 100) / 100
+      paypalAmount = converted.toFixed(2)
+      paypalCurrency = "USD"
+      orderDescription = `Invoice ${invoice.invoiceNumber} — Amount converted from ₹${Number(invoice.amountDue)} INR at rate ${rate.rate}`
+    } else {
+      return NextResponse.json(
+        { error: "PayPal is temporarily unavailable for INR invoices. Please use Razorpay or UPI." },
+        { status: 400 }
+      )
+    }
+  } else {
+    paypalAmount = Number(invoice.amountDue).toFixed(2)
+    paypalCurrency = invoice.currency
+  }
+
   const ppBase = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
   const res = await fetch(`${base}/v2/checkout/orders`, {
     method: "POST",
@@ -60,10 +86,10 @@ export async function POST(req: NextRequest) {
           reference_id: invoiceId,
           custom_id: orgId,
           amount: {
-            currency_code: invoice.currency === "INR" ? "USD" : invoice.currency, // PayPal doesn't support INR
-            value: Number(invoice.amountDue).toFixed(2),
+            currency_code: paypalCurrency,
+            value: paypalAmount,
           },
-          description: `Invoice ${invoice.invoiceNumber}`,
+          description: orderDescription,
         },
       ],
       application_context: {
