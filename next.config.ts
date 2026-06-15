@@ -57,6 +57,19 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/pay/:token*",
+          destination: "/pay/:token*",
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    }
+  },
+
   async redirects() {
     return [
       {
