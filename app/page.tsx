@@ -327,8 +327,27 @@ export default function HomePage() {
 
           {/* Trust microline */}
           <p className="text-sm text-slate-400">
-            7,000+ professionals · Free to start · No card required
+            Free to start · No card required
           </p>
+        </div>
+      </section>
+
+      {/* ── Stats Strip ──────────────────────────────────────────────────── */}
+      <section className="bg-emerald-50 border-y border-emerald-100 py-10">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-0">
+            <div className="flex-1 text-center px-8">
+              <div className="text-4xl font-bold text-emerald-500">$40M+</div>
+              <div className="text-sm font-medium text-emerald-800 mt-1">invoiced through BillingBee</div>
+              <div className="text-xs text-slate-500 mt-1">across 12 currencies worldwide</div>
+            </div>
+            <div className="hidden sm:block w-px h-16 bg-emerald-200" />
+            <div className="flex-1 text-center px-8">
+              <div className="text-4xl font-bold text-emerald-500">7,000+</div>
+              <div className="text-sm font-medium text-emerald-800 mt-1">freelancers trust BillingBee</div>
+              <div className="text-xs text-slate-500 mt-1">from 13+ countries</div>
+            </div>
+          </div>
         </div>
       </section>
 
