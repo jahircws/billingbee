@@ -6,6 +6,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { Topbar } from "@/components/layout/Topbar"
 import CollectionsTab from "./CollectionsTab"
 import InvoiceActions from "./InvoiceActions"
+import InvoiceStatusPoller from "./InvoiceStatusPoller"
 import { format } from "date-fns"
 import { fmtCurrency } from "@/lib/currency"
 
@@ -41,13 +42,6 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   const currency = invoice.currency ?? org?.currency ?? "INR"
   const fmt = (n: unknown) => fmtCurrency(Number(n), currency)
 
-  const statusColor: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-600",
-    UNPAID: "bg-amber-100 text-amber-700",
-    PAID: "bg-emerald-100 text-emerald-700",
-    OVERDUE: "bg-red-100 text-red-700",
-  }
-
   const tabs = [
     { id: "details", label: "Details" },
     { id: "collections", label: `Follow-ups (${invoice.collectionEvents.length})` },
@@ -66,9 +60,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               <p className="text-sm text-gray-500">{invoice.client.name}</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[invoice.status] ?? "bg-gray-100 text-gray-600"}`}>
-                {invoice.status}
-              </span>
+              <InvoiceStatusPoller invoiceId={invoice.id} initialStatus={invoice.status} />
               <span className="text-lg font-bold text-gray-900">{fmt(invoice.total)}</span>
             </div>
           </div>

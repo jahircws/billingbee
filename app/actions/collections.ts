@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/db"
-import { addDays } from "date-fns"
+import { addDays, subDays, isAfter } from "date-fns"
 
 // Day offsets and tones for the 6-touch collection sequence
 const COLLECTION_SCHEDULE = [
@@ -22,6 +22,18 @@ export async function scheduleCollections(orgId: string, invoiceId: string, dueD
     scheduledAt: addDays(dueDate, dayNumber),
     status: "PENDING" as const,
   }))
+
+  const preDueAt = subDays(dueDate, 3)
+  if (isAfter(preDueAt, new Date())) {
+    events.push({
+      orgId,
+      invoiceId,
+      dayNumber: -3,
+      tone: "FRIENDLY" as const,
+      scheduledAt: preDueAt,
+      status: "PENDING" as const,
+    })
+  }
 
   await prisma.collectionEvent.createMany({ data: events, skipDuplicates: true })
 }
