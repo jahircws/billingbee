@@ -27,8 +27,6 @@ export default function DashboardCopilot({ recentClientName }: Props) {
     recentClientName ? `Draft an invoice for ${recentClientName}` : "Create a new invoice",
   ]
 
-  const showSuggestions = messages.length === 0
-
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
@@ -129,10 +127,10 @@ export default function DashboardCopilot({ recentClientName }: Props) {
         <p className="text-sm font-medium text-white">AI Copilot</p>
       </div>
 
-      <div className="h-[180px] overflow-y-auto p-3 space-y-2 flex flex-col">
-        {showSuggestions ? (
-          <div className="flex flex-col gap-2 pt-1">
-            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Try asking</p>
+      <div className="h-[180px] overflow-y-auto p-3 flex flex-col gap-2">
+        {messages.length === 0 ? (
+          <>
+            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider pt-1">Try asking</p>
             {suggestions.map((s) => (
               <button
                 key={s}
@@ -142,7 +140,7 @@ export default function DashboardCopilot({ recentClientName }: Props) {
                 {s}
               </button>
             ))}
-          </div>
+          </>
         ) : (
           <>
             {messages.map((msg) => (
