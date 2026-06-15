@@ -3,6 +3,7 @@
 import { randomBytes } from "crypto"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
+import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
@@ -274,6 +275,8 @@ export async function signContractWithProof(
       },
     })
 
+    revalidatePath("/dashboard")
+
     // Notify org owner
     const ownerEmail = contract.org.orgUsers[0]?.user?.email
     if (ownerEmail) {
@@ -415,6 +418,7 @@ export async function signContract(contractId: string) {
           ipAddress: ip,
         },
       })
+      revalidatePath("/dashboard")
       return { contract: serialize(contract) }
     }
 
@@ -431,6 +435,7 @@ export async function signContract(contractId: string) {
         ipAddress: ip,
       },
     })
+    revalidatePath("/dashboard")
     return { contract: serialize(contract) }
   } catch (err) {
     console.error("signContract:", err)
