@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 import { generatePageMetadata } from "@/lib/metadata"
 import { Zap } from "lucide-react"
@@ -19,11 +20,8 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <Zap size={14} className="text-white" />
-            </div>
-            <span className="font-bold text-gray-900">BillingBee</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" alt="BillingBee" width={140} height={28} className="brightness-0" />
           </Link>
           <Link href="/generate" className="text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-all active:scale-95">
             Try free →

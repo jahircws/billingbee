@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { Check, Zap, ChevronDown } from "lucide-react"
 
@@ -108,9 +109,8 @@ export default function PricingPage() {
       {/* Nav */}
       <header className="border-b border-gray-100 bg-white/80 backdrop-blur sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1.5 font-bold text-gray-900 text-lg">
-            <Zap className="h-5 w-5 text-emerald-500" />
-            BillingBee
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" alt="BillingBee" width={140} height={28} className="brightness-0" />
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900">Sign in</Link>
@@ -294,12 +294,9 @@ export default function PricingPage() {
 
         {/* NVIDIA Inception badge */}
         <div className="flex justify-center">
-          <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-5 py-3 text-sm text-gray-500">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0">
-              <rect width="24" height="24" rx="4" fill="#76b900" />
-              <text x="12" y="17" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">NV</text>
-            </svg>
-            <span>Member of <strong className="text-gray-700">NVIDIA Inception Program</strong></span>
+          <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-5 py-3">
+            <Image src="/nvidia-inception.png" alt="NVIDIA Inception Program" width={100} height={34} className="object-contain" />
+            <span className="text-sm text-slate-400">NVIDIA Inception Program Member</span>
           </div>
         </div>
       </main>

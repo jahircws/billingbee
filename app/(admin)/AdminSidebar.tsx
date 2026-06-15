@@ -1,8 +1,9 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, Building2, Cpu, LogOut, Zap, DollarSign, Bug } from "lucide-react"
+import { LayoutDashboard, Building2, Cpu, LogOut, DollarSign, Bug } from "lucide-react"
 
 const NAV = [
   { href: "/admin", icon: LayoutDashboard, label: "Overview" },
@@ -25,9 +26,8 @@ export default function AdminSidebar({ adminName, adminRole }: { adminName: stri
   return (
     <aside className="w-56 flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col">
       <div className="p-5 border-b border-gray-800">
-        <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-emerald-400" />
-          <span className="font-bold text-white">BillingBee</span>
+        <div className="flex items-center">
+          <Image src="/logo.png" alt="BillingBee" width={140} height={28} className="brightness-0 invert" />
         </div>
         <p className="text-xs text-gray-500 mt-0.5">Admin Panel</p>
       </div>
