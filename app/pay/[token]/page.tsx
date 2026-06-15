@@ -88,13 +88,51 @@ export default async function PayPage({ params, searchParams }: Props) {
   }
 
   // Fetch gateways + QR in parallel
-  const [gateways, qrDataUrl] = await Promise.all([
+  const [configuredGatewayIds, qrDataUrl] = await Promise.all([
     getConfiguredGateways(orgId),
     QRCode.toDataURL(
       `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/pay/${token}`,
       { width: 160, margin: 1, color: { light: "#ffffff", dark: "#111827" } }
     ),
   ])
+
+  type Gateway = {
+    id: 'razorpay' | 'stripe' | 'paypal' | 'upi'
+    label: string
+    fee: string
+    badge?: string
+    disabled?: boolean
+    disabledLabel?: string
+  }
+
+  const razorpayConfigured = configuredGatewayIds.includes("RAZORPAY")
+  const stripeConfigured = configuredGatewayIds.includes("STRIPE")
+
+  const gateways: Gateway[] = []
+
+  if (razorpayConfigured) {
+    gateways.push({
+      id: 'razorpay',
+      label: 'Razorpay',
+      fee: '2% fee',
+      badge: invoice.currency === 'INR' ? 'Recommended for India' : undefined,
+    })
+    if (invoice.currency === 'INR') {
+      gateways.push({ id: 'upi', label: 'UPI', fee: 'Free', badge: 'Instant' })
+    }
+  }
+
+  if (stripeConfigured) {
+    gateways.push({ id: 'stripe', label: 'Card / Stripe', fee: '2.9% + $0.30' })
+  }
+
+  gateways.push({
+    id: 'paypal',
+    label: 'PayPal',
+    fee: '2.99% fee',
+    disabled: true,
+    disabledLabel: 'Coming Soon',
+  })
 
   const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
 
@@ -220,7 +258,7 @@ export default async function PayPage({ params, searchParams }: Props) {
           </div>
 
           {/* Payment actions — client component */}
-          {showForm && gateways.length > 0 && (
+          {showForm && gateways.some((g) => !g.disabled) && (
             <div className="border-t border-gray-100 p-6 md:p-8">
               <PaymentActions
                 token={token}
@@ -233,7 +271,7 @@ export default async function PayPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {showForm && gateways.length === 0 && (
+          {showForm && !gateways.some((g) => !g.disabled) && (
             <div className="border-t border-gray-100 p-6 text-center text-sm text-gray-400">
               Contact {invoice.org.name} to arrange payment.
             </div>

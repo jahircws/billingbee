@@ -5,12 +5,21 @@ import { CheckCircle, Copy, Loader2 } from "lucide-react"
 import { fmtCurrency } from "@/lib/currency"
 import Image from "next/image"
 
+type Gateway = {
+  id: 'razorpay' | 'stripe' | 'paypal' | 'upi'
+  label: string
+  fee: string
+  badge?: string
+  disabled?: boolean
+  disabledLabel?: string
+}
+
 interface Props {
   token: string
   invoiceId: string
   amount: number
   currency: string
-  gateways: string[]
+  gateways: Gateway[]
   qrDataUrl: string
 }
 
@@ -21,8 +30,38 @@ declare global {
   }
 }
 
+function GatewayLogo({ id }: { id: Gateway['id'] }) {
+  const configs: Record<Gateway['id'], { letter: string; bg: string; text: string }> = {
+    razorpay: { letter: 'R', bg: 'bg-blue-600',   text: 'text-white' },
+    stripe:   { letter: 'S', bg: 'bg-purple-600', text: 'text-white' },
+    paypal:   { letter: 'P', bg: 'bg-blue-500',   text: 'text-white' },
+    upi:      { letter: 'UPI', bg: 'bg-orange-500', text: 'text-white' },
+  }
+  const { letter, bg, text } = configs[id]
+  return (
+    <div className={`w-9 h-9 rounded-lg ${bg} ${text} flex items-center justify-center font-bold text-xs shrink-0`}>
+      {letter}
+    </div>
+  )
+}
+
+function BadgePill({ label }: { label: string }) {
+  const styles: Record<string, string> = {
+    'Recommended for India': 'bg-emerald-100 text-emerald-700',
+    'Instant':               'bg-blue-100 text-blue-700',
+    'Coming Soon':           'bg-slate-100 text-slate-500',
+  }
+  const cls = styles[label] ?? 'bg-slate-100 text-slate-500'
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
 export default function PaymentActions({ token, invoiceId, amount, currency, gateways, qrDataUrl }: Props) {
-  const [selected, setSelected] = useState<string>(gateways[0] ?? "")
+  const firstActive = gateways.find((g) => !g.disabled)
+  const [selected, setSelected] = useState<Gateway['id']>(firstActive?.id ?? 'razorpay')
   const [loading, setLoading] = useState(false)
   const [paid, setPaid] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -30,14 +69,19 @@ export default function PaymentActions({ token, invoiceId, amount, currency, gat
   const fmt = (n: number) => fmtCurrency(n, currency)
   const pageUrl = typeof window !== "undefined" ? window.location.href : ""
 
+  const selectedGateway = gateways.find((g) => g.id === selected)
+
   async function handlePay() {
+    if (selectedGateway?.disabled) return
     setLoading(true)
     try {
-      if (selected === "RAZORPAY") {
+      if (selected === "razorpay") {
         await payRazorpay()
-      } else if (selected === "STRIPE") {
+      } else if (selected === "upi") {
+        await payRazorpay({ method: "upi" })
+      } else if (selected === "stripe") {
         await payStripe()
-      } else if (selected === "PAYPAL") {
+      } else if (selected === "paypal") {
         await payPaypal()
       }
     } catch (err) {
@@ -46,7 +90,7 @@ export default function PaymentActions({ token, invoiceId, amount, currency, gat
     setLoading(false)
   }
 
-  async function payRazorpay() {
+  async function payRazorpay(extraOptions: Record<string, string> = {}) {
     const res = await fetch("/api/payments/razorpay/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -69,6 +113,7 @@ export default function PaymentActions({ token, invoiceId, amount, currency, gat
         amount: amountPaise,
         currency: cur,
         order_id: orderId,
+        ...extraOptions,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           const vRes = await fetch("/api/payments/razorpay/verify", {
             method: "POST",
@@ -144,39 +189,59 @@ export default function PaymentActions({ token, invoiceId, amount, currency, gat
     <div className="space-y-5">
       <h3 className="text-sm font-semibold text-gray-800">Pay {fmt(amount)}</h3>
 
-      {/* Gateway selector */}
-      {gateways.length > 1 && (
-        <div className="flex gap-2">
-          {gateways.map((gw) => (
+      {/* Gateway cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {gateways.map((gw) => {
+          const isSelected = selected === gw.id && !gw.disabled
+          return (
             <button
-              key={gw}
-              onClick={() => setSelected(gw)}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                selected === gw
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                  : "border-gray-200 text-gray-600 hover:border-gray-300"
-              }`}
+              key={gw.id}
+              disabled={gw.disabled}
+              onClick={() => !gw.disabled && setSelected(gw.id)}
+              className={[
+                "rounded-xl p-4 text-left transition-all duration-150",
+                gw.disabled
+                  ? "bg-slate-50 border border-slate-200 opacity-60 cursor-not-allowed"
+                  : isSelected
+                    ? "border-2 border-emerald-500 bg-emerald-50"
+                    : "bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-sm",
+              ].join(" ")}
             >
-              {gw === "RAZORPAY" ? "Razorpay" : gw === "STRIPE" ? "Card / Stripe" : "PayPal"}
+              <div className="flex items-center gap-3">
+                <GatewayLogo id={gw.id} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{gw.label}</span>
+                    <span className="text-xs text-slate-500 shrink-0">{gw.fee}</span>
+                  </div>
+                  {(gw.badge || gw.disabledLabel) && (
+                    <div className="mt-1">
+                      <BadgePill label={gw.disabledLabel ?? gw.badge!} />
+                    </div>
+                  )}
+                </div>
+              </div>
             </button>
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
 
       {/* Pay button */}
       <button
         onClick={handlePay}
-        disabled={loading}
+        disabled={loading || !!selectedGateway?.disabled}
         className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
       >
         {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-        {loading ? "Processing..." : `Pay ${fmt(amount)} via ${selected === "RAZORPAY" ? "Razorpay" : selected === "STRIPE" ? "Card" : "PayPal"}`}
+        {loading
+          ? "Processing..."
+          : `Pay ${fmt(amount)} via ${selectedGateway?.label ?? ""}`}
       </button>
 
       {/* Share row */}
       <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-        {/* QR code */}
-        <div className="shrink-0">
+        {/* QR code — hidden on mobile (users can't scan their own screen) */}
+        <div className="hidden sm:block shrink-0">
           <Image src={qrDataUrl} alt="QR code" width={72} height={72} className="rounded-lg border border-gray-100" />
         </div>
 
