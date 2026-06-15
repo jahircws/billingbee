@@ -10,7 +10,7 @@ import {
 } from "@/app/actions/invoices"
 import {
   Send, Trash2, Copy, CheckCircle, Download,
-  MoreHorizontal, ExternalLink, Pencil,
+  MoreHorizontal, Link2, Check, Pencil,
 } from "lucide-react"
 
 interface Props {
@@ -23,13 +23,20 @@ interface Props {
 export default function InvoiceActions({ invoiceId, invoiceNumber, status, clientEmail }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
-  async function openPayLink() {
+  async function copyPayLink() {
     setLoading("paylink")
     try {
       const res = await fetch(`/api/invoice/${invoiceId}/pay-link`)
       const data = await res.json()
-      if (data.url) window.open(data.url, "_blank", "noopener")
+      if (data.url) {
+        await navigator.clipboard.writeText(data.url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch {
+      setMsg({ text: "Could not copy link", ok: false })
     } finally {
       setLoading(null)
     }
@@ -103,16 +110,16 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
         PDF
       </a>
 
-      {/* Pay link — only when payment is due */}
+      {/* Copy pay link — only when payment is due */}
       {canPay && (
         <button
-          onClick={openPayLink}
+          onClick={copyPayLink}
           disabled={!!loading}
-          className="flex items-center gap-1.5 text-sm bg-white hover:bg-gray-50 active:scale-95 text-gray-700 border border-gray-200 font-medium px-3 py-2 rounded-lg transition-all disabled:opacity-50"
-          title="Open payment page"
+          className="flex items-center gap-2 bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-50 active:scale-95"
+          title="Copy payment link to clipboard"
         >
-          <ExternalLink className="w-3.5 h-3.5" />
-          {loading === "paylink" ? "Loading…" : "Pay link"}
+          {copied ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+          {loading === "paylink" ? "Loading…" : copied ? "Copied!" : "Copy Pay Link"}
         </button>
       )}
 

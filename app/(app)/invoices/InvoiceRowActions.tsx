@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { MoreHorizontal, Send, CheckCircle, Trash2, Copy, ExternalLink, Edit2, Bell } from "lucide-react"
+import { MoreHorizontal, Send, CheckCircle, Trash2, Copy, ExternalLink, Edit2, Bell, Link2, Check } from "lucide-react"
 import { sendInvoice, deleteInvoice, updateInvoiceStatus, duplicateInvoice, sendReminder } from "@/app/actions/invoices"
 
 interface Props {
@@ -18,6 +18,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const [copied, setCopied] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
 
@@ -43,6 +44,20 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
       if (data.url) window.open(data.url, "_blank", "noopener")
     } finally {
       setLoading(null)
+    }
+  }
+
+  async function copyPayLink() {
+    try {
+      const res = await fetch(`/api/invoice/${invoiceId}/pay-link`)
+      const data = await res.json()
+      if (data.url) {
+        await navigator.clipboard.writeText(data.url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch {
+      setToast({ msg: "Could not copy link", ok: false })
     }
   }
 
@@ -86,7 +101,17 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
         </div>
       )}
 
-      <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+        {canPay && (
+          <button
+            onClick={copyPayLink}
+            className="p-1.5 rounded-md text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-150"
+            title="Copy pay link"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Link2 className="w-3.5 h-3.5" />}
+          </button>
+        )}
+        <div className="relative">
         <button
           ref={buttonRef}
           onClick={() => setOpen((v) => !v)}
@@ -181,6 +206,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
             </div>
           </>
         )}
+        </div>
       </div>
 
       {confirmDelete && (

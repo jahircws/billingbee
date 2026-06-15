@@ -5,6 +5,8 @@ import prisma from "@/lib/db"
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Image, Font } from "@react-pdf/renderer"
 import { format } from "date-fns"
 import path from "path"
+import QRCode from "qrcode"
+import { generatePaymentToken } from "@/lib/payment-token"
 
 // Built-in Helvetica has no glyph for ₹ / € / £ (it renders garbage like "¹"),
 // so register DejaVu Sans, which covers all the currency symbols we format.
@@ -63,6 +65,10 @@ const styles = StyleSheet.create({
   },
   footer: { position: "absolute", bottom: 32, left: 48, right: 48 },
   footerText: { fontSize: 8, color: "#9ca3af", textAlign: "center" },
+  payFooter: { borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, marginBottom: 8 },
+  payFooterRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  payFooterText: { fontSize: 8, color: "#6b7280" },
+  payFooterUrl: { fontSize: 7, color: "#059669", marginTop: 3 },
 })
 
 // fmt is defined per-invoice below, after we know the currency
@@ -98,6 +104,16 @@ export async function GET(
   }
 
   const fmt = (n: unknown) => fmtCurrency(n, invoice.currency)
+
+  const showPayLink = invoice.status === "UNPAID" || invoice.status === "OVERDUE"
+  let payUrl: string | null = null
+  let qrDataUrl: string | null = null
+  if (showPayLink) {
+    const token = generatePaymentToken(invoice.id, orgId)
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://billingbee.co"
+    payUrl = `${base}/pay/${token}`
+    qrDataUrl = await QRCode.toDataURL(payUrl, { width: 80, margin: 1 })
+  }
 
   const isPro = org?.plan !== "free"
 
@@ -341,6 +357,18 @@ export async function GET(
 
         {/* Footer */}
         <View style={styles.footer}>
+          {showPayLink && payUrl && qrDataUrl && (
+            <View style={styles.payFooter}>
+              <View style={styles.payFooterRow}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={styles.payFooterText}>Pay this invoice online:</Text>
+                  <Text style={styles.payFooterUrl}>{payUrl}</Text>
+                </View>
+                {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                <Image src={qrDataUrl} style={{ width: 56, height: 56 }} />
+              </View>
+            </View>
+          )}
           <Text style={styles.footerText}>
             {!isPro ? "Generated with BillingBee · billingbee.app" : `${org?.name ?? ""} · Thank you for your business`}
           </Text>
