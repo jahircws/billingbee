@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Sparkles, Send, Loader2 } from "lucide-react"
 
 interface ChatMessage {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function DashboardCopilot({ recentClientName }: Props) {
+  const router = useRouter()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -71,6 +73,20 @@ export default function DashboardCopilot({ recentClientName }: Props) {
           { id: assistantId, role: "assistant", content: data.message ?? "Done!" },
         ])
         setTimeout(scrollToBottom, 50)
+
+        if (data.type === "ACTION") {
+          if (data.action === "CREATE_INVOICE") {
+            const p = new URLSearchParams()
+            if (data.data?.clientId) p.set("clientId", data.data.clientId)
+            if (data.data?.clientName) p.set("clientName", data.data.clientName)
+            if (data.data?.amount) p.set("amount", String(data.data.amount))
+            if (data.data?.description) p.set("description", data.data.description)
+            if (data.data?.dueDate) p.set("dueDate", data.data.dueDate)
+            setTimeout(() => router.push(`/invoices/new${p.toString() ? `?${p}` : ""}`), 800)
+          } else if (data.action === "DUPLICATE_INVOICE" && data.data?.invoiceId) {
+            setTimeout(() => router.push(`/invoices/new?duplicateFrom=${data.data.invoiceId}`), 800)
+          }
+        }
         return
       }
 
