@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
 import prisma from "@/lib/db"
+import { sendPaymentReceivedEmail, sendPaymentReceiptEmail } from "@/lib/email"
+import { cancelCollections } from "@/app/actions/collections"
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
@@ -54,6 +56,38 @@ export async function POST(req: NextRequest) {
             },
           }),
         ])
+
+        // TODO: if verify endpoint already ran, emails may send twice — add idempotency guard
+        try {
+          await cancelCollections(orgId, invoiceId)
+
+          const [invoiceData, org] = await Promise.all([
+            prisma.invoice.findUnique({
+              where: { id: invoiceId, orgId },
+              select: { invoiceNumber: true, client: { select: { name: true, email: true } } },
+            }),
+            prisma.organization.findUnique({
+              where: { id: orgId },
+              select: { name: true, email: true, orgUsers: { where: { role: "OWNER" }, select: { user: { select: { email: true } } }, take: 1 } },
+            }),
+          ])
+
+          const amount = Number(inv.amountDue)
+          const currency = String(inv.currency)
+          const invoiceNum = invoiceData?.invoiceNumber ?? invoiceId
+          const clientData = invoiceData?.client
+          const staffEmail = org?.email ?? org?.orgUsers[0]?.user?.email
+          const orgName = org?.name ?? "BillingBee"
+
+          if (staffEmail && clientData) {
+            sendPaymentReceivedEmail(invoiceNum, clientData.name, amount, currency, staffEmail, orgName, invoiceId).catch(() => {})
+          }
+          if (clientData?.email) {
+            sendPaymentReceiptEmail(invoiceNum, orgName, amount, currency, clientData.name, clientData.email).catch(() => {})
+          }
+        } catch (err) {
+          console.error("Post-payment side effects failed (razorpay webhook):", err)
+        }
       }
     }
   }
