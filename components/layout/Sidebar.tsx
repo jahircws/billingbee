@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -58,8 +59,8 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-16 shrink-0 bg-white border-r border-gray-100 py-4 items-center">
       {/* Logo mark */}
-      <Link href="/dashboard" className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center mb-6 shrink-0" title="BillingBee">
-        <span className="text-white font-black text-sm leading-none">B</span>
+      <Link href="/dashboard" className="mb-6 shrink-0" title="BillingBee">
+        <Image src="/logo.png" alt="BillingBee" width={140} height={36} className="object-contain brightness-0" />
       </Link>
 
       {/* Main nav */}

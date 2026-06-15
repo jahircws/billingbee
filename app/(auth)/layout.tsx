@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -6,14 +8,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
         style={{ backgroundColor: "#1e2330" }}
       >
-        <a href="/" className="flex items-center gap-3 no-underline">
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-            style={{ backgroundColor: "#10b981" }}
-          >
-            B
-          </div>
-          <span className="text-white font-semibold text-xl tracking-tight">BillingBee</span>
+        <a href="/" className="flex items-center no-underline">
+          <Image src="/logo.png" alt="BillingBee" width={160} height={40} className="object-contain brightness-0 invert" />
         </a>
 
         <div className="space-y-6">
@@ -49,14 +45,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Right panel — form */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10 bg-white">
         {/* Mobile logo */}
-        <a href="/" className="lg:hidden flex items-center gap-2 mb-8 no-underline">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold"
-            style={{ backgroundColor: "#10b981" }}
-          >
-            B
-          </div>
-          <span className="font-semibold text-lg text-gray-900">BillingBee</span>
+        <a href="/" className="lg:hidden mb-8 no-underline">
+          <Image src="/logo.png" alt="BillingBee" width={160} height={40} className="object-contain" />
         </a>
 
         <div className="w-full max-w-md">{children}</div>

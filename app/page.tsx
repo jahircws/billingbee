@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 import { generatePageMetadata } from "@/lib/metadata"
 import {
@@ -234,11 +235,8 @@ export default function HomePage() {
       {/* ── Step 3 — Nav ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 h-16 flex items-center">
         <div className="max-w-6xl mx-auto px-4 w-full flex items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <Zap size={13} className="text-white" />
-            </div>
-            <span className="font-bold text-slate-900">BillingBee</span>
+          <Link href="/" className="flex items-center shrink-0">
+            <Image src="/logo.png" alt="BillingBee" width={140} height={36} className="object-contain brightness-0" />
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <Link href="/plans-price" className="text-slate-600 hover:text-slate-900 transition-colors">
@@ -852,23 +850,31 @@ export default function HomePage() {
 
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center">
-                <Zap size={13} className="text-white" />
-              </div>
-              <span className="font-bold text-white">BillingBee</span>
+            <Link href="/" className="inline-flex items-center mb-2">
+              <Image src="/logo.png" alt="BillingBee" width={120} height={32} className="object-contain brightness-0 invert" />
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed max-w-[200px]">
               AI-powered client revenue platform.
             </p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/badges/nvidia-inception-program-badge.svg"
-              alt="NVIDIA Inception Program Member"
-              width={110}
-              height={34}
-              className="mt-6 opacity-40 hover:opacity-70 transition-opacity duration-200 grayscale"
-            />
+            <div className="mt-6 space-y-3">
+              <div>
+                <Image
+                  src="/nvidia-inception.png"
+                  alt="NVIDIA Inception Program"
+                  width={120}
+                  height={40}
+                  className="object-contain opacity-60 hover:opacity-90 transition-opacity duration-200"
+                />
+                <p className="text-xs text-slate-500 mt-1">NVIDIA Inception Program Member</p>
+              </div>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.billingbee"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image src="/google-play-badge.png" alt="Get it on Google Play" width={120} height={36} className="object-contain" />
+              </a>
+            </div>
           </div>
 
           {/* Product */}
@@ -925,20 +931,48 @@ export default function HomePage() {
             </p>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="https://twitter.com/billingbeeapp"
-                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+                <a
+                  href="https://twitter.com/billing_bee"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-500 transition-colors"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.74-8.855L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                   Twitter / X
-                </Link>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.linkedin.com/company/billingbee"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-500 transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                  </svg>
+                  LinkedIn
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.facebook.com/BillingBee"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-500 transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  Facebook
+                </a>
               </li>
               <li>
                 <a
                   href="mailto:hello@billingbee.co"
-                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-500 transition-colors"
                 >
                   <Mail size={14} />
                   hello@billingbee.co

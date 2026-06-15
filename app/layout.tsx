@@ -29,6 +29,14 @@ export const metadata: Metadata = {
   creator: "BillingBee",
   publisher: "BillingBee",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -39,7 +47,7 @@ export const metadata: Metadata = {
       "Create invoices in any currency in seconds with AI. Accept payments via Stripe, Razorpay & PayPal. Built for freelancers everywhere — with full GST and UPI support for India.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "BillingBee — AI-Powered Invoicing",
@@ -51,7 +59,7 @@ export const metadata: Metadata = {
     title: "BillingBee — AI-Powered Invoicing for Freelancers Worldwide",
     description:
       "Create invoices in any currency in seconds with AI. Accept payments via Stripe, Razorpay & PayPal. Built for freelancers everywhere — with full GST and UPI support for India.",
-    images: ["/og-image.png"],
+    images: ["/logo.png"],
     creator: "@billingbee",
   },
   robots: {
