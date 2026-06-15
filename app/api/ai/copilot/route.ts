@@ -49,19 +49,19 @@ async function fetchOrgContext(orgId: string) {
     prisma.invoice.count({ where: { orgId } }),
     prisma.invoice.findMany({
       where: { orgId, status: { in: ["UNPAID", "OVERDUE"] } },
-      include: { client: { select: { name: true } } },
+      select: { id: true, invoiceNumber: true, amountDue: true, currency: true, dueDate: true, status: true, client: { select: { name: true } } },
       orderBy: { dueDate: "asc" },
       take: 10,
     }),
     prisma.invoice.findMany({
       where: { orgId, status: "OVERDUE" },
-      include: { client: { select: { name: true } } },
+      select: { id: true, invoiceNumber: true, amountDue: true, currency: true, dueDate: true, client: { select: { name: true } } },
       orderBy: { dueDate: "asc" },
       take: 10,
     }),
     prisma.payment.findMany({
       where: { invoice: { orgId } },
-      include: { invoice: { include: { client: { select: { name: true } } } } },
+      select: { amount: true, currency: true, createdAt: true, invoice: { select: { client: { select: { name: true } } } } },
       orderBy: { createdAt: "desc" },
       take: 3,
     }),
@@ -86,21 +86,28 @@ async function fetchOrgContext(orgId: string) {
     }),
   ])
 
-  const unpaidAmount = unpaidInvoices.reduce((s, inv) => s + Number(inv.amountDue), 0)
-  const overdueAmount = overdueInvoices.reduce((s, inv) => s + Number(inv.amountDue), 0)
+  function groupByCurrency(items: { amountDue: unknown; currency: string }[]) {
+    const m: Record<string, number> = {}
+    for (const i of items) {
+      const c = i.currency as string
+      m[c] = (m[c] ?? 0) + Number(i.amountDue)
+    }
+    return m
+  }
 
   return {
     clientCount,
     invoiceCount,
     unpaidCount: unpaidInvoices.length,
     overdueCount: overdueInvoices.length,
-    unpaidAmount,
-    overdueAmount,
+    unpaidByCurrency: groupByCurrency(unpaidInvoices),
+    overdueByCurrency: groupByCurrency(overdueInvoices),
     unpaidInvoices: unpaidInvoices.map((i) => ({
       id: i.id,
       number: i.invoiceNumber,
       client: i.client.name,
       amount: Number(i.amountDue),
+      currency: i.currency as string,
       dueDate: i.dueDate ? format(i.dueDate, "d MMM yyyy") : null,
       status: i.status,
     })),
@@ -109,11 +116,13 @@ async function fetchOrgContext(orgId: string) {
       number: i.invoiceNumber,
       client: i.client.name,
       amount: Number(i.amountDue),
+      currency: i.currency as string,
       dueDate: i.dueDate ? format(i.dueDate, "d MMM yyyy") : null,
     })),
     recentPayments: recentPayments.map((p) => ({
       client: p.invoice.client.name,
       amount: Number(p.amount),
+      currency: p.currency as string,
       date: format(p.createdAt, "d MMM yyyy"),
     })),
     topClients: topClients.map((c) => ({ id: c.id, name: c.name })),
@@ -257,25 +266,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         type: "ACTION",
         action: "SEND_REMINDER",
-        data: { overdueCount: ctx.overdueCount, overdueAmount: ctx.overdueAmount },
-        message: `Sending reminders to ${ctx.overdueCount} overdue client${ctx.overdueCount !== 1 ? "s" : ""} · ₹${ctx.overdueAmount.toLocaleString("en-IN")} outstanding`,
+        data: { overdueCount: ctx.overdueCount, overdueByCurrency: ctx.overdueByCurrency },
+        message: `Sending reminders to ${ctx.overdueCount} overdue client${ctx.overdueCount !== 1 ? "s" : ""} · ${Object.entries(ctx.overdueByCurrency).map(([c, a]) => `${c} ${a.toLocaleString()}`).join(", ")} outstanding`,
       })
     }
   }
 
   // ── QUERY / INSIGHT — stream narrative response ───────────────────────────
 
+  function fmtAmt(amount: number, currency: string) {
+    const sym: Record<string, string> = { INR: "₹", USD: "$", EUR: "€", GBP: "£", AUD: "A$", CAD: "C$", SGD: "S$" }
+    const prefix = sym[currency] ?? `${currency} `
+    return `${prefix}${amount.toLocaleString("en-IN")}`
+  }
+  function fmtByCurrency(byCurrency: Record<string, number>) {
+    const entries = Object.entries(byCurrency)
+    if (entries.length === 0) return "₹0"
+    return entries.map(([c, a]) => fmtAmt(a, c)).join(" + ")
+  }
+
   const contextSummary = `
 Org data as of ${ctx.today}:
 - Clients: ${ctx.clientCount}
 - Total invoices: ${ctx.invoiceCount}
-- Unpaid invoices: ${ctx.unpaidCount} totalling ₹${ctx.unpaidAmount.toLocaleString("en-IN")}
-- Overdue invoices: ${ctx.overdueCount} totalling ₹${ctx.overdueAmount.toLocaleString("en-IN")}
+- Unpaid invoices: ${ctx.unpaidCount} totalling ${fmtByCurrency(ctx.unpaidByCurrency)}
+- Overdue invoices: ${ctx.overdueCount} totalling ${fmtByCurrency(ctx.overdueByCurrency)}
 - This month revenue: ₹${ctx.thisMonthRevenue.toLocaleString("en-IN")}
 - Last month revenue: ₹${ctx.lastMonthRevenue.toLocaleString("en-IN")}
-- Recent payments: ${ctx.recentPayments.map((p) => `${p.client} paid ₹${p.amount.toLocaleString("en-IN")} on ${p.date}`).join("; ") || "none"}
-- Overdue invoices detail: ${ctx.overdueInvoices.map((i) => `${i.client} owes ₹${i.amount.toLocaleString("en-IN")} (due ${i.dueDate ?? "unknown"})`).join("; ") || "none"}
-- Unpaid invoices detail: ${ctx.unpaidInvoices.map((i) => `${i.client} ₹${i.amount.toLocaleString("en-IN")} ${i.status}`).join("; ") || "none"}
+- Recent payments: ${ctx.recentPayments.map((p) => `${p.client} paid ${fmtAmt(p.amount, p.currency)} on ${p.date}`).join("; ") || "none"}
+- Overdue invoices detail: ${ctx.overdueInvoices.map((i) => `${i.client} owes ${fmtAmt(i.amount, i.currency)} (due ${i.dueDate ?? "unknown"})`).join("; ") || "none"}
+- Unpaid invoices detail: ${ctx.unpaidInvoices.map((i) => `${i.client} ${fmtAmt(i.amount, i.currency)} ${i.status}`).join("; ") || "none"}
 `.trim()
 
   const messages: Anthropic.MessageParam[] = [
@@ -288,7 +308,7 @@ Org data as of ${ctx.today}:
     max_tokens: 600,
     system: `You are BillingBee AI Copilot — a sharp, friendly AI CFO for freelancers.
 ${contextSummary}
-Rules: be concise, direct, use ₹ for INR amounts. Use bullet points for lists. Never make up data not in context. Today: ${ctx.today}.`,
+Rules: be concise, direct, always use the correct currency symbol from the context data (₹ for INR, $ for USD, etc). Use bullet points for lists. Never make up data not in context. Today: ${ctx.today}.`,
     messages,
   })
 
