@@ -128,43 +128,41 @@ export default function DashboardCopilot({ recentClientName }: Props) {
       </div>
 
       <div className="h-[180px] overflow-y-auto p-3 flex flex-col gap-2">
-        {messages.length === 0 ? (
-          <>
-            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider pt-1">Try asking</p>
-            {suggestions.map((s) => (
-              <button
-                key={s}
-                onClick={() => send(s)}
-                className="bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 text-xs text-slate-600 cursor-pointer hover:bg-slate-100 transition-all duration-150 text-left"
-              >
-                {s}
-              </button>
-            ))}
-          </>
-        ) : (
-          <>
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`px-3 py-2 text-xs rounded-2xl max-w-[85%] whitespace-pre-wrap ${
-                  msg.role === "user"
-                    ? "bg-emerald-500 text-white rounded-br-sm self-end"
-                    : "bg-slate-100 text-slate-800 rounded-bl-sm self-start"
-                }`}
-              >
-                {msg.content}
-              </div>
-            ))}
-            {loading && (
-              <div className="bg-slate-100 rounded-2xl rounded-bl-sm px-3 py-2 self-start flex gap-1 items-center">
-                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "100ms" }} />
-                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "200ms" }} />
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </>
-        )}
+        {/* Always mounted — toggled with hidden so React never unmounts/remounts */}
+        <div className={messages.length > 0 ? "hidden" : "flex flex-col gap-2 pt-1"}>
+          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Try asking</p>
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              onClick={() => send(s)}
+              className="bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5 text-xs text-slate-600 cursor-pointer hover:bg-slate-100 transition-all duration-150 text-left"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <div className={`flex flex-col gap-2 ${messages.length === 0 ? "hidden" : ""}`}>
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`px-3 py-2 text-xs rounded-2xl max-w-[85%] whitespace-pre-wrap ${
+                msg.role === "user"
+                  ? "bg-emerald-500 text-white rounded-br-sm self-end"
+                  : "bg-slate-100 text-slate-800 rounded-bl-sm self-start"
+              }`}
+            >
+              {msg.content}
+            </div>
+          ))}
+          {loading && (
+            <div className="bg-slate-100 rounded-2xl rounded-bl-sm px-3 py-2 self-start flex gap-1 items-center">
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "100ms" }} />
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "200ms" }} />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       <div className="border-t border-slate-100 p-2 flex gap-2 items-center">
