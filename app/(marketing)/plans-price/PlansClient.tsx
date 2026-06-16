@@ -12,7 +12,6 @@ const PLANS = [
     id: "free",
     name: "Free",
     monthly: 0,
-    annual: 0,
     description: "Perfect for freelancers just getting started.",
     cta: "Start for free",
     ctaHref: "/generate",
@@ -31,7 +30,6 @@ const PLANS = [
     id: "pro",
     name: "Pro",
     monthly: 9.99,
-    annual: 7.99,
     description: "Everything you need to run a professional practice.",
     cta: "Start 14-day free trial",
     ctaHref: "/register?trial=pro",
@@ -101,7 +99,6 @@ function Cell({ value }: { value: boolean | string }) {
 // ── Main component ─────────────────────────────────────────────────────────
 
 export default function PricingPage() {
-  const [annual, setAnnual] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
@@ -134,34 +131,12 @@ export default function PricingPage() {
             Start free. Upgrade when you need unlimited invoices, AI follow-ups, and payment links.
           </p>
 
-          {/* Annual toggle */}
-          <div className="inline-flex items-center gap-3 bg-gray-100 rounded-full p-1">
-            <button
-              onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                !annual ? "bg-white text-gray-900 shadow" : "text-gray-500"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                annual ? "bg-white text-gray-900 shadow" : "text-gray-500"
-              }`}
-            >
-              Annual
-              <span className="ml-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold px-1.5 py-0.5 rounded-full">
-                Save 20%
-              </span>
-            </button>
-          </div>
         </div>
 
         {/* Plan cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-16 max-w-2xl mx-auto">
           {PLANS.map((plan) => {
-            const price = annual ? plan.annual : plan.monthly
+            const price = plan.monthly
 
             return (
               <div
@@ -196,11 +171,6 @@ export default function PricingPage() {
                         <span className="text-4xl font-black text-gray-900">${price}</span>
                         <span className="text-gray-400 mb-1">/mo</span>
                       </div>
-                      {annual && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          ${(price * 12).toFixed(2)}/yr · billed annually
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>
