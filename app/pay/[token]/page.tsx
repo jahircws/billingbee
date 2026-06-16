@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { verifyPaymentToken } from "@/lib/payment-token"
 import { getConfiguredGateways } from "@/lib/gateway-config"
@@ -148,8 +149,7 @@ export default async function PayPage({ params, searchParams }: Props) {
       <div className="w-full max-w-2xl space-y-4">
         {/* Header */}
         <div className="text-center">
-          <span className="text-2xl font-black text-emerald-600">Billing</span>
-          <span className="text-2xl font-black text-gray-900">Bee</span>
+          <Image src="/logo.png" alt="BillingBee" width={120} height={31} className="object-contain brightness-0 inline-block" />
         </div>
 
         {/* Invoice card */}

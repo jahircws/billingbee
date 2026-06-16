@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { format, addDays } from "date-fns"
 import { Sparkles, X, Plus, ChevronDown, ChevronUp, Loader2, Paperclip, ArrowRight } from "lucide-react"
 import UploadToInvoice, { type ExtractionResult } from "@/components/ai/UploadToInvoice"
+import Image from "next/image"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -526,8 +527,8 @@ export default function GenerateClient() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Topbar */}
       <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0">
-        <Link href="/" className="font-bold text-gray-900 text-lg tracking-tight">
-          <span className="text-emerald-600">Billing</span>Bee
+        <Link href="/">
+          <Image src="/logo.png" alt="BillingBee" width={120} height={31} className="object-contain brightness-0" />
         </Link>
         <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
           Sign in

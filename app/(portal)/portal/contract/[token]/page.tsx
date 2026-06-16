@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getContractByToken } from "@/app/actions/contract"
 import ContractSignForm from "./ContractSignForm"
@@ -19,7 +20,7 @@ export default async function TokenContractPage({ params }: Props) {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-emerald-600">BillingBee</span>
+          <Image src="/logo.png" alt="BillingBee" width={100} height={26} className="object-contain brightness-0" />
           <span className="text-xs text-gray-400">Secure document signing</span>
         </div>
 
