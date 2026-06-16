@@ -39,6 +39,15 @@ interface CreateInvoiceInput {
   discountAmount?: number
 }
 
+async function nextInvoiceNumber(orgId: string): Promise<string> {
+  const invoices = await prisma.invoice.findMany({ where: { orgId }, select: { invoiceNumber: true } })
+  const maxNum = invoices.reduce((max, inv) => {
+    const m = inv.invoiceNumber.match(/(\d+)$/)
+    return m ? Math.max(max, parseInt(m[1], 10)) : max
+  }, 0)
+  return `INV-${String(maxNum + 1).padStart(3, "0")}`
+}
+
 export async function createInvoice(input: CreateInvoiceInput) {
   const session = await auth()
   const orgId = session?.user?.orgId
@@ -49,9 +58,7 @@ export async function createInvoice(input: CreateInvoiceInput) {
     return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
   }
 
-  // Sequential invoice number
-  const count = await prisma.invoice.count({ where: { orgId } })
-  const invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`
+  const invoiceNumber = await nextInvoiceNumber(orgId)
 
   const issueDate = input.issueDate ? new Date(input.issueDate) : new Date()
   const dueDate = input.dueDate
@@ -382,8 +389,7 @@ export async function duplicateInvoice(invoiceId: string) {
   })
   if (!source) return { error: "Not found" }
 
-  const count = await prisma.invoice.count({ where: { orgId } })
-  const invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`
+  const invoiceNumber = await nextInvoiceNumber(orgId)
 
   // New issue date → re-resolve the frozen FX rate for today.
   const dupIssueDate = new Date()
