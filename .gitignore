@@ -49,8 +49,12 @@ scripts/email-segments/
 # SSH keys — never commit private keys
 open-ssh-private-key
 *.pem
+*.ppk
 id_rsa
 id_ed25519
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
 
 # Data exports — contain PII
 scripts/contacts-export.csv
