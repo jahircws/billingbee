@@ -24,7 +24,7 @@ import { DemoWidget } from "./_demo-widget"
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "BillingBee — AI-Powered Client Revenue Platform for Freelancers",
+    "BillingBee — AI Invoicing & Payments for Freelancers",
     "From proposal to payment — BillingBee writes proposals, signs contracts, collects payments, and follows up automatically. Stripe, Razorpay, PayPal. Free to start.",
     "/",
     {

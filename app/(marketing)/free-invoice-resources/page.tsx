@@ -6,21 +6,41 @@ import { Zap, ArrowRight, Download, FileText } from "lucide-react"
 
 export const revalidate = 86400
 
-export const metadata: Metadata = generatePageMetadata(
-  "Free Invoice Templates & Resources for Freelancers | BillingBee",
-  "Download free invoice templates for designers, developers, consultants, and agencies. Excel, Word, and PDF formats. Multi-currency, with GST support for India.",
-  "/free-invoice-resources",
-  {
-    keywords: [
-      "free invoice template",
-      "invoice template download",
-      "invoice format Word Excel PDF",
-      "freelancer invoice template",
-      "consultant invoice template",
-      "free billing template",
-    ],
-  }
-)
+export const metadata: Metadata = {
+  ...generatePageMetadata(
+    "Free Invoice Templates & Resources for Freelancers | BillingBee",
+    "Download free invoice templates for designers, developers, consultants, and agencies. Excel, Word, and PDF formats. Multi-currency, with GST support for India.",
+    "/free-invoice-resources",
+    {
+      keywords: [
+        "free invoice template",
+        "invoice template download",
+        "invoice format Word Excel PDF",
+        "freelancer invoice template",
+        "consultant invoice template",
+        "free billing template",
+      ],
+    }
+  ),
+  other: {
+    "application/ld+json": JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Free Invoice Templates for Freelancers",
+      url: "https://billingbee.co/free-invoice-resources",
+      numberOfItems: 7,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Freelance Designer Invoice", url: "https://billingbee.co/generate" },
+        { "@type": "ListItem", position: 2, name: "Software Developer Invoice", url: "https://billingbee.co/generate" },
+        { "@type": "ListItem", position: 3, name: "Consultant Invoice", url: "https://billingbee.co/generate" },
+        { "@type": "ListItem", position: 4, name: "Content Writer Invoice", url: "https://billingbee.co/generate" },
+        { "@type": "ListItem", position: 5, name: "Marketing Agency Invoice", url: "https://billingbee.co/generate" },
+        { "@type": "ListItem", position: 6, name: "GST Tax Invoice (India)", url: "https://billingbee.co/generate" },
+        { "@type": "ListItem", position: 7, name: "Proforma Invoice", url: "https://billingbee.co/generate" },
+      ],
+    }),
+  },
+}
 
 const TEMPLATES = [
   {

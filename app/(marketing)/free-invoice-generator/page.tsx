@@ -24,21 +24,51 @@ export const metadata: Metadata = {
     }
   ),
   other: {
-    "application/ld+json": JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      name: "BillingBee Free Invoice Generator",
-      url: "https://billingbee.co/free-invoice-generator",
-      applicationCategory: "BusinessApplication",
-      operatingSystem: "Web",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
+    "application/ld+json": JSON.stringify([
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        name: "BillingBee Free Invoice Generator",
+        url: "https://billingbee.co/free-invoice-generator",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+        },
+        description:
+          "Free online invoice generator for freelancers and businesses worldwide. Create invoices in any currency and download as PDF. No account required.",
       },
-      description:
-        "Free online invoice generator for freelancers and businesses worldwide. Create invoices in any currency and download as PDF. No account required.",
-    }),
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "How to Create a Free Invoice Online",
+        description: "Create a professional invoice PDF in minutes using BillingBee's free invoice generator — no signup required.",
+        totalTime: "PT2M",
+        step: [
+          {
+            "@type": "HowToStep",
+            position: 1,
+            name: "Describe the work",
+            text: "Type what you did and the amount — AI fills in the rest automatically.",
+          },
+          {
+            "@type": "HowToStep",
+            position: 2,
+            name: "Add your details",
+            text: "Enter your business name, tax ID, and logo — or skip for a quick invoice.",
+          },
+          {
+            "@type": "HowToStep",
+            position: 3,
+            name: "Download & send",
+            text: "Get a professional PDF and a payment link your client can pay instantly.",
+          },
+        ],
+      },
+    ]),
   },
 }
 
