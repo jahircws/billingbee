@@ -98,6 +98,7 @@ export default async function ExpensesPage({ searchParams }: Props) {
                     <th className="py-3 px-4 text-left text-xs text-gray-400 font-medium">Title</th>
                     <th className="py-3 px-4 text-left text-xs text-gray-400 font-medium hidden md:table-cell">Category</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
+                    <th className="py-3 px-4 text-center text-xs text-gray-400 font-medium hidden md:table-cell">Status</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Date</th>
                     <th className="py-3 px-4 w-10" />
                   </tr>
@@ -126,6 +127,13 @@ export default async function ExpensesPage({ searchParams }: Props) {
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-gray-900">
                         {fmt(Number(expense.amount))}
+                      </td>
+                      <td className="py-3 px-4 text-center hidden md:table-cell">
+                        {expense.isBillable ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700">Unbilled</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-right text-gray-400 hidden md:table-cell">
                         {format(expense.date, "d MMM yyyy")}

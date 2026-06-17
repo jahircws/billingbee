@@ -193,6 +193,9 @@ export async function GET(
             {invoice.client.phone && <Text style={styles.value}>{invoice.client.phone}</Text>}
             {invoice.client.address && <Text style={styles.value}>{invoice.client.address}</Text>}
             {clientCityState && <Text style={styles.value}>{clientCityState}</Text>}
+            {(invoice.client as { country?: string | null }).country && (invoice.client as { country?: string | null }).country !== "IN" && (
+              <Text style={styles.value}>{(invoice.client as { country?: string | null }).country}</Text>
+            )}
             {(invoice.client as { gstin?: string | null }).gstin && (
               <Text style={{ ...styles.value, color: "#6b7280" }}>GSTIN: {(invoice.client as { gstin?: string | null }).gstin}</Text>
             )}

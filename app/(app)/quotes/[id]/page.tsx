@@ -43,8 +43,7 @@ export default async function QuotePage({ params }: Props) {
 
   if (!quote) notFound()
 
-  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
-  const currency = org?.currency ?? "INR"
+  const currency = (quote.currency as string) ?? "INR"
   const fmt = (n: unknown) => fmtCurrency(Number(n), currency)
 
   return (
@@ -127,6 +126,22 @@ export default async function QuotePage({ params }: Props) {
               ))}
             </tbody>
             <tfoot>
+              <tr className="border-t border-gray-100">
+                <td colSpan={3} className="py-2 px-4 text-right text-xs text-gray-400 font-medium">Subtotal</td>
+                <td className="py-2 px-4 text-right text-sm text-gray-700">{fmt(quote.subtotal)}</td>
+              </tr>
+              {Number(quote.taxAmount) > 0 && (
+                <tr>
+                  <td colSpan={3} className="py-2 px-4 text-right text-xs text-gray-400 font-medium">Tax</td>
+                  <td className="py-2 px-4 text-right text-sm text-gray-700">{fmt(quote.taxAmount)}</td>
+                </tr>
+              )}
+              {Number(quote.discountAmount) > 0 && (
+                <tr>
+                  <td colSpan={3} className="py-2 px-4 text-right text-xs text-gray-400 font-medium">Discount</td>
+                  <td className="py-2 px-4 text-right text-sm text-gray-700">−{fmt(quote.discountAmount)}</td>
+                </tr>
+              )}
               <tr className="border-t border-gray-200">
                 <td colSpan={3} className="py-2.5 px-4 text-right text-xs text-gray-400 font-medium">Total</td>
                 <td className="py-2.5 px-4 text-right font-bold text-emerald-600">{fmt(quote.total)}</td>

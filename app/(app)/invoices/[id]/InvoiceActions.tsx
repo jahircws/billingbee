@@ -88,7 +88,7 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
       )}
 
       {/* Mark paid */}
-      {!isPaid && (
+      {canPay && (
         <button
           onClick={() => run("paid", () => updateInvoiceStatus(invoiceId, "PAID"))}
           disabled={!!loading}

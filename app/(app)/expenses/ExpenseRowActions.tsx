@@ -41,7 +41,7 @@ export default function ExpenseRowActions({ expenseId, title, amount, currency, 
     router.push(`/invoices/new?${params.toString()}`)
   }
 
-  const initial: ExpenseInitial = { id: expenseId, title, amount, date, vendor, categoryId, notes }
+  const initial: ExpenseInitial = { id: expenseId, title, amount, currency, date, vendor, categoryId, notes }
 
   return (
     <>

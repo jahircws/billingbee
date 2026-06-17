@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
   numCol: { flex: 1, textAlign: "right" },
   totals: { alignItems: "flex-end", marginTop: 8 },
   totalRow: { flexDirection: "row", gap: 16, paddingVertical: 3 },
-  totalLabel: { fontSize: 10, color: "#6b7280", width: 80, textAlign: "right" },
-  totalValue: { fontSize: 10, color: "#111827", width: 80, textAlign: "right" },
+  totalLabel: { fontSize: 10, color: "#6b7280", width: 100, textAlign: "right" },
+  totalValue: { fontSize: 10, color: "#111827", width: 120, textAlign: "right" },
   grandTotal: { fontSize: 13, fontWeight: "bold", color: "#2563eb" },
   watermark: { position: "absolute", top: "40%", left: "15%", fontSize: 48, color: "#e5e7eb", opacity: 0.6, transform: "rotate(-30deg)" },
   footer: { position: "absolute", bottom: 32, left: 48, right: 48 },
@@ -176,7 +176,7 @@ export async function GET(
               <Text style={styles.totalValue}>- {fmt(discountAmount)}</Text>
             </View>
           )}
-          <View style={{ ...styles.divider, width: 176, marginVertical: 6 }} />
+          <View style={{ ...styles.divider, width: 236, marginVertical: 6 }} />
           <View style={styles.totalRow}>
             <Text style={{ ...styles.totalLabel, ...styles.grandTotal }}>Total</Text>
             <Text style={{ ...styles.totalValue, ...styles.grandTotal }}>{fmt(quote.total)}</Text>

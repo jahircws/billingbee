@@ -166,6 +166,11 @@ export default async function InvoicePage({ params, searchParams }: Props) {
                 <span className="font-medium text-gray-700">Notes: </span>{invoice.notes}
               </div>
             )}
+            {invoice.terms && (
+              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Terms & Conditions: </span>{invoice.terms}
+              </div>
+            )}
           </div>
         )}
 

@@ -10,6 +10,7 @@ export interface ExpenseInitial {
   id: string
   title: string
   amount: number
+  currency?: string
   date: string // yyyy-MM-dd
   vendor?: string | null
   categoryId?: string | null
@@ -28,6 +29,7 @@ export default function ExpenseFormModal({ categories: initialCategories, expens
   const [categories, setCategories] = useState(initialCategories)
   const [title, setTitle] = useState(expense?.title ?? "")
   const [amount, setAmount] = useState(expense ? String(expense.amount) : "")
+  const [currency, setCurrency] = useState(expense?.currency ?? "INR")
   const [date, setDate] = useState(expense?.date ?? new Date().toISOString().split("T")[0])
   const [vendor, setVendor] = useState(expense?.vendor ?? "")
   const [categoryId, setCategoryId] = useState(expense?.categoryId ?? "")
@@ -62,6 +64,7 @@ export default function ExpenseFormModal({ categories: initialCategories, expens
     const payload = {
       title,
       amount: parseFloat(amount),
+      currency,
       date,
       vendor: vendor || undefined,
       categoryId: categoryId || undefined,
@@ -92,7 +95,7 @@ export default function ExpenseFormModal({ categories: initialCategories, expens
             required
             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <input
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -103,6 +106,15 @@ export default function ExpenseFormModal({ categories: initialCategories, expens
               required
               className="text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              {["INR","USD","EUR","GBP","CAD","AUD","SGD","AED","PKR","BDT"].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
             <input
               value={date}
               onChange={(e) => setDate(e.target.value)}

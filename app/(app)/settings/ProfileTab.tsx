@@ -28,8 +28,10 @@ export default function ProfileTab({ user }: { user: User }) {
     if (res.ok) {
       setMessage("Saved")
       router.refresh()
+      setTimeout(() => setMessage(""), 3000)
     } else {
       setMessage("Failed to save")
+      setTimeout(() => setMessage(""), 4000)
     }
   }
 
