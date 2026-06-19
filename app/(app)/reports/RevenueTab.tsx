@@ -14,7 +14,7 @@ import { BarChart2 } from "lucide-react"
 import { fmtCurrencyShort, getCurrencySymbol } from "@/lib/currency"
 
 interface Props {
-  monthlyData: { month: string; revenue: number }[]
+  monthlyData: { month: string; revenue: number; outstanding: number }[]
   topClients: { name: string; revenue: number }[]
   totalRevenue: number
   currency: string
@@ -23,8 +23,8 @@ interface Props {
 
 function handleExport(monthlyData: Props["monthlyData"]) {
   const rows = [
-    ["Month", "Revenue"],
-    ...monthlyData.map((d) => [d.month, d.revenue.toString()]),
+    ["Month", "Revenue", "Outstanding"],
+    ...monthlyData.map((d) => [d.month, d.revenue.toString(), d.outstanding.toString()]),
   ]
   const csv = rows.map((r) => r.join(",")).join("\n")
   const blob = new Blob([csv], { type: "text/csv" })

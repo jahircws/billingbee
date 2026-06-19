@@ -42,6 +42,13 @@ export default async function ReportsPage({ searchParams }: Props) {
     select: { issueDate: true, total: true, currency: true, clientId: true, client: { select: { name: true } } },
   })
 
+  // Outstanding invoices (fetched early so we can use for monthly outstanding bucketing below)
+  const outstanding = await prisma.invoice.findMany({
+    where: { orgId, status: { in: ["UNPAID", "OVERDUE"] } },
+    include: { client: { select: { name: true } } },
+    orderBy: { amountDue: "desc" },
+  })
+
   // Currencies can't be summed together — pick one (default: most-used) and filter.
   const currencyCounts = new Map<string, number>()
   for (const inv of revenueInvoices) currencyCounts.set(inv.currency, (currencyCounts.get(inv.currency) ?? 0) + 1)
@@ -60,7 +67,19 @@ export default async function ReportsPage({ searchParams }: Props) {
     const key = format(inv.issueDate, "MMM yy")
     if (key in monthlyRevenue) monthlyRevenue[key] += Number(inv.total)
   }
-  const monthlyData = Object.entries(monthlyRevenue).map(([month, revenue]) => ({ month, revenue }))
+  // Outstanding per month — bucket already-fetched outstanding invoices by issue date
+  const monthlyOutstanding: Record<string, number> = {}
+  for (const key of Object.keys(monthlyRevenue)) monthlyOutstanding[key] = 0
+  for (const inv of outstanding.filter((i) => (i.currency as string) === selectedCurrency)) {
+    const key = format(inv.issueDate, "MMM yy")
+    if (key in monthlyOutstanding) monthlyOutstanding[key] += Number(inv.amountDue)
+  }
+
+  const monthlyData = Object.entries(monthlyRevenue).map(([month, revenue]) => ({
+    month,
+    revenue,
+    outstanding: monthlyOutstanding[month] ?? 0,
+  }))
 
   // Top clients
   const clientMap: Record<string, { name: string; revenue: number }> = {}
@@ -69,13 +88,6 @@ export default async function ReportsPage({ searchParams }: Props) {
     clientMap[inv.clientId].revenue += Number(inv.total)
   }
   const topClients = Object.values(clientMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
-
-  // Outstanding invoices
-  const outstanding = await prisma.invoice.findMany({
-    where: { orgId, status: { in: ["UNPAID", "OVERDUE"] } },
-    include: { client: { select: { name: true } } },
-    orderBy: { amountDue: "desc" },
-  })
 
   // Expenses by category
   const expenses = await prisma.expense.findMany({
@@ -102,9 +114,9 @@ export default async function ReportsPage({ searchParams }: Props) {
   }
   const expMonthlyData = Object.entries(expMonthly).map(([month, amount]) => ({ month, amount }))
 
-  // Tax data
+  // Tax data — filtered to selectedCurrency so amounts match the chosen currency
   const taxInvoices = await prisma.invoice.findMany({
-    where: { orgId, status: { not: "DRAFT" } },
+    where: { orgId, status: { not: "DRAFT" }, currency: selectedCurrency as never },
     include: { items: { select: { taxRate: true, taxAmount: true } } },
   })
   const taxByRate: Record<string, { rate: number; taxAmount: number; baseAmount: number }> = {}
@@ -187,7 +199,7 @@ export default async function ReportsPage({ searchParams }: Props) {
             currency={currency}
           />
         )}
-        {tab === "tax" && <TaxTab taxData={taxData} currency={currency} />}
+        {tab === "tax" && <TaxTab taxData={taxData} currency={selectedCurrency} availableCurrencies={availableCurrencies} />}
 
         <div className="mt-8">
           <h2 className="text-sm font-semibold text-slate-700 mb-1">Business health score</h2>

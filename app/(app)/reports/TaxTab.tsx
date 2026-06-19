@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { fmtCurrency } from "@/lib/currency"
 
 interface TaxRow {
@@ -22,7 +23,8 @@ function handleExport(taxData: TaxRow[]) {
   URL.revokeObjectURL(url)
 }
 
-export default function TaxTab({ taxData, currency }: { taxData: TaxRow[]; currency: string }) {
+export default function TaxTab({ taxData, currency, availableCurrencies = [] }: { taxData: TaxRow[]; currency: string; availableCurrencies?: string[] }) {
+  const router = useRouter()
   const fmt = (n: number) => fmtCurrency(n, currency)
   const total = taxData.reduce((s, d) => s + d.taxAmount, 0)
 
@@ -30,17 +32,30 @@ export default function TaxTab({ taxData, currency }: { taxData: TaxRow[]; curre
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Total tax collected</p>
+          <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Total tax collected ({currency})</p>
           <p className="text-3xl font-black text-gray-900">{fmt(total)}</p>
         </div>
-        {taxData.length > 0 && (
-          <button
-            onClick={() => handleExport(taxData)}
-            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
-          >
-            Export CSV
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {availableCurrencies.length > 1 && (
+            <select
+              value={currency}
+              onChange={(e) => router.push(`/reports?tab=tax&cur=${e.target.value}`)}
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              {availableCurrencies.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          )}
+          {taxData.length > 0 && (
+            <button
+              onClick={() => handleExport(taxData)}
+              className="text-sm text-emerald-600 hover:text-emerald-700 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+            >
+              Export CSV
+            </button>
+          )}
+        </div>
       </div>
 
       {taxData.length === 0 ? (
