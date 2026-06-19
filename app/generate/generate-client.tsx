@@ -192,8 +192,9 @@ function Preview({ form }: { form: FormState }) {
 
 // ── Sign-up interstitial for Proposal / Contract ─────────────────────────────
 
-function SignUpInterstitial({ docType }: { docType: "proposal" | "contract" }) {
+function SignUpInterstitial({ docType, loggedIn }: { docType: "proposal" | "contract"; loggedIn: boolean }) {
   const label = docType === "proposal" ? "Proposals" : "Contracts"
+  const appHref = docType === "proposal" ? "/proposals" : "/contracts"
   const description =
     docType === "proposal"
       ? "Multi-section AI proposals with scope, deliverables, timeline, and pricing — auto-generated from a brief."
@@ -207,19 +208,31 @@ function SignUpInterstitial({ docType }: { docType: "proposal" | "contract" }) {
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">{label} need an account</h2>
         <p className="text-sm text-gray-500 leading-relaxed mb-6">{description}</p>
-        <Link
-          href="/register?from=generate"
-          className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors w-full"
-        >
-          Sign up free to get started
-          <ArrowRight size={14} />
-        </Link>
-        <p className="text-xs text-gray-400 mt-3">
-          Already have an account?{" "}
-          <Link href="/login" className="text-emerald-600 hover:underline">
-            Sign in
+        {loggedIn ? (
+          <Link
+            href={appHref}
+            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors w-full"
+          >
+            Go to {label} →
+            <ArrowRight size={14} />
           </Link>
-        </p>
+        ) : (
+          <>
+            <Link
+              href="/register?from=generate"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors w-full"
+            >
+              Sign up free to get started
+              <ArrowRight size={14} />
+            </Link>
+            <p className="text-xs text-gray-400 mt-3">
+              Already have an account?{" "}
+              <Link href="/login" className="text-emerald-600 hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   )
@@ -227,7 +240,7 @@ function SignUpInterstitial({ docType }: { docType: "proposal" | "contract" }) {
 
 // ── Main client component ─────────────────────────────────────────────────────
 
-export default function GenerateClient() {
+export default function GenerateClient({ loggedIn = false }: { loggedIn?: boolean }) {
   const router = useRouter()
   const [form, setForm] = useState<FormState>(defaultState)
   const [urlTypeLocked, setUrlTypeLocked] = useState(false)
@@ -530,9 +543,15 @@ export default function GenerateClient() {
         <Link href="/">
           <Image src="/logo.png" alt="BillingBee" width={120} height={31} className="object-contain brightness-0" />
         </Link>
-        <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-          Sign in
-        </Link>
+        {loggedIn ? (
+          <Link href="/dashboard" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+            Dashboard →
+          </Link>
+        ) : (
+          <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+            Sign in
+          </Link>
+        )}
       </header>
 
       {/* Draft banner */}
@@ -573,7 +592,7 @@ export default function GenerateClient() {
                 ))}
               </div>
             </div>
-            <SignUpInterstitial docType={form.docType} />
+            <SignUpInterstitial docType={form.docType} loggedIn={loggedIn} />
           </div>
         )}
 

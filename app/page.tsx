@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react"
 import { DemoWidget } from "./_demo-widget"
+import { auth } from "@/auth"
 
 // ── Step 2 — Metadata ─────────────────────────────────────────────────────────
 
@@ -228,7 +229,8 @@ function MiniCashflowPreview() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await auth()
   return (
     <div className="min-h-screen bg-white">
 
@@ -245,23 +247,37 @@ export default function HomePage() {
             <Link href="/free-invoice-generator" className="text-slate-600 hover:text-slate-900 transition-colors">
               Free Generator
             </Link>
+            <Link href="/blog" className="text-slate-600 hover:text-slate-900 transition-colors">
+              Blog
+            </Link>
             <Link href="/faq" className="text-slate-600 hover:text-slate-900 transition-colors">
               FAQ
             </Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden sm:block text-sm text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 active:scale-95 min-h-[36px] flex items-center"
-            >
-              Try free →
-            </Link>
+            {session?.user ? (
+              <Link
+                href="/dashboard"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 active:scale-95 min-h-[36px] flex items-center"
+              >
+                Dashboard →
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden sm:block text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 active:scale-95 min-h-[36px] flex items-center"
+                >
+                  Try free →
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -908,6 +924,7 @@ export default function HomePage() {
             </p>
             <ul className="space-y-3">
               {[
+                { href: "/blog", label: "Blog" },
                 { href: "/contact", label: "Contact" },
                 { href: "/privacy-policy", label: "Privacy Policy" },
                 { href: "/terms-service", label: "Terms of Service" },

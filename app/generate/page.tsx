@@ -1,9 +1,7 @@
 import type { Metadata } from "next"
 import { generatePageMetadata } from "@/lib/metadata"
 import GenerateClient from "./generate-client"
-
-// Cache at CDN edge for 1 hour — no DB queries, pure client component
-export const revalidate = 3600
+import { auth } from "@/auth"
 
 export function generateMetadata(): Metadata {
   const meta = generatePageMetadata(
@@ -69,6 +67,7 @@ export function generateMetadata(): Metadata {
   }
 }
 
-export default function GeneratePage() {
-  return <GenerateClient />
+export default async function GeneratePage() {
+  const session = await auth()
+  return <GenerateClient loggedIn={!!session?.user} />
 }
