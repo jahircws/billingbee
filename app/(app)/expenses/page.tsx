@@ -126,10 +126,12 @@ export default async function ExpensesPage({ searchParams }: Props) {
                         )}
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-gray-900">
-                        {fmt(Number(expense.amount))}
+                        {fmtCurrency(Number(expense.amount), expense.currency)}
                       </td>
                       <td className="py-3 px-4 text-center hidden md:table-cell">
-                        {expense.isBillable ? (
+                        {expense.isReimbursed ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700">Billed</span>
+                        ) : expense.isBillable ? (
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700">Unbilled</span>
                         ) : (
                           <span className="text-xs text-gray-400">—</span>
@@ -148,6 +150,7 @@ export default async function ExpensesPage({ searchParams }: Props) {
                           vendor={expense.vendor}
                           categoryId={expense.categoryId}
                           notes={expense.notes}
+                          isConverted={expense.isReimbursed}
                           categories={categories.map((c) => ({ id: c.id, name: c.name, color: c.color }))}
                         />
                       </td>

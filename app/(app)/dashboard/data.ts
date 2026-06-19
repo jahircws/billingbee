@@ -277,18 +277,18 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         },
       }),
 
-      // Expense snapshot — orgCurrency filter
+      // Expense snapshot — all currencies
       prisma.expense.aggregate({
-        where: { orgId, currency: orgCurrency, date: { gte: thisMonthStart, lte: thisMonthEnd } },
+        where: { orgId, date: { gte: thisMonthStart, lte: thisMonthEnd } },
         _sum: { amount: true },
       }),
       prisma.expense.aggregate({
-        where: { orgId, currency: orgCurrency, date: { gte: prevMonthStart, lte: prevMonthEnd } },
+        where: { orgId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
         _sum: { amount: true },
       }),
       prisma.expense.groupBy({
         by: ["categoryId"],
-        where: { orgId, currency: orgCurrency, date: { gte: thisMonthStart, lte: thisMonthEnd } },
+        where: { orgId, date: { gte: thisMonthStart, lte: thisMonthEnd } },
         _sum: { amount: true },
         orderBy: { _sum: { amount: "desc" } },
         take: 1,

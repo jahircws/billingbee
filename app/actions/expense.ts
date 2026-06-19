@@ -14,6 +14,7 @@ interface ExpenseInput {
   receiptUrl?: string
   notes?: string
   isBillable?: boolean
+  isReimbursed?: boolean
   currency?: string
 }
 
@@ -94,6 +95,7 @@ export async function updateExpense(expenseId: string, data: Partial<ExpenseInpu
       ...(data.receiptUrl !== undefined ? { receiptUrl: data.receiptUrl || null } : {}),
       ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
       ...(data.isBillable !== undefined ? { isBillable: data.isBillable } : {}),
+      ...(data.isReimbursed !== undefined ? { isReimbursed: data.isReimbursed } : {}),
     },
   })
   return { expense: serialize(expense) }

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Trash2, Pencil, FileText } from "lucide-react"
-import { deleteExpense } from "@/app/actions/expense"
+import { deleteExpense, updateExpense } from "@/app/actions/expense"
 import ExpenseFormModal, { type Category, type ExpenseInitial } from "./ExpenseFormModal"
 
 interface Props {
@@ -15,10 +15,11 @@ interface Props {
   vendor?: string | null
   categoryId?: string | null
   notes?: string | null
+  isConverted?: boolean
   categories: Category[]
 }
 
-export default function ExpenseRowActions({ expenseId, title, amount, currency, date, vendor, categoryId, notes, categories }: Props) {
+export default function ExpenseRowActions({ expenseId, title, amount, currency, date, vendor, categoryId, notes, isConverted = false, categories }: Props) {
   const router = useRouter()
   const [confirm, setConfirm] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -35,8 +36,9 @@ export default function ExpenseRowActions({ expenseId, title, amount, currency, 
     }
   }
 
-  function handleConvert(e: React.MouseEvent) {
+  async function handleConvert(e: React.MouseEvent) {
     e.stopPropagation()
+    await updateExpense(expenseId, { isReimbursed: true })
     const params = new URLSearchParams({ amount: String(amount), description: title, currency })
     router.push(`/invoices/new?${params.toString()}`)
   }
@@ -55,8 +57,9 @@ export default function ExpenseRowActions({ expenseId, title, amount, currency, 
         </button>
         <button
           onClick={handleConvert}
-          className="p-1.5 text-gray-300 hover:text-emerald-600 transition-colors rounded"
-          title="Convert to invoice"
+          disabled={isConverted}
+          className={`p-1.5 transition-colors rounded ${isConverted ? "text-gray-200 cursor-not-allowed" : "text-gray-300 hover:text-emerald-600"}`}
+          title={isConverted ? "Already converted to invoice" : "Convert to invoice"}
         >
           <FileText className="w-3.5 h-3.5" />
         </button>
