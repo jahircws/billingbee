@@ -74,8 +74,16 @@ export function NotificationBell() {
 
       {open && (
         <div className="absolute right-0 top-full mt-1 z-30 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-gray-100">
+          <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
             <p className="text-sm font-semibold text-gray-800">Notifications</p>
+            {items && items.length > 0 && (
+              <button
+                onClick={() => { setItems([]); setCount(0) }}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Mark all read
+              </button>
+            )}
           </div>
           <div className="max-h-96 overflow-y-auto">
             {items === null ? (
