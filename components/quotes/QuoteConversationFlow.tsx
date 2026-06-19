@@ -21,12 +21,22 @@ interface ExtractedData {
   confidence: "high" | "medium" | "low"
 }
 
+interface SavedItem {
+  id: string
+  name: string
+  description: string | null
+  unitPrice: number
+  taxRate: number
+  hsn: string | null
+}
+
 interface Props {
   clients: Client[]
   isPro?: boolean
+  savedItems?: SavedItem[]
 }
 
-export default function QuoteConversationFlow({ clients, isPro = false }: Props) {
+export default function QuoteConversationFlow({ clients, isPro = false, savedItems = [] }: Props) {
   const [step, setStep] = useState<"paste" | "review" | "manual">("paste")
   const [text, setText] = useState("")
   const [extracting, setExtracting] = useState(false)
@@ -70,7 +80,7 @@ export default function QuoteConversationFlow({ clients, isPro = false }: Props)
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to conversation paste
         </button>
-        <InvoiceForm type="quote" clients={clients} isPro={isPro} />
+        <InvoiceForm type="quote" clients={clients} isPro={isPro} savedItems={savedItems} />
       </div>
     )
   }
@@ -126,6 +136,7 @@ export default function QuoteConversationFlow({ clients, isPro = false }: Props)
           type="quote"
           clients={clients}
           isPro={isPro}
+          savedItems={savedItems}
           defaultClientId={matchedClient?.id}
           defaultClientName={extracted.clientName ?? undefined}
           defaultAmount={defaultAmount}
