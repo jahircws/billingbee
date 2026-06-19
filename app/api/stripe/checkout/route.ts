@@ -30,14 +30,25 @@ export async function POST(req: NextRequest) {
     await prisma.organization.update({ where: { id: orgId }, data: { stripeCustomerId: customerId } })
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId ?? process.env.STRIPE_PRICE_PRO_MONTHLY, quantity: 1 }],
-    subscription_data: { metadata: { orgId } },
-    success_url: `${base}/dashboard?upgraded=true`,
-    cancel_url: `${base}/dashboard`,
-  })
+  const resolvedPriceId = priceId ?? process.env.STRIPE_PRICE_PRO_MONTHLY
+  if (!resolvedPriceId) {
+    return NextResponse.json({ error: "Stripe price not configured" }, { status: 500 })
+  }
+
+  let session
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
+      subscription_data: { metadata: { orgId } },
+      success_url: `${base}/dashboard?upgraded=true`,
+      cancel_url: `${base}/dashboard`,
+    })
+  } catch (err) {
+    console.error("[stripe/checkout]", err)
+    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
+  }
 
   return NextResponse.json({ url: session.url })
 }
