@@ -77,6 +77,11 @@ export async function createClient(data: ClientInput) {
 
   if (!data.name?.trim()) return { error: "Name is required" }
 
+  if (data.email) {
+    const existing = await prisma.client.findFirst({ where: { orgId, email: data.email } })
+    if (existing) return { error: `A client with email ${data.email} already exists (${existing.name})` }
+  }
+
   const limit = await checkClientLimit(orgId)
   if (!limit.allowed) {
     return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
