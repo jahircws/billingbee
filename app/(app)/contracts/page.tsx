@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Plus, FileCheck2 } from "lucide-react"
+import ContractRowActions from "./ContractRowActions"
 
 export const metadata = { ...privateMetadata, title: "Contracts" }
 export const dynamic = "force-dynamic"
@@ -117,6 +118,7 @@ export default async function ContractsPage({ searchParams }: Props) {
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Created</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Sent</th>
                     <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden lg:table-cell">Signed</th>
+                    <th className="py-3 px-4 w-10" />
                   </tr>
                 </thead>
                 <tbody>
@@ -144,6 +146,9 @@ export default async function ContractsPage({ searchParams }: Props) {
                       </td>
                       <td className="py-3 px-4 text-right text-gray-500 hidden lg:table-cell">
                         {contract.signedAt ? format(contract.signedAt, "d MMM yyyy") : "—"}
+                      </td>
+                      <td className="py-3 px-2 text-right">
+                        <ContractRowActions contractId={contract.id} title={contract.title} status={contract.status} />
                       </td>
                     </tr>
                     )

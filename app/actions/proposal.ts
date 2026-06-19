@@ -334,6 +334,18 @@ export async function updateProposal(
   return { proposal: serialize(proposal) }
 }
 
+export async function deleteProposal(proposalId: string) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const existing = await prisma.proposal.findUnique({ where: { id: proposalId, orgId } })
+  if (!existing) return { error: "Proposal not found" }
+
+  await prisma.proposal.delete({ where: { id: proposalId } })
+  return { success: true }
+}
+
 export async function updateProposalStatus(proposalId: string, status: string) {
   const session = await auth()
   const orgId = session?.user?.orgId

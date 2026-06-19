@@ -7,6 +7,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import { Plus, FileText } from "lucide-react"
 import NewProposalButton from "./NewProposalButton"
+import ProposalRowActions from "./ProposalRowActions"
 
 export const metadata = { ...privateMetadata, title: "Proposals" }
 export const dynamic = "force-dynamic"
@@ -18,14 +19,20 @@ const statusColor: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-700",
 }
 
-export default async function ProposalsPage() {
+interface Props {
+  searchParams: Promise<{ status?: string }>
+}
+
+export default async function ProposalsPage({ searchParams }: Props) {
   const session = await auth()
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
 
+  const { status } = await searchParams
+
   const [proposals, clients] = await Promise.all([
     prisma.proposal.findMany({
-      where: { orgId },
+      where: { orgId, ...(status ? { status: status as never } : {}) },
       include: { client: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
     }),
@@ -45,6 +52,26 @@ export default async function ProposalsPage() {
           <NewProposalButton clients={clients} />
         </div>
 
+        {/* Status filter */}
+        <form method="GET" className="flex gap-2 flex-wrap">
+          <select
+            name="status"
+            defaultValue={status ?? ""}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          >
+            <option value="">All statuses</option>
+            {["DRAFT", "SENT", "ACCEPTED", "REJECTED"].map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <button type="submit" className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg">
+            Filter
+          </button>
+          {status && (
+            <a href="/proposals" className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2">Clear</a>
+          )}
+        </form>
+
         {proposals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FileText className="w-10 h-10 text-gray-300 mb-3" />
@@ -60,6 +87,7 @@ export default async function ProposalsPage() {
                   <th className="py-3 px-4 text-left text-xs text-gray-400 font-medium hidden md:table-cell">Client</th>
                   <th className="py-3 px-4 text-center text-xs text-gray-400 font-medium">Status</th>
                   <th className="py-3 px-4 text-right text-xs text-gray-400 font-medium hidden md:table-cell">Created</th>
+                  <th className="py-3 px-4 w-10" />
                 </tr>
               </thead>
               <tbody>
@@ -70,7 +98,7 @@ export default async function ProposalsPage() {
                         {p.title}
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-gray-500 hidden md:table-cell">{p.client.name}</td>
+                    <td className="py-3 px-4 text-gray-500 hidden md:table-cell">{(p as { client?: { name: string } }).client?.name}</td>
                     <td className="py-3 px-4 text-center">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[p.status] ?? "bg-gray-100 text-gray-600"}`}>
                         {p.status}
@@ -78,6 +106,9 @@ export default async function ProposalsPage() {
                     </td>
                     <td className="py-3 px-4 text-right text-gray-400 hidden md:table-cell">
                       {format(p.createdAt, "d MMM yyyy")}
+                    </td>
+                    <td className="py-3 px-2 text-right">
+                      <ProposalRowActions proposalId={p.id} title={p.title} />
                     </td>
                   </tr>
                 ))}
