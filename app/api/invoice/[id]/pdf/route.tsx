@@ -8,6 +8,14 @@ import path from "path"
 import QRCode from "qrcode"
 import { generatePaymentToken } from "@/lib/payment-token"
 
+const COUNTRY_NAMES: Record<string, string> = {
+  IN: "India", US: "United States", GB: "United Kingdom", AU: "Australia",
+  CA: "Canada", SG: "Singapore", AE: "United Arab Emirates", DE: "Germany",
+  FR: "France", NL: "Netherlands", JP: "Japan", NZ: "New Zealand",
+  ZA: "South Africa", NG: "Nigeria", KE: "Kenya", BR: "Brazil",
+  MX: "Mexico", AR: "Argentina", PK: "Pakistan", BD: "Bangladesh",
+}
+
 // Built-in Helvetica has no glyph for ₹ / € / £ (it renders garbage like "¹"),
 // so register DejaVu Sans, which covers all the currency symbols we format.
 Font.register({
@@ -193,9 +201,11 @@ export async function GET(
             {invoice.client.phone && <Text style={styles.value}>{invoice.client.phone}</Text>}
             {invoice.client.address && <Text style={styles.value}>{invoice.client.address}</Text>}
             {clientCityState && <Text style={styles.value}>{clientCityState}</Text>}
-            {(invoice.client as { country?: string | null }).country && (invoice.client as { country?: string | null }).country !== "IN" && (
-              <Text style={styles.value}>{(invoice.client as { country?: string | null }).country}</Text>
-            )}
+            {(() => {
+              const cc = (invoice.client as { country?: string | null }).country
+              if (!cc || cc === "IN") return null
+              return <Text style={styles.value}>{COUNTRY_NAMES[cc] ?? cc}</Text>
+            })()}
             {(invoice.client as { gstin?: string | null }).gstin && (
               <Text style={{ ...styles.value, color: "#6b7280" }}>GSTIN: {(invoice.client as { gstin?: string | null }).gstin}</Text>
             )}
