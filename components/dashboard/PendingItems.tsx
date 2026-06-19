@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, FileText, FileSignature } from "lucide-react"
 import { differenceInDays } from "date-fns"
 
 interface PendingProposal {
@@ -40,7 +40,15 @@ export default function PendingItems({ proposals, contracts }: Props) {
       {!hasProposals && !hasContracts ? (
         <div className="flex flex-col items-center py-4 gap-2 text-center">
           <CheckCircle size={20} className="text-emerald-500" />
-          <p className="text-sm text-slate-500">No pending items</p>
+          <p className="text-sm text-slate-500">All clear — nothing awaiting response</p>
+          <div className="flex gap-3 mt-1">
+            <Link href="/proposals" className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700">
+              <FileText size={12} /> Proposals
+            </Link>
+            <Link href="/contracts" className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700">
+              <FileSignature size={12} /> Contracts
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-1">

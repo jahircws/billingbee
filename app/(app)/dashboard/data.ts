@@ -126,14 +126,14 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
     const prevMonthEnd = endOfMonth(subMonths(now, 1))
     const monthRanges = buildMonthRanges(now)
 
-    // Revenue chart: 6 pairs of queries filtered to orgCurrency.
-    // A bar chart cannot mix currencies — we show one currency and label it.
+    // Revenue chart: 6 pairs of queries across all currencies.
+    // Trend bars are more useful than empty bars — we aggregate all currencies
+    // and note "All currencies" in the chart label.
     const chartPaidQueries = monthRanges.map((m) =>
       prisma.payment.aggregate({
         where: {
           orgId,
-          currency: orgCurrency,
-          createdAt: { gte: m.start, lte: m.end },
+          paidAt: { gte: m.start, lte: m.end },
         },
         _sum: { amount: true },
       })
@@ -142,7 +142,6 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       prisma.invoice.aggregate({
         where: {
           orgId,
-          currency: orgCurrency,
           issueDate: { gte: m.start, lte: m.end },
           status: { in: ["UNPAID", "OVERDUE"] },
         },
@@ -214,7 +213,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         },
         _sum: { amount: true },
       }),
-      prisma.proposal.count({ where: { orgId, status: "SENT" } }),
+      prisma.proposal.count({ where: { orgId, status: { in: ["SENT", "ACCEPTED"] } } }),
       prisma.client.count({ where: { orgId } }),
 
       // Recent invoices — all currencies shown (with per-row currency)

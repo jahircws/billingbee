@@ -68,7 +68,7 @@ export default function RevenueChart({ months, currency }: Props) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-semibold text-slate-700">Revenue — last 6 months ({currency})</p>
+        <p className="text-sm font-semibold text-slate-700">Revenue — last 6 months</p>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
