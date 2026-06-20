@@ -21,7 +21,10 @@ export default async function AdminUserDetailPage({ params, searchParams }: Page
       orgUsers: {
         include: {
           org: {
-            include: { _count: { select: { invoices: true, clients: true } } },
+            include: {
+                _count: { select: { invoices: true, clients: true } },
+                invoices: { orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } },
+              },
           },
         },
       },
@@ -96,6 +99,9 @@ export default async function AdminUserDetailPage({ params, searchParams }: Page
   }
 
   const totalInvoices = user.orgUsers.reduce((sum, ou) => sum + ou.org._count.invoices, 0)
+  const lastActive = user.orgUsers
+    .flatMap((ou) => ou.org.invoices.map((inv: { createdAt: Date }) => inv.createdAt))
+    .sort((a, b) => b.getTime() - a.getTime())[0] ?? null
 
   return (
     <div className="p-8 max-w-4xl">
@@ -129,6 +135,7 @@ export default async function AdminUserDetailPage({ params, searchParams }: Page
           {[
             ["Email", user.email],
             ["Name", user.name ?? "—"],
+            ["Last Active", lastActive ? new Date(lastActive).toLocaleString() : "—"],
             ["Last Login", user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"],
             ["Joined", new Date(user.createdAt).toLocaleString()],
             ["Organizations", user.orgUsers.length.toString()],

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 
 const PAGE_SIZE = 50
 
-type SortField = "name" | "lastLogin" | "createdAt" | "invoices"
+type SortField = "name" | "lastLogin" | "lastActive" | "createdAt" | "invoices"
 type SortDir = "asc" | "desc"
 
 interface PageProps {
@@ -69,8 +69,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     orderBy = { lastLoginAt: { sort: sortDir, nulls: "last" as const } }
   } else if (sortField === "name") {
     orderBy = { name: sortDir }
-  } else if (sortField === "invoices") {
-    // Derived — sort post-query
+  } else if (sortField === "invoices" || sortField === "lastActive") {
     orderBy = { createdAt: "desc" }
   } else {
     orderBy = { createdAt: sortDir }
@@ -83,7 +82,14 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         orgUsers: {
           include: {
             org: {
-              include: { _count: { select: { invoices: true } } },
+              include: {
+                _count: { select: { invoices: true } },
+                invoices: {
+                  orderBy: { createdAt: "desc" },
+                  take: 1,
+                  select: { createdAt: true },
+                },
+              },
             },
           },
         },
@@ -95,15 +101,25 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     prisma.user.count({ where }),
   ])
 
-  const enriched = users.map((u) => ({
-    ...u,
-    totalInvoices: u.orgUsers.reduce((sum, ou) => sum + ou.org._count.invoices, 0),
-  }))
+  const enriched = users.map((u) => {
+    const totalInvoices = u.orgUsers.reduce((sum, ou) => sum + ou.org._count.invoices, 0)
+    const lastActive = u.orgUsers
+      .flatMap((ou) => ou.org.invoices.map((inv) => inv.createdAt))
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? null
+    return { ...u, totalInvoices, lastActive }
+  })
 
   if (sortField === "invoices") {
     enriched.sort((a, b) =>
       sortDir === "desc" ? b.totalInvoices - a.totalInvoices : a.totalInvoices - b.totalInvoices
     )
+  }
+  if (sortField === "lastActive") {
+    enriched.sort((a, b) => {
+      const ta = a.lastActive?.getTime() ?? 0
+      const tb = b.lastActive?.getTime() ?? 0
+      return sortDir === "desc" ? tb - ta : ta - tb
+    })
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
@@ -156,6 +172,9 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                 <SortHeader label="Invoices" field="invoices" current={sortField} dir={sortDir} q={q} />
               </th>
               <th className="text-left px-5 py-3 font-medium">
+                <SortHeader label="Last Active" field="lastActive" current={sortField} dir={sortDir} q={q} />
+              </th>
+              <th className="text-left px-5 py-3 font-medium">
                 <SortHeader label="Last Login" field="lastLogin" current={sortField} dir={sortDir} q={q} />
               </th>
               <th className="text-left px-5 py-3 font-medium">
@@ -188,6 +207,9 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                   </div>
                 </td>
                 <td className="px-5 py-3 text-right text-gray-300">{user.totalInvoices}</td>
+                <td className="px-5 py-3 text-gray-400 text-xs">
+                  {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : <span className="text-gray-600">—</span>}
+                </td>
                 <td className="px-5 py-3 text-gray-400 text-xs">
                   {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : <span className="text-gray-600">Never</span>}
                 </td>
