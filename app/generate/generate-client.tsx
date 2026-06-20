@@ -580,7 +580,10 @@ export default function GenerateClient({ loggedIn = false }: { loggedIn?: boolea
                 {docTypes.map((dt) => (
                   <button
                     key={dt.id}
-                    onClick={() => set("docType", dt.id)}
+                    onClick={() => {
+                      const prefix = dt.id === "invoice" ? "INV" : dt.id === "quote" ? "QUO" : "DOC"
+                      setForm((f) => ({ ...f, docType: dt.id as DocType, docNumber: `${prefix}-001` }))
+                    }}
                     className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                       form.docType === dt.id
                         ? "bg-white text-gray-900 shadow-sm"
@@ -607,7 +610,10 @@ export default function GenerateClient({ loggedIn = false }: { loggedIn?: boolea
                 {docTypes.map((dt) => (
                   <button
                     key={dt.id}
-                    onClick={() => set("docType", dt.id)}
+                    onClick={() => {
+                      const prefix = dt.id === "invoice" ? "INV" : dt.id === "quote" ? "QUO" : "DOC"
+                      setForm((f) => ({ ...f, docType: dt.id as DocType, docNumber: `${prefix}-001` }))
+                    }}
                     className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                       form.docType === dt.id
                         ? "bg-white text-gray-900 shadow-sm"
