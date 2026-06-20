@@ -389,6 +389,11 @@ export async function duplicateInvoice(invoiceId: string) {
   })
   if (!source) return { error: "Not found" }
 
+  const limit = await checkInvoiceLimit(orgId)
+  if (!limit.allowed) {
+    return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
+  }
+
   const invoiceNumber = await nextInvoiceNumber(orgId)
 
   // New issue date → re-resolve the frozen FX rate for today.
@@ -430,6 +435,7 @@ export async function duplicateInvoice(invoiceId: string) {
       },
     },
   })
+  invalidatePlanCache(orgId)
   return { invoice: serialize(invoice) }
 }
 

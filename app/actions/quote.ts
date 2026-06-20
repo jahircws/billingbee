@@ -8,6 +8,7 @@ import { computeInvoiceTotals } from "@/lib/invoice-totals"
 import { sendQuoteEmail } from "@/lib/email"
 import { fmtCurrency } from "@/lib/currency"
 import { addDays } from "date-fns"
+import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
 
 interface LineItemInput {
   description: string
@@ -217,6 +218,11 @@ export async function convertToInvoice(quoteId: string) {
   if (!quote) return { error: "Not found" }
   if (quote.status === "CONVERTED" as never) return { error: "Already converted" }
 
+  const limit = await checkInvoiceLimit(orgId)
+  if (!limit.allowed) {
+    return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
+  }
+
   const count = await prisma.invoice.count({ where: { orgId } })
   const invoiceNumber = `INV-${String(count + 1).padStart(3, "0")}`
 
@@ -261,5 +267,6 @@ export async function convertToInvoice(quoteId: string) {
     data: { status: "CONVERTED" },
   })
 
+  invalidatePlanCache(orgId)
   return { invoice: serialize(invoice) }
 }
