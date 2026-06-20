@@ -43,6 +43,7 @@ function UsageBar({ label, current, limit }: { label: string; current: number; l
 
 export default function PlanTab({ org, invoiceCount, clientCount }: Props) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const isPro = org.plan === "pro" || org.plan === "business"
   const isBusiness = org.plan === "business"
 
@@ -59,22 +60,42 @@ export default function PlanTab({ org, invoiceCount, clientCount }: Props) {
 
   async function handleUpgrade() {
     setLoading(true)
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else setLoading(false)
+    setError(null)
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setError(data.error ?? "Failed to start checkout. Please try again.")
+        setLoading(false)
+      }
+    } catch {
+      setError("Network error. Please try again.")
+      setLoading(false)
+    }
   }
 
   async function handlePortal() {
     setLoading(true)
-    const res = await fetch("/api/stripe/portal", { method: "POST" })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else setLoading(false)
+    setError(null)
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setError(data.error ?? "Failed to open billing portal. Please try again.")
+        setLoading(false)
+      }
+    } catch {
+      setError("Network error. Please try again.")
+      setLoading(false)
+    }
   }
 
   const planLabel = isBusiness ? "Business" : isPro ? "Pro" : "Free"
@@ -148,6 +169,13 @@ export default function PlanTab({ org, invoiceCount, clientCount }: Props) {
           limit={isPro ? null : FREE_LIMITS.clients}
         />
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
 
       {/* Actions */}
       {isPro ? (
