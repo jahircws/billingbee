@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { MoreHorizontal, Send, CheckCircle, Trash2, Copy, ExternalLink, Edit2, Bell, Link2, Check } from "lucide-react"
 import { sendInvoice, deleteInvoice, updateInvoiceStatus, duplicateInvoice, sendReminder } from "@/app/actions/invoices"
+import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Props {
   invoiceId: string
@@ -62,13 +63,16 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
   }
 
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
   async function run(key: string, fn: () => Promise<{ error?: unknown } | { success?: boolean } | unknown>) {
     setLoading(key)
     setOpen(false)
     try {
-      const result = await fn() as { error?: string } | null
-      if (result && "error" in result && result.error) {
+      const result = await fn() as { error?: string; current?: number; limit?: number } | null
+      if (result && "error" in result && result.error === "LIMIT_REACHED") {
+        setLimitReached({ current: result.current as number, limit: result.limit as number })
+      } else if (result && "error" in result && result.error) {
         setToast({ msg: String(result.error), ok: false })
       } else if (key === "send") {
         setToast({ msg: "Invoice sent to client", ok: true })
@@ -90,6 +94,14 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
 
   return (
     <>
+      {limitReached && (
+        <UpgradeModal
+          current={limitReached.current}
+          limit={limitReached.limit}
+          type="invoice"
+          onClose={() => setLimitReached(null)}
+        />
+      )}
       {/* Toast */}
       {toast && (
         <div

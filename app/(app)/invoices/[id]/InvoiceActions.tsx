@@ -12,6 +12,7 @@ import {
   Send, Trash2, Copy, CheckCircle, Download,
   MoreHorizontal, Link2, Check, Pencil,
 } from "lucide-react"
+import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Props {
   invoiceId: string
@@ -44,13 +45,16 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
   async function run(key: string, fn: () => Promise<unknown>) {
     setLoading(key)
     setMsg(null)
     try {
-      const res = await fn() as { error?: string; success?: boolean }
-      if (res && "error" in res && res.error) {
+      const res = await fn() as { error?: string; current?: number; limit?: number; success?: boolean }
+      if (res && "error" in res && res.error === "LIMIT_REACHED") {
+        setLimitReached({ current: res.current as number, limit: res.limit as number })
+      } else if (res && "error" in res && res.error) {
         setMsg({ text: res.error, ok: false })
       } else {
         setMsg({ text: key === "send" ? "Invoice sent!" : key === "delete" ? "Deleted" : key === "paid" ? "Marked as paid" : "Done", ok: true })
@@ -75,6 +79,14 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {limitReached && (
+        <UpgradeModal
+          current={limitReached.current}
+          limit={limitReached.limit}
+          type="invoice"
+          onClose={() => setLimitReached(null)}
+        />
+      )}
       {/* Send */}
       {clientEmail && !isPaid && (
         <button

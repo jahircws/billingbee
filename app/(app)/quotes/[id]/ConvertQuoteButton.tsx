@@ -3,10 +3,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { convertToInvoice } from "@/app/actions/quote"
+import UpgradeModal from "@/components/billing/UpgradeModal"
 
 export default function ConvertQuoteButton({ quoteId }: { quoteId: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
   async function handleConvert() {
     if (!confirm("Convert this quote to an invoice?")) return
@@ -14,6 +16,10 @@ export default function ConvertQuoteButton({ quoteId }: { quoteId: string }) {
     try {
       const result = await convertToInvoice(quoteId)
       if ("error" in result) {
+        if (result.error === "LIMIT_REACHED" && "current" in result) {
+          setLimitReached({ current: result.current as number, limit: result.limit as number })
+          return
+        }
         alert(result.error)
         return
       }
@@ -26,12 +32,22 @@ export default function ConvertQuoteButton({ quoteId }: { quoteId: string }) {
   }
 
   return (
-    <button
-      onClick={handleConvert}
-      disabled={loading}
-      className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-60"
-    >
-      {loading ? "Converting…" : "Convert to invoice"}
-    </button>
+    <>
+      {limitReached && (
+        <UpgradeModal
+          current={limitReached.current}
+          limit={limitReached.limit}
+          type="invoice"
+          onClose={() => setLimitReached(null)}
+        />
+      )}
+      <button
+        onClick={handleConvert}
+        disabled={loading}
+        className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-60"
+      >
+        {loading ? "Converting…" : "Convert to invoice"}
+      </button>
+    </>
   )
 }
