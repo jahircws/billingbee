@@ -25,8 +25,8 @@ import { auth } from "@/auth"
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "BillingBee — AI Invoicing & Payments for Freelancers",
-    "From proposal to payment — BillingBee writes proposals, signs contracts, collects payments, and follows up automatically. Stripe, Razorpay, PayPal. Free to start.",
+    "BillingBee — Free Invoicing & Billing Software for Freelancers",
+    "Free invoicing software for freelancers and small businesses. Create proposals, send invoices, collect payments via Stripe, Razorpay & PayPal. No card required.",
     "/",
     {
       keywords: [
@@ -42,6 +42,7 @@ export const metadata: Metadata = {
       ],
     },
   ),
+  alternates: { canonical: "https://www.billingbee.co/" },
   other: {
     "application/ld+json": JSON.stringify([
       {
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
         name: "BillingBee",
         url: "https://billingbee.co",
         logo: "https://billingbee.co/og-image.png",
-        sameAs: ["https://twitter.com/billingbeeapp"],
+        sameAs: ["https://twitter.com/billing_bee"],
         contactPoint: {
           "@type": "ContactPoint",
           email: "hello@billingbee.co",
@@ -306,7 +307,7 @@ export default async function HomePage() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
             <span>✦</span>
-            AI-Powered Client Revenue Platform
+            Free Invoicing & Billing Software · AI-Powered
           </div>
 
           {/* H1 — leads with user emotion, not product category */}
