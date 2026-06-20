@@ -3,11 +3,12 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, Building2, Cpu, LogOut, DollarSign, Bug } from "lucide-react"
+import { LayoutDashboard, Building2, Cpu, LogOut, DollarSign, Bug, Users } from "lucide-react"
 
 const NAV = [
   { href: "/admin", icon: LayoutDashboard, label: "Overview" },
   { href: "/admin/orgs", icon: Building2, label: "Organizations" },
+  { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/revenue", icon: DollarSign, label: "Revenue" },
   { href: "/admin/ai", icon: Cpu, label: "AI Usage" },
   { href: "/admin/bugs", icon: Bug, label: "Bug Reports" },

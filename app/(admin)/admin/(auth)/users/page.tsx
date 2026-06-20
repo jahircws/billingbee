@@ -2,17 +2,16 @@ import { requireAdminSession } from "@/lib/admin-auth"
 import prisma from "@/lib/db"
 import Link from "next/link"
 import { Search, ChevronUp, ChevronDown } from "lucide-react"
-import InlinePlanSelect from "./InlinePlanSelect"
 
 export const dynamic = "force-dynamic"
 
 const PAGE_SIZE = 50
 
-type SortField = "name" | "invoices" | "lastActive" | "createdAt"
+type SortField = "name" | "lastLogin" | "createdAt" | "invoices"
 type SortDir = "asc" | "desc"
 
 interface PageProps {
-  searchParams: Promise<{ plan?: string; q?: string; page?: string; sort?: string; dir?: string }>
+  searchParams: Promise<{ q?: string; page?: string; sort?: string; dir?: string }>
 }
 
 function SortHeader({
@@ -20,19 +19,18 @@ function SortHeader({
   field,
   current,
   dir,
-  searchParams,
+  q,
 }: {
   label: string
   field: SortField
   current: SortField
   dir: SortDir
-  searchParams: Record<string, string | undefined>
+  q?: string
 }) {
   const isActive = current === field
   const nextDir = isActive && dir === "desc" ? "asc" : "desc"
   const params = new URLSearchParams()
-  if (searchParams.q) params.set("q", searchParams.q)
-  if (searchParams.plan && searchParams.plan !== "all") params.set("plan", searchParams.plan)
+  if (q) params.set("q", q)
   params.set("sort", field)
   params.set("dir", nextDir)
   params.set("page", "1")
@@ -49,75 +47,70 @@ function SortHeader({
   )
 }
 
-export default async function AdminOrgsPage({ searchParams }: PageProps) {
-  const adminSession = await requireAdminSession()
-  const { plan, q, page: pageParam, sort, dir } = await searchParams
+export default async function AdminUsersPage({ searchParams }: PageProps) {
+  await requireAdminSession()
+  const { q, page: pageParam, sort, dir } = await searchParams
 
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1)
   const sortField = (sort as SortField) ?? "createdAt"
   const sortDir = (dir as SortDir) ?? "desc"
 
-  const where: Record<string, unknown> = {}
-  if (plan && plan !== "all") where.plan = plan
-  if (q) {
-    where.OR = [
-      { name: { contains: q, mode: "insensitive" } },
-      { email: { contains: q, mode: "insensitive" } },
-      { slug: { contains: q, mode: "insensitive" } },
-    ]
-  }
+  const where = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" as const } },
+          { email: { contains: q, mode: "insensitive" as const } },
+        ],
+      }
+    : {}
 
   let orderBy: Record<string, unknown>
-  if (sortField === "invoices") {
-    orderBy = { invoices: { _count: sortDir } }
-  } else if (sortField === "lastActive") {
-    // Sort by most recent invoice date — fetched post-query
-    orderBy = { createdAt: "desc" } // fallback; we re-sort after enriching
+  if (sortField === "lastLogin") {
+    orderBy = { lastLoginAt: { sort: sortDir, nulls: "last" as const } }
   } else if (sortField === "name") {
     orderBy = { name: sortDir }
+  } else if (sortField === "invoices") {
+    // Derived — sort post-query
+    orderBy = { createdAt: "desc" }
   } else {
     orderBy = { createdAt: sortDir }
   }
 
-  const [orgs, total] = await Promise.all([
-    prisma.organization.findMany({
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
       where,
       include: {
-        _count: { select: { invoices: true } },
-        invoices: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { createdAt: true },
+        orgUsers: {
+          include: {
+            org: {
+              include: { _count: { select: { invoices: true } } },
+            },
+          },
         },
       },
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    prisma.organization.count({ where }),
+    prisma.user.count({ where }),
   ])
 
-  // For lastActive sort, re-sort in JS after enriching
-  const enriched = orgs.map((org) => ({
-    ...org,
-    lastActive: org.invoices[0]?.createdAt ?? null,
+  const enriched = users.map((u) => ({
+    ...u,
+    totalInvoices: u.orgUsers.reduce((sum, ou) => sum + ou.org._count.invoices, 0),
   }))
 
-  if (sortField === "lastActive") {
-    enriched.sort((a, b) => {
-      const ta = a.lastActive?.getTime() ?? 0
-      const tb = b.lastActive?.getTime() ?? 0
-      return sortDir === "desc" ? tb - ta : ta - tb
-    })
+  if (sortField === "invoices") {
+    enriched.sort((a, b) =>
+      sortDir === "desc" ? b.totalInvoices - a.totalInvoices : a.totalInvoices - b.totalInvoices
+    )
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
-  const spObj = { q, plan, sort, dir }
 
   function pageUrl(p: number) {
     const params = new URLSearchParams()
     if (q) params.set("q", q)
-    if (plan && plan !== "all") params.set("plan", plan)
     if (sort) params.set("sort", sort)
     if (dir) params.set("dir", dir)
     params.set("page", String(p))
@@ -126,11 +119,9 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
 
   return (
     <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Organizations</h1>
-          <p className="text-gray-400 text-sm mt-1">{total.toLocaleString()} organizations</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Users</h1>
+        <p className="text-gray-400 text-sm mt-1">{total.toLocaleString()} users</p>
       </div>
 
       <form method="GET" className="flex gap-3 mb-6">
@@ -139,26 +130,17 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
           <input
             name="q"
             defaultValue={q}
-            placeholder="Search name, email, slug…"
+            placeholder="Search name or email…"
             className="bg-gray-900 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 w-72"
           />
         </div>
-        <select
-          name="plan"
-          defaultValue={plan ?? "all"}
-          className="bg-gray-900 border border-gray-700 text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none"
-        >
-          <option value="all">All plans</option>
-          <option value="free">Free</option>
-          <option value="pro">Pro</option>
-        </select>
         {sort && <input type="hidden" name="sort" value={sort} />}
         {dir && <input type="hidden" name="dir" value={dir} />}
         <button
           type="submit"
           className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg px-4 py-2"
         >
-          Filter
+          Search
         </button>
       </form>
 
@@ -167,46 +149,54 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
           <thead>
             <tr className="border-b border-gray-800 text-xs text-gray-400">
               <th className="text-left px-5 py-3 font-medium">
-                <SortHeader label="Organization" field="name" current={sortField} dir={sortDir} searchParams={spObj} />
+                <SortHeader label="User" field="name" current={sortField} dir={sortDir} q={q} />
               </th>
-              <th className="text-left px-5 py-3 font-medium">Plan</th>
+              <th className="text-left px-5 py-3 font-medium">Organizations</th>
               <th className="text-right px-5 py-3 font-medium">
-                <SortHeader label="Invoices" field="invoices" current={sortField} dir={sortDir} searchParams={spObj} />
-              </th>
-              <th className="text-left px-5 py-3 font-medium">Source</th>
-              <th className="text-left px-5 py-3 font-medium">
-                <SortHeader label="Last Active" field="lastActive" current={sortField} dir={sortDir} searchParams={spObj} />
+                <SortHeader label="Invoices" field="invoices" current={sortField} dir={sortDir} q={q} />
               </th>
               <th className="text-left px-5 py-3 font-medium">
-                <SortHeader label="Created" field="createdAt" current={sortField} dir={sortDir} searchParams={spObj} />
+                <SortHeader label="Last Login" field="lastLogin" current={sortField} dir={sortDir} q={q} />
+              </th>
+              <th className="text-left px-5 py-3 font-medium">
+                <SortHeader label="Joined" field="createdAt" current={sortField} dir={sortDir} q={q} />
               </th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
           <tbody>
-            {enriched.map((org) => (
-              <tr key={org.id} className="border-b border-gray-800/60 hover:bg-gray-800/30 transition-colors">
+            {enriched.map((user) => (
+              <tr key={user.id} className="border-b border-gray-800/60 hover:bg-gray-800/30 transition-colors">
                 <td className="px-5 py-3">
-                  <p className="font-medium text-white">{org.name}</p>
-                  <p className="text-gray-500 text-xs">{org.email ?? org.slug}</p>
+                  <p className="font-medium text-white">{user.name ?? "—"}</p>
+                  <p className="text-gray-500 text-xs">{user.email}</p>
                 </td>
                 <td className="px-5 py-3">
-                  <InlinePlanSelect
-                    orgId={org.id}
-                    currentPlan={org.plan}
-                    planExpiry={org.planExpiry?.toISOString() ?? null}
-                    adminId={adminSession.adminId}
-                  />
+                  <div className="flex flex-col gap-0.5">
+                    {user.orgUsers.length === 0 && <span className="text-gray-600 text-xs">—</span>}
+                    {user.orgUsers.map((ou) => (
+                      <div key={ou.id} className="flex items-center gap-1.5">
+                        <Link
+                          href={`/admin/orgs/${ou.orgId}`}
+                          className="text-xs text-emerald-400 hover:text-emerald-300 truncate max-w-[140px]"
+                        >
+                          {ou.org.name}
+                        </Link>
+                        <span className="text-gray-600 text-xs capitalize">{ou.role.toLowerCase()}</span>
+                      </div>
+                    ))}
+                  </div>
                 </td>
-                <td className="px-5 py-3 text-right text-gray-300">{org._count.invoices}</td>
-                <td className="px-5 py-3 text-gray-400 text-xs">{org.acquisitionSource ?? "—"}</td>
+                <td className="px-5 py-3 text-right text-gray-300">{user.totalInvoices}</td>
                 <td className="px-5 py-3 text-gray-400 text-xs">
-                  {org.lastActive ? new Date(org.lastActive).toLocaleDateString() : "—"}
+                  {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : <span className="text-gray-600">Never</span>}
                 </td>
-                <td className="px-5 py-3 text-gray-400 text-xs">{new Date(org.createdAt).toLocaleDateString()}</td>
+                <td className="px-5 py-3 text-gray-400 text-xs">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </td>
                 <td className="px-5 py-3 text-right">
                   <Link
-                    href={`/admin/orgs/${org.id}`}
+                    href={`/admin/users/${user.id}`}
                     className="text-emerald-400 hover:text-emerald-300 text-xs font-medium"
                   >
                     View →
@@ -217,7 +207,7 @@ export default async function AdminOrgsPage({ searchParams }: PageProps) {
           </tbody>
         </table>
         {enriched.length === 0 && (
-          <p className="text-center text-gray-500 py-12">No organizations found</p>
+          <p className="text-center text-gray-500 py-12">No users found</p>
         )}
       </div>
 
