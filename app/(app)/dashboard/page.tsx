@@ -44,11 +44,10 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
       ? prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } })
       : Promise.resolve(null),
     (async () => {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       const [orgRow, clients, sentInvoice, draftInvoice, gateway] = await Promise.all([
         prisma.organization.findUnique({
           where: { id: orgId },
-          select: { gstin: true, address: true, logo: true, createdAt: true },
+          select: { gstin: true, address: true, logo: true },
         }),
         prisma.client.count({ where: { orgId } }),
         prisma.invoice.findFirst({
@@ -62,16 +61,17 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         }),
         prisma.paymentGatewayConfig.findFirst({ where: { orgId, isActive: true }, select: { id: true } }),
       ])
-      const isNewEnough = orgRow ? orgRow.createdAt >= thirtyDaysAgo : false
+      const steps = {
+        account: true,
+        business: !!(orgRow?.gstin || orgRow?.address || orgRow?.logo),
+        client: clients > 0,
+        invoiceSent: !!sentInvoice,
+        gateway: !!gateway,
+      }
+      const coreComplete = steps.account && steps.business && steps.client && steps.invoiceSent
       return {
-        show: isNewEnough,
-        steps: {
-          account: true,
-          business: !!(orgRow?.gstin || orgRow?.address || orgRow?.logo),
-          client: clients > 0,
-          invoiceSent: !!sentInvoice,
-          gateway: !!gateway,
-        },
+        show: !coreComplete,
+        steps,
         draftInvoiceId: draftInvoice?.id ?? null,
       }
     })(),
