@@ -4,7 +4,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
-import { Plus, Users } from "lucide-react"
+import { Users } from "lucide-react"
 import NewClientButton from "./NewClientButton"
 import ClientRowActions from "./ClientRowActions"
 
@@ -46,32 +46,29 @@ export default async function ClientsPage({ searchParams }: Props) {
           <NewClientButton />
         </div>
 
-        <form method="GET" className="flex gap-2">
-          <input
-            name="search"
-            defaultValue={search}
-            placeholder="Search clients…"
-            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          <button type="submit" className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg">
-            Search
-          </button>
-          {search && <a href="/clients" className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2">Clear</a>}
-        </form>
+        {clients.length > 0 && (
+          <form method="GET" className="flex gap-2">
+            <input
+              name="search"
+              defaultValue={search}
+              placeholder="Search clients…"
+              className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <button type="submit" className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg">
+              Search
+            </button>
+            {search && <a href="/clients" className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2">Clear</a>}
+          </form>
+        )}
 
         {clients.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Users className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No clients yet</p>
-            <p className="text-sm text-gray-400 mt-1 mb-5">Upload a chat screenshot or email to extract client details instantly</p>
-            <a
-              href="/invoices/new"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-150"
-            >
-              <Plus className="w-4 h-4" />
-              Create your first invoice
-            </a>
-            <p className="text-xs text-gray-400 mt-3">AI extracts name, email, and project details automatically</p>
+            <div className="mt-5">
+              <NewClientButton />
+            </div>
+            <p className="text-sm text-gray-400 mt-3">or upload a chat screenshot or email to extract client details</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
