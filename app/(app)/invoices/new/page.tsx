@@ -45,7 +45,8 @@ export default async function NewInvoicePage({ searchParams }: Props) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="New Invoice" />
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full pb-20 md:pb-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4 py-6">
         <InvoiceForm
           clients={clients}
           savedItems={items.map((i) => ({ id: i.id, name: i.name, description: i.description, unitPrice: Number(i.unitPrice), taxRate: Number(i.taxRate), hsn: i.hsn }))}
@@ -59,6 +60,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
           defaultCurrency={defaultCurrency}
           uploadMode={mode === "upload"}
         />
+        </div>
       </div>
     </div>
   )
