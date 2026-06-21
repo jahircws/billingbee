@@ -5,8 +5,7 @@ import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
-import { Plus, FileText } from "lucide-react"
-import NewProposalButton from "./NewProposalButton"
+import { Sparkles, FileText } from "lucide-react"
 import ProposalRowActions from "./ProposalRowActions"
 
 export const metadata = { ...privateMetadata, title: "Proposals" }
@@ -30,18 +29,11 @@ export default async function ProposalsPage({ searchParams }: Props) {
 
   const { status } = await searchParams
 
-  const [proposals, clients] = await Promise.all([
-    prisma.proposal.findMany({
-      where: { orgId, ...(status ? { status: status as never } : {}) },
-      include: { client: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.client.findMany({
-      where: { orgId },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
-  ])
+  const proposals = await prisma.proposal.findMany({
+    where: { orgId, ...(status ? { status: status as never } : {}) },
+    include: { client: { select: { name: true } } },
+    orderBy: { createdAt: "desc" },
+  })
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -49,7 +41,13 @@ export default async function ProposalsPage({ searchParams }: Props) {
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 pb-20 md:pb-6">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm text-gray-500">{proposals.length} proposal{proposals.length !== 1 ? "s" : ""}</p>
-          <NewProposalButton clients={clients} />
+          <Link
+            href="/proposals/new"
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+          >
+            <Sparkles className="w-4 h-4" />
+            Generate with AI
+          </Link>
         </div>
 
         {/* Status filter */}

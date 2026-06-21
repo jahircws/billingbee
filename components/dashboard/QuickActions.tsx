@@ -11,7 +11,7 @@ const actions = [
     labelClass: "text-white",
   },
   {
-    href: "/proposals",
+    href: "/proposals/new",
     label: "New Proposal",
     icon: FileText,
     wrapperClass: "bg-violet-50 border border-violet-200",
@@ -45,7 +45,7 @@ export default function QuickActions() {
           <Link
             key={href}
             href={href}
-            className={`rounded-xl p-2 flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-150 hover:shadow-sm ${wrapperClass}`}
+            className={`rounded-xl py-3 px-2 min-h-0 flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-150 hover:shadow-sm ${wrapperClass}`}
           >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconClass}`}>
               <Icon size={15} />
