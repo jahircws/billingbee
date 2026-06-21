@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { DollarSign, TrendingUp, FileSignature, Users } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
@@ -47,7 +48,7 @@ function MultiCurrencyValue({
 
 export default function StatCards({ data, currency }: Props) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
       <div className="bg-white rounded-xl border-l-4 border-l-amber-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
         <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-50">
           <DollarSign size={18} className="text-amber-600" />
@@ -55,7 +56,9 @@ export default function StatCards({ data, currency }: Props) {
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Total outstanding</p>
           <MultiCurrencyValue byCurrency={data.outstandingByCurrency} orgCurrency={currency} />
-          <p className="text-xs text-slate-400 mt-1">unpaid + overdue</p>
+          <Link href="/invoices?status=UNPAID" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
+            Send reminder →
+          </Link>
         </div>
       </div>
 
@@ -66,7 +69,9 @@ export default function StatCards({ data, currency }: Props) {
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Paid this month</p>
           <MultiCurrencyValue byCurrency={data.paidThisMonthByCurrency} orgCurrency={currency} />
-          <p className="text-xs text-slate-400 mt-1">received this month</p>
+          <Link href="/invoices/new" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
+            New invoice →
+          </Link>
         </div>
       </div>
 
@@ -77,7 +82,9 @@ export default function StatCards({ data, currency }: Props) {
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Active proposals</p>
           <p className="text-2xl font-bold text-slate-900 leading-tight">{data.activeProposals}</p>
-          <p className="text-xs text-slate-400 mt-1">awaiting response</p>
+          <Link href="/proposals" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
+            New proposal →
+          </Link>
         </div>
       </div>
 
@@ -88,7 +95,9 @@ export default function StatCards({ data, currency }: Props) {
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Total clients</p>
           <p className="text-2xl font-bold text-slate-900 leading-tight">{data.clientCount}</p>
-          <p className="text-xs text-slate-400 mt-1">all time</p>
+          <Link href="/clients" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
+            Add client →
+          </Link>
         </div>
       </div>
     </div>
