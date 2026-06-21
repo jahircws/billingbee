@@ -26,6 +26,11 @@ export default function NewContractForm({ clients, orgName }: Props) {
   const [content, setContent] = useState("")
   const [error, setError] = useState("")
 
+  // Optional details (used as AI context, not persisted)
+  const [contractValue, setContractValue] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [duration, setDuration] = useState("")
+
   // AI modal state
   const [aiOpen, setAiOpen] = useState(false)
   const [aiScope, setAiScope] = useState("")
@@ -39,6 +44,15 @@ export default function NewContractForm({ clients, orgName }: Props) {
 
   const selectedClient = clients.find((c) => c.id === clientId)
 
+  function openAiModal() {
+    if (!clientId) { setError("Select a client first to use AI drafting."); return }
+    setError("")
+    // Pre-populate AI modal from optional detail fields
+    if (contractValue && !aiAmount) setAiAmount(contractValue.replace(/[^\d.]/g, ""))
+    if (duration && !aiTimeline) setAiTimeline(duration)
+    setAiOpen(true)
+  }
+
   async function handleAiGenerate() {
     if (!selectedClient || !aiScope || !aiDeliverables || !aiTimeline || !aiAmount) {
       setAiError("Please fill in all fields before generating.")
@@ -46,10 +60,14 @@ export default function NewContractForm({ clients, orgName }: Props) {
     }
     setAiLoading(true)
     setAiError("")
+    const scopeWithContext = [
+      aiScope,
+      startDate ? `Start date: ${startDate}` : "",
+    ].filter(Boolean).join("\n")
     const result = await generateContractContent({
       clientName: selectedClient.name,
       orgName,
-      scope: aiScope,
+      scope: scopeWithContext,
       deliverables: aiDeliverables,
       timeline: aiTimeline,
       amount: Number(aiAmount),
@@ -85,10 +103,10 @@ export default function NewContractForm({ clients, orgName }: Props) {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Client */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Client</label>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-700">Client</h2>
           <select
             value={clientId}
             onChange={(e) => setClientId(e.target.value)}
@@ -102,9 +120,9 @@ export default function NewContractForm({ clients, orgName }: Props) {
           </select>
         </div>
 
-        {/* Title */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Contract title</label>
+        {/* Contract title */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-700">Contract title</h2>
           <input
             type="text"
             value={title}
@@ -115,27 +133,57 @@ export default function NewContractForm({ clients, orgName }: Props) {
           />
         </div>
 
-        {/* Content */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-700">Contract content</label>
-            <button
-              type="button"
-              onClick={() => {
-                if (!clientId) { setError("Select a client first to use AI drafting."); return }
-                setError("")
-                setAiOpen(true)
-              }}
-              className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Generate with AI ✨
-            </button>
+        {/* Contract details (optional, used as AI context) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-700">Contract details <span className="font-normal text-gray-400">(optional)</span></h2>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-500">Contract value</label>
+              <input
+                type="text"
+                value={contractValue}
+                onChange={(e) => setContractValue(e.target.value)}
+                placeholder="e.g. ₹25,000"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-500">Start date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-500">Duration</label>
+              <input
+                type="text"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="e.g. 3 months"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Contract content */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-700">Contract content</h2>
+          <button
+            type="button"
+            onClick={openAiModal}
+            className="w-full flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-sm font-medium py-2.5 rounded-lg transition-colors"
+          >
+            <Sparkles className="w-4 h-4" />
+            Generate contract with AI
+          </button>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Paste or type your contract here, or use AI to generate it…"
+            placeholder={`Describe your contract or paste your own content here…\n\nSections to consider:\n- Scope of work\n- Payment terms\n- Timeline & milestones\n- Revision policy\n- Termination clause`}
             rows={16}
             required
             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono leading-relaxed resize-y"
