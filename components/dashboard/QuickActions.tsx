@@ -1,39 +1,54 @@
 import Link from "next/link"
-import { Plus, FileSignature, FileCheck, UserPlus } from "lucide-react"
+import { Plus, FileText, PenLine, UserPlus } from "lucide-react"
+
+const actions = [
+  {
+    href: "/invoices/new",
+    label: "New Invoice",
+    icon: Plus,
+    wrapperClass: "bg-emerald-500 text-white",
+    iconClass: "bg-emerald-400/40",
+  },
+  {
+    href: "/proposals",
+    label: "New Proposal",
+    icon: FileText,
+    wrapperClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    iconClass: "bg-emerald-100",
+  },
+  {
+    href: "/contracts/new",
+    label: "New Contract",
+    icon: PenLine,
+    wrapperClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    iconClass: "bg-emerald-100",
+  },
+  {
+    href: "/clients",
+    label: "New Client",
+    icon: UserPlus,
+    wrapperClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    iconClass: "bg-emerald-100",
+  },
+] as const
 
 export default function QuickActions() {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-      <p className="text-sm font-semibold text-slate-700 mb-3">Quick actions</p>
-      <div className="grid grid-cols-2 gap-2">
-        <Link
-          href="/invoices/new"
-          className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-150 active:scale-95"
-        >
-          <Plus size={15} />
-          New Invoice
-        </Link>
-        <Link
-          href="/proposals"
-          className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium bg-violet-500 hover:bg-violet-600 text-white transition-all duration-150 active:scale-95"
-        >
-          <FileSignature size={15} />
-          New Proposal
-        </Link>
-        <Link
-          href="/contracts/new"
-          className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium bg-slate-700 hover:bg-slate-800 text-white transition-all duration-150 active:scale-95"
-        >
-          <FileCheck size={15} />
-          New Contract
-        </Link>
-        <Link
-          href="/clients"
-          className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all duration-150 active:scale-95"
-        >
-          <UserPlus size={15} />
-          New Client
-        </Link>
+    <div>
+      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Quick actions</p>
+      <div className="grid grid-cols-4 gap-2">
+        {actions.map(({ href, label, icon: Icon, wrapperClass, iconClass }) => (
+          <Link
+            key={href}
+            href={href}
+            className={`rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer transition-all duration-150 hover:shadow-sm ${wrapperClass}`}
+          >
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${iconClass}`}>
+              <Icon size={16} />
+            </div>
+            <span className="text-xs font-medium text-center leading-tight">{label}</span>
+          </Link>
+        ))}
       </div>
     </div>
   )
