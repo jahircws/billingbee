@@ -40,20 +40,22 @@ const liveTools = [
       "Find your minimum hourly rate based on your income goal, hours, overhead costs, and vacation time.",
     badge: null,
   },
-]
-
-const comingSoonTools = [
   {
+    href: "/tools/late-payment-calculator",
     icon: Clock,
     title: "Late Payment Interest Calculator",
-    description: "Calculate interest on overdue invoices. Enter the overdue amount, days late, and interest rate.",
+    description: "Calculate interest on overdue invoices. Enter the overdue amount, due date, and interest rate.",
+    badge: null,
   },
   {
+    href: "/tools/invoice-due-date-calculator",
     icon: CalendarClock,
     title: "Invoice Due Date Calculator",
     description: "Calculate invoice due dates from issue date with Net-15, Net-30, Net-60 and custom payment terms.",
+    badge: null,
   },
 ]
+
 
 export default function ToolsPage() {
   return (
@@ -120,37 +122,6 @@ export default function ToolsPage() {
                     <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
                   </div>
                 </Link>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* Coming soon tools */}
-        <section className="mb-16">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Coming soon</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {comingSoonTools.map((tool) => {
-              const Icon = tool.icon
-              return (
-                <div
-                  key={tool.title}
-                  className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 opacity-60"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-slate-700">{tool.title}</h3>
-                        <span className="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
-                          Coming soon
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-400 leading-relaxed">{tool.description}</p>
-                    </div>
-                  </div>
-                </div>
               )
             })}
           </div>
