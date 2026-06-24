@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Copy, Check, ArrowRight } from "lucide-react"
 
@@ -86,23 +87,20 @@ export default function GSTCalculatorClient() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-emerald-500">BillingBee</span>
+      <header className="bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" alt="BillingBee" width={140} height={28} className="brightness-0" />
           </Link>
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors"
-            >
+            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
               Sign in
             </Link>
             <Link
               href="/register"
-              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors active:scale-95"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all active:scale-95"
             >
-              Get started free
+              Try free →
             </Link>
           </div>
         </div>

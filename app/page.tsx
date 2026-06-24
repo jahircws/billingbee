@@ -248,6 +248,9 @@ export default async function HomePage() {
             <Link href="/free-invoice-generator" className="text-slate-600 hover:text-slate-900 transition-colors">
               Free Generator
             </Link>
+            <Link href="/tools" className="text-slate-600 hover:text-slate-900 transition-colors">
+              Free Tools
+            </Link>
             <Link href="/blog" className="text-slate-600 hover:text-slate-900 transition-colors">
               Blog
             </Link>
@@ -815,6 +818,43 @@ export default async function HomePage() {
         </p>
       </section>
 
+      {/* ── Free Calculators ─────────────────────────────────────────────── */}
+      <section className="bg-white py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">Free Tools</p>
+            <h2 className="text-3xl font-black text-slate-900 mb-3">Free Calculators for Freelancers</h2>
+            <p className="text-slate-500 max-w-xl mx-auto">
+              Handy tools to calculate GST, set your rate, track late payment interest, and more. No signup required.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { href: "/tools/gst-calculator", title: "GST Calculator", desc: "Add or remove GST from any amount. All rates." },
+              { href: "/tools/freelancer-rate-calculator", title: "Freelancer Rate", desc: "Find your minimum hourly rate based on income goal." },
+              { href: "/tools/late-payment-calculator", title: "Late Payment Interest", desc: "Calculate interest to charge on overdue invoices." },
+              { href: "/tools/invoice-due-date-calculator", title: "Invoice Due Date", desc: "Find exact due dates for Net-30, Net-60 and custom terms." },
+            ].map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 rounded-xl p-5 group transition-colors"
+              >
+                <h3 className="font-semibold text-slate-900 group-hover:text-emerald-700 text-sm mb-1.5 transition-colors">
+                  {tool.title}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{tool.desc}</p>
+              </Link>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/tools" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors">
+              View all free tools →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── Step 13 — Final CTA ──────────────────────────────────────────── */}
       <section className="bg-[#1e2330] py-32 px-4 relative overflow-hidden">
         {/* Same background pattern as hero */}
@@ -902,6 +942,7 @@ export default async function HomePage() {
             <ul className="space-y-3">
               {[
                 { href: "/free-invoice-generator", label: "Free Generator" },
+                { href: "/tools", label: "Free Tools" },
                 { href: "/free-invoice-resources", label: "Templates" },
                 { href: "/plans-price", label: "Pricing" },
                 { href: "/faq", label: "FAQ" },
