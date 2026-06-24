@@ -23,6 +23,8 @@ const limiters = {
   extractOrg: makeRateLimit(10, "1 d"),    // authenticated org-based (/dashboard)
   ai: makeRateLimit(30, "1 h"),            // copilot — per org
   login: makeRateLimit(5, "1 m"),          // brute-force protection — per IP
+  startupNames: makeRateLimit(10, "1 h"),  // public tool — per IP
+  latePaymentEmail: makeRateLimit(10, "1 h"), // public tool — per IP
 }
 
 export async function checkRateLimit(

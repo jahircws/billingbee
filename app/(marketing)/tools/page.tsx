@@ -4,6 +4,33 @@ import Link from "next/link"
 import { generatePageMetadata } from "@/lib/metadata"
 import { Calculator, Clock, ArrowRight, CalendarClock, TrendingUp } from "lucide-react"
 
+type AIBadge = "ai"
+
+interface AiTool {
+  href: string
+  emoji: string
+  title: string
+  description: string
+  badge: AIBadge
+}
+
+const aiTools: AiTool[] = [
+  {
+    href: "/tools/startup-name-generator",
+    emoji: "🚀",
+    title: "Startup Name Generator",
+    description: "Describe your business and get 10 unique, creative name ideas with domain availability links instantly.",
+    badge: "ai",
+  },
+  {
+    href: "/tools/late-payment-email-generator",
+    emoji: "✉️",
+    title: "Late Payment Email Generator",
+    description: "Generate professional payment reminder emails in seconds. Choose friendly, firm, or final notice tone.",
+    badge: "ai",
+  },
+]
+
 export const metadata: Metadata = {
   ...generatePageMetadata(
     "Free Tools for Freelancers & Small Businesses | BillingBee",
@@ -93,9 +120,41 @@ export default function ToolsPage() {
           </p>
         </div>
 
+        {/* AI tools */}
+        <section className="mb-8">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">AI-Powered</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {aiTools.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6 group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 text-xl">
+                    {tool.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                        {tool.title}
+                      </h3>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                        AI-Powered
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500 leading-relaxed">{tool.description}</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* Live tools */}
         <section className="mb-12">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Available now</h2>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Calculators</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {liveTools.map((tool) => {
               const Icon = tool.icon
