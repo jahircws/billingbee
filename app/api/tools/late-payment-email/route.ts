@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
     const result = JSON.parse(clean)
 
     return NextResponse.json(result)
-  } catch {
+  } catch (error) {
+    console.error("late-payment-email tool error:", error)
     return NextResponse.json({ error: "Failed to generate email. Please try again." }, { status: 500 })
   }
 }

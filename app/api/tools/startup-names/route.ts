@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
     const names = JSON.parse(clean)
 
     return NextResponse.json({ names })
-  } catch {
+  } catch (error) {
+    console.error("startup-names tool error:", error)
     return NextResponse.json({ error: "Failed to generate names. Please try again." }, { status: 500 })
   }
 }
