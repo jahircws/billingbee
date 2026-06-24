@@ -892,3 +892,14 @@ model EmailOpen {
   @@index([email])
   @@index([openedAt])
 }
+
+model ToolRateLimit {
+  id          String   @id @default(cuid())
+  ip          String
+  tool        String
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+
+  @@unique([ip, tool])
+  @@index([ip, tool])
+}

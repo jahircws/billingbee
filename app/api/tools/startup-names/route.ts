@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
-import { checkRateLimit } from "@/lib/rate-limit"
+import { checkToolRateLimit } from "@/lib/tool-rate-limit"
 
 const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
-  const limited = await checkRateLimit(req, "startupNames")
-  if (limited) return limited
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1"
+  const { allowed } = await checkToolRateLimit(ip, "startup-names")
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded. Try again in an hour." }, { status: 429 })
+  }
 
   const body = await req.json()
   const { description, industry, style, length } = body
