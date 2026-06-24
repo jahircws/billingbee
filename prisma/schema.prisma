@@ -881,3 +881,14 @@ model IssueReport {
   @@index([orgId])
   @@index([createdAt])
 }
+model EmailOpen {
+  id        String   @id @default(cuid())
+  email     String
+  segment   String?
+  openedAt  DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  @@index([email])
+  @@index([openedAt])
+}

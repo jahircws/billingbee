@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
     })
 
     const text = message.content[0].type === "text" ? message.content[0].text : ""
-    const result = JSON.parse(text)
+    const clean = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+    const result = JSON.parse(clean)
 
     return NextResponse.json(result)
   } catch {
