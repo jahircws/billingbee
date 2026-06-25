@@ -41,6 +41,11 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
   })
   const orgCurrency = org?.currency ?? "INR"
 
+  // All-time paid count — used only for the sufficiency gate so orgs with > 12 months history aren't blocked
+  const allTimePaidCount = await db.invoice.count({
+    where: { orgId, status: "PAID" },
+  })
+
   // Query 1 — paid invoices last 12 months, filtered to org currency
   // Simplification: only invoices in org's primary currency are summed; cross-currency invoices excluded.
   const paidInvoices = await db.invoice.findMany({
@@ -235,7 +240,7 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
     clientStats,
     slowPayers,
     dormantClients,
-    hasSufficientData: paidInvoices.length >= 5,
+    hasSufficientData: allTimePaidCount >= 5,
     dataWindowMonths,
   }
 }
