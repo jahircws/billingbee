@@ -619,8 +619,8 @@ export default function InvoiceForm({
         <div className="space-y-3">
           {/* Column headers */}
           <div className="grid grid-cols-12 gap-2 px-1">
-            <span className="col-span-3 text-xs text-gray-400">Description</span>
-            <span className="col-span-1 text-xs text-gray-400 text-center">HSN/SAC</span>
+            <span className={`${currency === 'INR' ? 'col-span-3' : 'col-span-4'} text-xs text-gray-400`}>Description</span>
+            {currency === 'INR' && <span className="col-span-1 text-xs text-gray-400 text-center">HSN/SAC</span>}
             <span className="col-span-1 text-xs text-gray-400 text-center">Qty</span>
             <span className="col-span-2 text-xs text-gray-400 text-right">Price</span>
             <span className="col-span-2 text-xs text-gray-400 text-center">Tax %/₹</span>
@@ -630,7 +630,7 @@ export default function InvoiceForm({
             <div key={idx} className="space-y-1.5">
               <div className="grid grid-cols-12 gap-2 items-center">
                 <input
-                  className="col-span-3 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={`${currency === 'INR' ? 'col-span-3' : 'col-span-4'} text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
                   placeholder="Description"
                   list={savedItems.length > 0 ? "bb-saved-items" : undefined}
                   value={item.description}
@@ -640,12 +640,14 @@ export default function InvoiceForm({
                   }}
                   onKeyDown={(e) => handleKeyDown(e, idx)}
                 />
-                <input
-                  className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="HSN"
-                  value={item.hsn}
-                  onChange={(e) => updateItem(idx, "hsn", e.target.value)}
-                />
+                {currency === 'INR' && (
+                  <input
+                    className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="HSN"
+                    value={item.hsn}
+                    onChange={(e) => updateItem(idx, "hsn", e.target.value)}
+                  />
+                )}
                 <input
                   className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   type="number"

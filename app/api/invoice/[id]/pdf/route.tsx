@@ -253,7 +253,7 @@ export async function GET(
           <View key={item.id} style={styles.tableRow}>
             <View style={styles.descCol}>
               <Text style={styles.td}>{item.description}</Text>
-              {(item as { hsn?: string | null }).hsn && (
+              {invoice.currency === 'INR' && (item as { hsn?: string | null }).hsn && (
                 <Text style={{ ...styles.td, fontSize: 8, color: "#9ca3af" }}>
                   HSN/SAC: {(item as { hsn?: string | null }).hsn}
                 </Text>
