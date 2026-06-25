@@ -154,7 +154,7 @@ export async function GET(
   const supplierStateCode = supplierGstin?.slice(0, 2) || null
   const posStateCode = recipientGstin?.slice(0, 2) || null
   // Only treat as a GST tax invoice when the supplier is registered.
-  const isGstInvoice = !!supplierGstin
+  const isGstInvoice = !!supplierGstin && invoice.currency === "INR"
   // Default to intra-state when we can't compare (safer than over-charging IGST).
   const isInterState =
     !!supplierStateCode && !!posStateCode && supplierStateCode !== posStateCode
@@ -200,7 +200,7 @@ export async function GET(
             {supplierCityState && <Text style={{ ...styles.value, color: "#6b7280" }}>{supplierCityState}</Text>}
             {org?.email && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.email}</Text>}
             {org?.phone && <Text style={{ ...styles.value, color: "#6b7280" }}>{org.phone}</Text>}
-            {supplierGstin && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>GSTIN: {supplierGstin}</Text>}
+            {supplierGstin && invoice.currency === "INR" && <Text style={{ ...styles.value, color: "#6b7280", marginTop: 4 }}>GSTIN: {supplierGstin}</Text>}
             {org?.pan && <Text style={{ ...styles.value, color: "#6b7280" }}>PAN: {org.pan}</Text>}
           </View>
           <View>
@@ -225,7 +225,7 @@ export async function GET(
               if (!cc || cc === "IN") return null
               return <Text style={styles.value}>{COUNTRY_NAMES[cc] ?? cc}</Text>
             })()}
-            {(invoice.client as { gstin?: string | null }).gstin && (
+            {(invoice.client as { gstin?: string | null }).gstin && invoice.currency === "INR" && (
               <Text style={{ ...styles.value, color: "#6b7280" }}>GSTIN: {(invoice.client as { gstin?: string | null }).gstin}</Text>
             )}
           </View>
