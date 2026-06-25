@@ -663,6 +663,90 @@ export async function sendActivationDripEmail({ name, email }: { name: string; e
 
 // ── sendClientMagicLinkEmail ───────────────────────────────────────────────
 
+// ── sendDay5ProNudgeEmail ──────────────────────────────────────────────────
+
+export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string): Promise<void> {
+  const firstName = ownerEmail.split("@")[0]
+  const body = `
+    ${h1(`You're off to a great start on BillingBee`)}
+    ${p(`Hi${orgName ? ` — great to see <strong>${orgName}</strong> up and running` : ""}. You've already created your first invoices, which puts you ahead of most people.`)}
+    ${p(`A quick note on where the free plan ends and where Pro picks up:`)}
+    ${divider()}
+    <table cellpadding="0" cellspacing="0" width="100%" style="font-size:15px;margin:0 0 20px;">
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#374151;">
+          <strong style="color:#059669;">✓</strong>&nbsp; Unlimited invoices <span style="color:#9ca3af;font-size:13px;">(Free = 5/month)</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#374151;">
+          <strong style="color:#059669;">✓</strong>&nbsp; Stripe payments <span style="color:#9ca3af;font-size:13px;">(Free = Razorpay only)</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#374151;">
+          <strong style="color:#059669;">✓</strong>&nbsp; AI Revenue Forecast — know your next 90 days of revenue
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#374151;">
+          <strong style="color:#059669;">✓</strong>&nbsp; No "Powered by BillingBee" watermark on client PDFs
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0;color:#374151;">
+          <strong style="color:#059669;">✓</strong>&nbsp; AI collections — automatic payment reminders, hands-free
+        </td>
+      </tr>
+    </table>
+    ${btn("Upgrade to Pro — $9.99/month →", "https://www.billingbee.co/settings/billing")}
+    ${p(`Questions? Just reply to this email.`)}
+    <p style="margin:0;font-size:15px;color:#374151;">— Amit, Founder @ BillingBee</p>
+  `
+  try {
+    await sendEmail({
+      to: ownerEmail,
+      from: "Amit from BillingBee <amit@billingbee.co>",
+      replyTo: "amit@billingbee.co",
+      subject: "You're off to a great start on BillingBee",
+      html: layout(body, "Here's what Pro unlocks that Free doesn't."),
+    })
+  } catch {
+    // never throw — email failure must not surface
+  }
+}
+
+// ── sendDay14UpgradePushEmail ──────────────────────────────────────────────
+
+export async function sendDay14UpgradePushEmail(orgName: string, ownerEmail: string): Promise<void> {
+  const body = `
+    ${h1(`Don't lose your billing momentum`)}
+    ${p(`You've been using BillingBee for 2 weeks${orgName ? ` at <strong>${orgName}</strong>` : ""} — that's further than most people get.`)}
+    ${p(`On the free plan you get 5 invoices per month. If you're growing, you'll hit that ceiling soon.`)}
+    ${divider()}
+    <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">The Pro feature worth knowing about</p>
+    ${p(`<strong>AI Revenue Forecast</strong> — Pro users can see their predicted revenue for the next 90 days: which clients will pay, which are at risk, and what to expect this quarter. It's the closest thing to a CFO for a one-person business.`)}
+    ${divider()}
+    ${p(`Freelancers using BillingBee Pro collect payments 3x faster, thanks to AI collections that chase late invoices automatically — no awkward follow-up emails from you.`)}
+    ${btn("Start Pro — $9.99/month →", "https://www.billingbee.co/settings/billing")}
+    ${p(`Lock in your momentum before your invoice count resets.`)}
+    <p style="margin:0;font-size:15px;color:#374151;">— Amit, Founder @ BillingBee</p>
+  `
+  try {
+    await sendEmail({
+      to: ownerEmail,
+      from: "Amit from BillingBee <amit@billingbee.co>",
+      replyTo: "amit@billingbee.co",
+      subject: "Don't lose your billing momentum",
+      html: layout(body, "2 weeks in — here's what Pro unlocks before your invoice count resets."),
+    })
+  } catch {
+    // never throw — email failure must not surface
+  }
+}
+
+// ── sendClientMagicLinkEmail ──────────────────────────────────────────────
+
 export async function sendClientMagicLinkEmail(
   clientName: string,
   clientEmail: string,

@@ -8,8 +8,10 @@
 # the app's CRON_SECRET env var. Each endpoint authenticates differently:
 #   - /api/cron/collections   -> header  x-cron-secret: $CRON_SECRET
 #   - /api/cron/trial-expiry  -> header  Authorization: Bearer $CRON_SECRET
-#   - /api/cron/fx-rates      -> header  x-cron-secret: $CRON_SECRET
-#   - /api/health             -> no auth
+#   - /api/cron/fx-rates           -> header  x-cron-secret: $CRON_SECRET
+#   - /api/cron/day5-pro-nudge     -> header  x-cron-secret: $CRON_SECRET
+#   - /api/cron/day14-upgrade-push -> header  x-cron-secret: $CRON_SECRET
+#   - /api/health                  -> no auth
 
 BASE_URL=http://127.0.0.1:3000
 CRON_SECRET=__set_me__
@@ -22,6 +24,12 @@ CRON_SECRET=__set_me__
 
 # FX rates refresh — daily 06:00
 0 6 * * *  curl -fsS -H "x-cron-secret: $CRON_SECRET" "$BASE_URL/api/cron/fx-rates" >/dev/null 2>&1
+
+# Day-5 pro nudge — daily 07:00
+0 7 * * *  curl -fsS -H "x-cron-secret: $CRON_SECRET" "$BASE_URL/api/cron/day5-pro-nudge" >/dev/null 2>&1
+
+# Day-14 upgrade push — daily 07:30
+30 7 * * * curl -fsS -H "x-cron-secret: $CRON_SECRET" "$BASE_URL/api/cron/day14-upgrade-push" >/dev/null 2>&1
 
 # Health check — weekly, Sunday 00:00
 0 0 * * 0  curl -fsS "$BASE_URL/api/health" >/dev/null 2>&1

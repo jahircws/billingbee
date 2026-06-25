@@ -228,7 +228,9 @@ model Organization {
   stripeCustomerId String?   @unique
   isActive         Boolean   @default(true)
   acquisitionSource String?
-  lastForecastAt   DateTime?
+  lastForecastAt        DateTime?
+  day5ProNudgeSentAt    DateTime?
+  day14UpgradePushSentAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
