@@ -6,6 +6,7 @@ import { fmtCurrency } from "@/lib/currency"
 interface TaxRow {
   rate: number
   taxAmount: number
+  name?: string
 }
 
 function handleExport(taxData: TaxRow[]) {
@@ -18,7 +19,7 @@ function handleExport(taxData: TaxRow[]) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
   a.href = url
-  a.download = "gst_report.csv"
+  a.download = "tax_report.csv"
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -73,7 +74,7 @@ export default function TaxTab({ taxData, currency, availableCurrencies = [] }: 
             <tbody>
               {taxData.map((d) => (
                 <tr key={d.rate} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 px-4 font-medium text-gray-800">GST {d.rate}%</td>
+                  <td className="py-2.5 px-4 font-medium text-gray-800">{d.name ?? (currency === "INR" ? "GST" : "Tax")} {d.rate}%</td>
                   <td className="py-2.5 px-4 text-right text-gray-700 font-semibold">{fmt(d.taxAmount)}</td>
                   <td className="py-2.5 px-4 text-right text-gray-500">
                     {total > 0 ? `${((d.taxAmount / total) * 100).toFixed(1)}%` : "—"}

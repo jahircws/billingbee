@@ -26,7 +26,7 @@ const NAV = [
   { href: "/clients", icon: Users, label: "Clients" },
   { href: "/expenses", icon: Receipt, label: "Expenses" },
   { href: "/reports", icon: BarChart3, label: "Reports" },
-  { href: "/tax", icon: Calculator, label: "GST" },
+  { href: "/tax", icon: Calculator, label: "Tax" },
 ]
 
 const BOTTOM = [

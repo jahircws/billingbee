@@ -184,13 +184,15 @@ export default function OrgTab({ org }: { org: Org }) {
       <div className="grid grid-cols-3 gap-3">
         {field("City", "city")}
         {field("State", "state")}
-        {field("Pincode", "pincode")}
+        {field(form.country === "IN" ? "Pincode" : "ZIP / Postal Code", "pincode")}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {field("GSTIN", "gstin")}
-        {field("PAN", "pan")}
-      </div>
+      {form.country === "IN" && (
+        <div className="grid grid-cols-2 gap-3">
+          {field("GSTIN", "gstin")}
+          {field("PAN", "pan")}
+        </div>
+      )}
 
       <div>
         <label className="block text-xs text-gray-500 mb-1">Default currency</label>

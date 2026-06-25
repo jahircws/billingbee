@@ -80,8 +80,7 @@ export default function ContractSignForm({ token, status, signedBy, signedAt }: 
         <p className="text-sm font-semibold text-gray-700">Sign this contract</p>
       </div>
       <p className="text-xs text-gray-500">
-        Your electronic signature is legally binding under the Information Technology Act, 2000 (India).
-        Typing your name below constitutes your agreement to all terms in this document.
+        Your typed name constitutes your digital signature and indicates your agreement to the terms above.
       </p>
 
       <div className="space-y-1">

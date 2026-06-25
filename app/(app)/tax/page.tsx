@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
-import { Download, AlertCircle } from "lucide-react"
+import { Download, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export const metadata = { ...privateMetadata, title: "GST Assistant" }
@@ -31,6 +31,21 @@ export default async function TaxPage() {
   const session = await auth()
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
+
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  if (org?.currency !== "INR") {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <Topbar title="Tax Assistant" />
+        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-16 text-center space-y-4">
+          <p className="text-gray-700 text-base">Tax Assistant is currently available for GST (India) only. Support for VAT and Sales Tax is coming soon.</p>
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const { qStart, qEnd } = getQuarterRange()
 

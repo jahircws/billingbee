@@ -39,7 +39,7 @@ export default function SignContractButton({ contractId, orgSlug }: Props) {
         <p className="text-sm font-semibold text-gray-700">E-sign this contract</p>
       </div>
       <p className="text-xs text-gray-500">
-        Your electronic signature is legally binding under the Information Technology Act, 2000 (India).
+        Your typed name constitutes your digital signature and indicates your agreement to the terms above.
       </p>
 
       <div className="space-y-1">

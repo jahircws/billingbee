@@ -205,8 +205,8 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
                   <input value={city} onChange={e => setCity(e.target.value)} placeholder="Mumbai" className={input} />
                 </div>
                 <div>
-                  <label className={label}>Pincode</label>
-                  <input value={pincode} onChange={e => setPincode(e.target.value)} placeholder="400001" maxLength={6} className={input} />
+                  <label className={label}>{country === "IN" ? "Pincode" : "ZIP / Postal Code"}</label>
+                  <input value={pincode} onChange={e => setPincode(e.target.value)} placeholder={country === "IN" ? "400001" : ""} maxLength={country === "IN" ? 6 : 20} className={input} />
                 </div>
               </div>
             </div>

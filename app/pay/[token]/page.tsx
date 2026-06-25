@@ -127,7 +127,8 @@ export default async function PayPage({ params, searchParams }: Props) {
     gateways.push({ id: 'stripe', label: 'Card / Stripe', fee: '2.9% + $0.30' })
   }
 
-  gateways.push({
+  {/* PayPal — re-enable when credentials are ready */}
+  if (false) gateways.push({
     id: 'paypal',
     label: 'PayPal',
     fee: '2.99% fee',

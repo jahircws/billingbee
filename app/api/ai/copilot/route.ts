@@ -35,6 +35,7 @@ async function fetchOrgContext(orgId: string) {
   const lastMonthEnd = endOfMonth(subDays(monthStart, 1))
 
   const [
+    org,
     clientCount,
     invoiceCount,
     unpaidInvoices,
@@ -45,6 +46,7 @@ async function fetchOrgContext(orgId: string) {
     lastMonthInvoices,
     lastInvoice,
   ] = await Promise.all([
+    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
     prisma.client.count({ where: { orgId, isActive: true } }),
     prisma.invoice.count({ where: { orgId } }),
     prisma.invoice.findMany({
@@ -129,6 +131,7 @@ async function fetchOrgContext(orgId: string) {
     thisMonthRevenue: Number(thisMonthInvoices._sum.total ?? 0),
     lastMonthRevenue: Number(lastMonthInvoices._sum.total ?? 0),
     lastClientUsed: lastInvoice?.client?.name ?? null,
+    orgCurrency: org?.currency ?? "INR",
     today: format(now, "d MMMM yyyy"),
   }
 }
@@ -236,10 +239,10 @@ export async function POST(req: NextRequest) {
         amount: intent.entities.amount ?? null,
         description: intent.entities.description ?? "",
         dueDate,
-        currency: "INR",
+        currency: ctx.orgCurrency,
       },
       message: `Opening invoice form for ${intent.entities.clientName ?? "new client"}${
-        intent.entities.amount ? ` · ₹${intent.entities.amount.toLocaleString("en-IN")}` : ""
+        intent.entities.amount ? ` · ${ctx.orgCurrency} ${intent.entities.amount.toLocaleString("en-IN")}` : ""
       }${intent.entities.description ? ` · ${intent.entities.description}` : ""}`,
     })
   }
@@ -291,8 +294,8 @@ Org data as of ${ctx.today}:
 - Total invoices: ${ctx.invoiceCount}
 - Unpaid invoices: ${ctx.unpaidCount} totalling ${fmtByCurrency(ctx.unpaidByCurrency)}
 - Overdue invoices: ${ctx.overdueCount} totalling ${fmtByCurrency(ctx.overdueByCurrency)}
-- This month revenue: ₹${ctx.thisMonthRevenue.toLocaleString("en-IN")}
-- Last month revenue: ₹${ctx.lastMonthRevenue.toLocaleString("en-IN")}
+- This month revenue: ${fmtAmt(ctx.thisMonthRevenue, ctx.orgCurrency)}
+- Last month revenue: ${fmtAmt(ctx.lastMonthRevenue, ctx.orgCurrency)}
 - Recent payments: ${ctx.recentPayments.map((p) => `${p.client} paid ${fmtAmt(p.amount, p.currency)} on ${p.date}`).join("; ") || "none"}
 - Overdue invoices detail: ${ctx.overdueInvoices.map((i) => `${i.client} owes ${fmtAmt(i.amount, i.currency)} (due ${i.dueDate ?? "unknown"})`).join("; ") || "none"}
 - Unpaid invoices detail: ${ctx.unpaidInvoices.map((i) => `${i.client} ${fmtAmt(i.amount, i.currency)} ${i.status}`).join("; ") || "none"}

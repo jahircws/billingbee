@@ -89,7 +89,7 @@ export default function TaxesTab({ taxes: initial, orgId }: { taxes: Tax[]; orgI
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Name (e.g. GST 18%)"
+          placeholder="e.g. VAT 20% or Sales Tax 8%"
           className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <input
