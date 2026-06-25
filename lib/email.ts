@@ -121,17 +121,17 @@ export async function sendWelcomeEmail(userName: string, userEmail: string, orgN
     <table cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td style="padding:10px 0;font-size:15px;color:#374151;">
-          <span style="color:#059669;font-weight:700;">1 ·</span> Create your first invoice
+          <span style="color:#059669;font-weight:700;">1 ·</span> <a href="https://www.billingbee.co/clients" style="color:#10b981;text-decoration:none;">Add your first client</a>
         </td>
       </tr>
       <tr>
         <td style="padding:10px 0;font-size:15px;color:#374151;">
-          <span style="color:#059669;font-weight:700;">2 ·</span> Add your logo and business details in Settings
+          <span style="color:#059669;font-weight:700;">2 ·</span> <a href="https://www.billingbee.co/invoices" style="color:#10b981;text-decoration:none;">Create your first invoice</a>
         </td>
       </tr>
       <tr>
         <td style="padding:10px 0;font-size:15px;color:#374151;">
-          <span style="color:#059669;font-weight:700;">3 ·</span> Invite your first client to the client portal
+          <span style="color:#059669;font-weight:700;">3 ·</span> Send it and get paid
         </td>
       </tr>
     </table>
