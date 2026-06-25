@@ -410,7 +410,7 @@ export async function GET(
             </View>
           )}
           <Text style={styles.footerText}>
-            {!isPro ? "Generated with BillingBee · billingbee.app" : `${org?.name ?? ""} · Thank you for your business`}
+            {!isPro ? "Generated with BillingBee · billingbee.co" : `${org?.name ?? ""} · Thank you for your business`}
           </Text>
         </View>
       </Page>
