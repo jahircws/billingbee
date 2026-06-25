@@ -289,7 +289,7 @@ export default async function HomePage() {
       </header>
 
       {/* ── Step 4 — Hero ────────────────────────────────────────────────── */}
-      <section className="bg-[#1e2330] min-h-screen flex flex-col items-center justify-center text-center px-4 py-32 relative overflow-hidden">
+      <section className="bg-[#1e2330] flex flex-col items-center justify-center text-center px-4 py-20 md:py-16 relative overflow-hidden">
         {/* Radial glow — cannot express in standard Tailwind */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -310,27 +310,27 @@ export default async function HomePage() {
 
         <div className="relative z-10 max-w-4xl mx-auto">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-6 md:mb-4">
             <span>✦</span>
             Free Invoicing & Billing Software · AI-Powered
           </div>
 
           {/* H1 — leads with user emotion, not product category */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-8">
+          <h1 className="text-5xl sm:text-6xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6 md:mb-4">
             <span className="block">You do great work.</span>
             <span className="block">Getting paid shouldn&apos;t</span>
             <span className="block text-emerald-400">be the complicated part.</span>
           </h1>
 
           {/* The one sentence no competitor can say */}
-          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-7 md:mb-5 leading-relaxed">
             Describe your project — BillingBee writes the proposal, gets the contract
             signed, handles payment, and follows up automatically until money hits your
             account.
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6 md:mb-4">
             <Link
               href="/register"
               className="inline-flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3.5 rounded-xl font-semibold transition-all duration-200 active:scale-95 min-h-[52px]"
