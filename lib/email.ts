@@ -135,14 +135,15 @@ export async function sendWelcomeEmail(userName: string, userEmail: string, orgN
         </td>
       </tr>
     </table>
-    ${btn("Go to dashboard", `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/dashboard`)}
+    ${btn("Create Your First Invoice →", `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/invoices`)}
     ${p(`Questions? Reply to this email and we'll help you out.`)}
   `
   return sendEmail({
     to: userEmail,
     subject: "Your BillingBee account is ready",
     html: layout(body, `Your BillingBee account is ready, ${userName}.`),
-    replyTo: "hello@billingbee.co",
+    from: "Amit from BillingBee <amit@billingbee.co>",
+    replyTo: "amit@billingbee.co",
   })
 }
 
