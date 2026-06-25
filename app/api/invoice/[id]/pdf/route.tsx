@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { fmtCurrency } from "@/lib/currency"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
-import { renderToBuffer, Document, Page, Text, View, StyleSheet, Image, Font } from "@react-pdf/renderer"
+import { renderToBuffer, Document, Page, Text, View, StyleSheet, Image, Font, Link } from "@react-pdf/renderer"
 import { format } from "date-fns"
 import path from "path"
 import QRCode from "qrcode"
@@ -66,10 +66,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "40%",
     left: "15%",
-    fontSize: 48,
+    fontSize: 34,
     color: "#e5e7eb",
-    opacity: 0.6,
-    transform: "rotate(-30deg)",
+    opacity: 0.06,
+    transform: "rotate(-45deg)",
   },
   footer: { position: "absolute", bottom: 32, left: 48, right: 48 },
   footerText: { fontSize: 8, color: "#9ca3af", textAlign: "center" },
@@ -402,7 +402,7 @@ export async function GET(
               <View style={styles.payFooterRow}>
                 <View style={{ flex: 1, paddingRight: 8 }}>
                   <Text style={styles.payFooterText}>Pay this invoice online:</Text>
-                  <Text style={styles.payFooterUrl}>{payUrl}</Text>
+                  <Link src={payUrl} style={styles.payFooterUrl}>Click here to pay online</Link>
                 </View>
                 {/* eslint-disable-next-line jsx-a11y/alt-text */}
                 <Image src={qrDataUrl} style={{ width: 56, height: 56 }} />
