@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Copy, Check, ArrowRight } from "lucide-react"
+import FaqSection from "../_components/FaqSection"
 
 const GST_RATES = [5, 12, 18, 28] as const
 type GSTRate = (typeof GST_RATES)[number]
@@ -246,6 +247,36 @@ export default function GSTCalculatorClient() {
             <li><strong>28%</strong> — Luxury goods, automobiles, tobacco</li>
           </ul>
         </div>
+
+        <FaqSection
+          toolName="GST Calculator"
+          faqs={[
+            {
+              question: "What is GST and how is it calculated in India?",
+              answer: "GST (Goods and Services Tax) is India's unified indirect tax system. It's calculated by applying the applicable rate (5%, 12%, 18%, or 28%) to the base price of goods or services. For example, a ₹10,000 service with 18% GST results in ₹1,800 tax and a total invoice of ₹11,800.",
+            },
+            {
+              question: "What is the difference between CGST, SGST, and IGST?",
+              answer: "CGST and SGST apply to transactions within the same state — each is half the total GST rate. IGST applies to inter-state transactions and is the full rate. So an 18% intra-state transaction has 9% CGST + 9% SGST, while inter-state has 18% IGST.",
+            },
+            {
+              question: "Who needs to register for GST?",
+              answer: "Businesses with annual turnover above ₹40 lakhs (goods) or ₹20 lakhs (services) must register. For special category states, the threshold is ₹20 lakhs and ₹10 lakhs respectively. E-commerce sellers must register regardless of turnover.",
+            },
+            {
+              question: "Can I claim GST input tax credit?",
+              answer: "Yes, registered businesses can claim Input Tax Credit (ITC) on GST paid for business purchases. This means you only pay GST on the value you add, not the full amount. ITC cannot be claimed on personal expenses or exempt supplies.",
+            },
+            {
+              question: "What happens if I miss the GST filing deadline?",
+              answer: "Late filing attracts a penalty of ₹50 per day (₹25 CGST + ₹25 SGST) for regular returns, subject to a maximum of ₹5,000. For nil returns, it's ₹20 per day. Interest at 18% per annum also applies on the tax due.",
+            },
+            {
+              question: "Can BillingBee automatically calculate GST on my invoices?",
+              answer: "Yes — BillingBee automatically applies GST, CGST, SGST, and IGST based on your client's location. Your GST invoice is generated in seconds with the correct tax breakdown. Free to start at billingbee.co.",
+            },
+          ]}
+        />
       </main>
     </div>
   )

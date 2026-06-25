@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, ArrowRight } from "lucide-react"
+import FaqSection from "../_components/FaqSection"
 
 const CURRENCIES = [
   { code: "INR", symbol: "₹", label: "INR" },
@@ -314,6 +315,36 @@ export default function FreelancerRateClient() {
             underestimate this and underprice their work as a result.
           </p>
         </div>
+
+        <FaqSection
+          toolName="Freelancer Rate Calculator"
+          faqs={[
+            {
+              question: "How do I calculate my hourly rate as a freelancer in India?",
+              answer: "Start with your desired annual income, add business expenses (software, equipment, taxes), then divide by your actual billable hours — typically 1,000-1,200 hours per year after accounting for holidays, admin work, and unpaid time. Most freelancers underestimate expenses and overbill hours, which is why they end up underpaid.",
+            },
+            {
+              question: "Should I charge hourly or per project as a freelancer?",
+              answer: "Project-based pricing almost always earns more. Hourly rates cap your income at your hours worked. Project pricing rewards efficiency — if you finish faster because you're experienced, you earn more per hour. Use hourly only for ongoing retainers or open-ended work where scope is unclear.",
+            },
+            {
+              question: "How much should a freelancer save for taxes in India?",
+              answer: "Set aside 25-30% of every payment if you're under the presumptive taxation scheme (Section 44ADA). If your income exceeds ₹50 lakhs, you'll need a tax audit. Advance tax is due quarterly — missing it means interest under Section 234B/C.",
+            },
+            {
+              question: "What is a good profit margin for freelancers?",
+              answer: "After all expenses, aim for 60-70% net margin. If you're keeping less than 50%, either your rates are too low or your expenses are too high. Factor in platform fees, software subscriptions, self-employment taxes, and unpaid client time when calculating your true margin.",
+            },
+            {
+              question: "How do I raise my freelance rates without losing clients?",
+              answer: "Give 30-60 days notice, frame it around the value you've delivered, and anchor to a specific reason (inflation, new skills, market rates). Raise rates for new clients first — existing clients get a grace period. Most good clients will stay; the ones who leave were likely your most difficult ones anyway.",
+            },
+            {
+              question: "Can BillingBee help me send professional invoices at my new rates?",
+              answer: "Yes — BillingBee lets you set your rate, generate a professional invoice in seconds, and send a payment link your client can pay instantly via Stripe, Razorpay, or UPI. Free to start at billingbee.co.",
+            },
+          ]}
+        />
       </main>
     </div>
   )

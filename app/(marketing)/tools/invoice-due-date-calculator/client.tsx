@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import FaqSection from "../_components/FaqSection"
 import { ArrowLeft, ArrowRight, Calendar } from "lucide-react"
 
 const NET_TERMS = [15, 30, 45, 60, 90] as const
@@ -268,6 +269,36 @@ export default function InvoiceDueDateCalculatorClient() {
             <li><strong>Net 60 / Net 90</strong> — Common in enterprise or government procurement</li>
           </ul>
         </div>
+
+        <FaqSection
+          toolName="Invoice Due Date Calculator"
+          faqs={[
+            {
+              question: "What is a standard payment term for freelancers?",
+              answer: "Net 15 or Net 30 are most common. Net 15 (payment due in 15 days) works well for smaller projects and established clients. Net 30 is standard for larger businesses. Avoid Net 60 unless the client is a large corporate — it's essentially giving them a free loan for two months.",
+            },
+            {
+              question: "What does Net 30 mean on an invoice?",
+              answer: "Net 30 means payment is due 30 calendar days from the invoice date. It has nothing to do with business days. If you invoice on June 1, payment is due July 1. Some businesses use EOM (End of Month) terms instead, meaning payment is due at the end of the month following the invoice month.",
+            },
+            {
+              question: "Should I offer early payment discounts?",
+              answer: "Only if cash flow is tight. A common structure is 2/10 Net 30 — 2% discount if paid within 10 days, otherwise full amount due in 30. This effectively costs you 2% to get paid 20 days earlier. For most freelancers, chasing the discount isn't worth it — better to tighten your payment terms instead.",
+            },
+            {
+              question: "How do I handle clients who always pay late?",
+              answer: "Three options: require upfront deposits (50% before, 50% on delivery), shorten payment terms to Net 7 or Net 15, or add a late fee they'll actually feel. The best clients pay on time — chronic late payers are a cash flow liability regardless of how big the project is.",
+            },
+            {
+              question: "Can I change payment terms mid-project?",
+              answer: "Yes, but communicate it clearly and in writing. Give at least 30 days notice for existing clients. For new projects or renewals, updated terms apply automatically. Never change terms retroactively on already-issued invoices without client agreement.",
+            },
+            {
+              question: "Does BillingBee track invoice due dates automatically?",
+              answer: "Yes — BillingBee tracks every invoice due date, shows overdue invoices on your dashboard, and sends automatic reminders to clients before and after the due date. Free to start at billingbee.co.",
+            },
+          ]}
+        />
       </main>
     </div>
   )

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import FaqSection from "../_components/FaqSection"
 import { ArrowLeft, ArrowRight, Loader2, ExternalLink } from "lucide-react"
 
 interface NameResult {
@@ -229,6 +230,36 @@ export default function StartupNameGeneratorClient() {
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
+
+        <FaqSection
+          toolName="Startup Name Generator"
+          faqs={[
+            {
+              question: "What makes a good startup name?",
+              answer: "Short, memorable, easy to spell, and available as a .com domain. The best startup names are either descriptive (Zoom, Slack) or invented words (Xerox, Kodak). Avoid hyphens, numbers, and names that are hard to say aloud — if you can't say it clearly on a phone call, it's the wrong name.",
+            },
+            {
+              question: "Should my startup name include keywords for SEO?",
+              answer: "It helps early on but isn't essential long-term. A keyword-heavy name ranks faster initially, but brand names build more defensible positions over time. A generic keyword name can also feel forgettable. Balance is key — a name that hints at what you do without being literal is often the sweet spot.",
+            },
+            {
+              question: "How do I check if a startup name is available?",
+              answer: "Check domain availability (.com first), trademark databases (IP India for Indian businesses, USPTO for US), social media handles, and Google. Also check the name isn't too similar to existing businesses in your space — similarity can cause legal problems even without an exact match.",
+            },
+            {
+              question: "Should I use my own name for my freelance business in India?",
+              answer: "Only if you plan to stay solo forever. Personal name brands don't scale — clients hire you, not a team. If you ever want to sell the business, bring on partners, or grow beyond yourself, a separate brand name gives you more flexibility and a higher valuation.",
+            },
+            {
+              question: "How important is a .com domain for an Indian startup?",
+              answer: "Very important for credibility, especially with international clients. .co and .io are accepted in tech circles but .com is still the default assumption. If your .com is taken, either buy it, modify the name slightly, or use .co.in if your market is primarily India.",
+            },
+            {
+              question: "Once I have a name, how do I send my first invoice?",
+              answer: "BillingBee lets you create a professional invoice under your new business name in under 60 seconds — add your logo, set your payment terms, and send a payment link your client can pay via Stripe, Razorpay, or UPI. Free to start at billingbee.co.",
+            },
+          ]}
+        />
       </main>
     </div>
   )

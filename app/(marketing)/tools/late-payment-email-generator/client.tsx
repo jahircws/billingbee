@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import FaqSection from "../_components/FaqSection"
 import { ArrowLeft, ArrowRight, Loader2, Copy, Check } from "lucide-react"
 
 const TONES = ["Friendly", "Firm", "Final Notice"]
@@ -283,6 +284,36 @@ export default function LatePaymentEmailGeneratorClient() {
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
+
+        <FaqSection
+          toolName="Late Payment Email Generator"
+          faqs={[
+            {
+              question: "How do I ask for payment without being rude?",
+              answer: "Be direct but professional. Stating the invoice number, amount, and due date clearly is better than vague hints. Clients respect directness — apologetic language actually makes them take you less seriously. State the fact, state the due date, state what you need them to do.",
+            },
+            {
+              question: "How many reminder emails should I send before escalating?",
+              answer: "Three emails: day 1 (polite reminder), day 7 (firm reminder with late fee notice), day 21 (final notice before formal action). After three ignored emails, phone calls and formal legal notices are more effective than more emails. Each email should be shorter and more direct than the last.",
+            },
+            {
+              question: "What should a late payment reminder email include?",
+              answer: "Invoice number, original amount, due date, days overdue, any late fees now applicable, and a clear call to action with payment instructions. Attach the original invoice again — the most common excuse is never receiving it, and attaching it removes that option entirely.",
+            },
+            {
+              question: "Is it okay to CC someone else on a payment reminder?",
+              answer: "Yes, after the first reminder goes unanswered. CC the client's accounts payable team, finance manager, or the person who hired you. This often resolves payment faster than escalating with the original contact alone. Do it professionally, not aggressively.",
+            },
+            {
+              question: "What if my client says they will pay next week — repeatedly?",
+              answer: "Get a specific date in writing via email — asking them to confirm the exact payment date creates accountability. If the promised date passes, your follow-up references their own commitment. Three broken promises means stop work on any ongoing projects until payment clears.",
+            },
+            {
+              question: "Can BillingBee send payment reminder emails automatically?",
+              answer: "Yes — BillingBee Pro sends automatic payment reminders at intervals you set, follows up until the invoice is paid, and logs every client communication. No more chasing payments manually. Free to start at billingbee.co.",
+            },
+          ]}
+        />
       </main>
     </div>
   )

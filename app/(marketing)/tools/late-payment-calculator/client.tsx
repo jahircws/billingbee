@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import FaqSection from "../_components/FaqSection"
 import { ArrowLeft, Copy, Check, ArrowRight } from "lucide-react"
 
 const CURRENCIES = [
@@ -287,6 +288,36 @@ export default function LatePaymentCalculatorClient() {
             with standard bank lending rates.
           </p>
         </div>
+
+        <FaqSection
+          toolName="Late Payment Calculator"
+          faqs={[
+            {
+              question: "Can I legally charge interest on late payments in India?",
+              answer: "Yes. Under the MSME Development Act 2006, buyers must pay within 45 days of delivery. If they don't, they owe compound interest at three times the RBI bank rate. For non-MSME transactions, the rate depends on your contract terms — always specify payment terms and late fees in your invoice or agreement.",
+            },
+            {
+              question: "What is a reasonable late payment fee for freelancers?",
+              answer: "1.5-2% per month (18-24% annually) is standard and enforceable. Below 1% and clients won't take it seriously. Above 3% may be challenged. More importantly, state it clearly on your invoice before work begins — a late fee mentioned only after payment is overdue is hard to enforce.",
+            },
+            {
+              question: "How long should I wait before charging a late payment fee?",
+              answer: "Charge from day one after the due date — that's what your contract says. In practice, send a polite reminder on day 1, a firmer reminder on day 7 with the fee calculated, and escalate at day 30. Don't wait to add the fee; waiting signals you won't enforce it.",
+            },
+            {
+              question: "What should I do if a client refuses to pay at all?",
+              answer: "Send a formal legal notice first — many clients pay immediately. If that fails, file in the MSME Samadhaan portal (for MSME disputes) or approach a civil court for amounts above ₹1 lakh. For smaller amounts, consumer courts or lok adalats are faster. Always have a signed contract or email confirmation before starting work.",
+            },
+            {
+              question: "How do late payments affect my business cash flow?",
+              answer: "One overdue invoice of ₹50,000 for 60 days costs you more than just the invoice amount — it affects your ability to pay vendors, take new projects, and plan expenses. Track your average collection days (total receivables ÷ daily revenue) and aim to keep it under 30 days.",
+            },
+            {
+              question: "Can BillingBee automatically send late payment reminders?",
+              answer: "Yes — BillingBee Pro sends automatic payment reminders before and after the due date, calculates late fees, and follows up with clients so you don't have to. Free to start at billingbee.co.",
+            },
+          ]}
+        />
       </main>
     </div>
   )
