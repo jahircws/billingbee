@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import { authConfig } from "@/auth.config"
 import { NextRequest, NextResponse } from "next/server"
+import { jwtVerify } from "jose"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 
@@ -51,6 +52,14 @@ export default auth(async (req) => {
     if (pathname === "/admin/login") return NextResponse.next()
     const adminCookie = req.cookies.get("admin_session")
     if (!adminCookie?.value) {
+      return NextResponse.redirect(new URL("/admin/login", req.url))
+    }
+    try {
+      const secret = new TextEncoder().encode(
+        process.env.ADMIN_JWT_SECRET ?? "admin-secret-change-in-production-32chars"
+      )
+      await jwtVerify(adminCookie.value, secret)
+    } catch {
       return NextResponse.redirect(new URL("/admin/login", req.url))
     }
     return NextResponse.next()
