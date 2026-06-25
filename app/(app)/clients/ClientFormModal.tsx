@@ -134,7 +134,7 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
             </div>
             <div>
               <label className={label}>Phone</label>
-              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98765 43210" className={input} />
+              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={country === "IN" ? "+91 98765 43210" : "+1 555 000 0000"} className={input} />
             </div>
             <div className="col-span-2">
               <label className={label}>Company / Business name</label>
@@ -142,8 +142,8 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
             </div>
           </div>
 
-          {/* GST details */}
-          <div>
+          {/* GST details — India only */}
+          {country === "IN" && <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">GST Details</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -168,7 +168,7 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
                 />
               </div>
             </div>
-          </div>
+          </div>}
 
           {/* Address */}
           <div>
