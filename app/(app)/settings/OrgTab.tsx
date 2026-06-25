@@ -181,9 +181,33 @@ export default function OrgTab({ org }: { org: Org }) {
 
       {field("Address", "address")}
 
+      <div>
+        <label className="block text-xs text-gray-500 mb-1">Country</label>
+        <select
+          value={form.country}
+          onChange={(e) => set("country", e.target.value)}
+          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+        >
+          <option value="">— Select country —</option>
+          <option value="IN">India</option>
+          <option value="US">United States</option>
+          <option value="GB">United Kingdom</option>
+          <option value="CA">Canada</option>
+          <option value="AU">Australia</option>
+          <option value="SG">Singapore</option>
+          <option value="AE">UAE</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="NL">Netherlands</option>
+          <option value="JP">Japan</option>
+          <option value="NZ">New Zealand</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-3 gap-3">
         {field("City", "city")}
-        {field("State", "state")}
+        {field(form.country === "IN" ? "State" : "State / Province", "state")}
         {field(form.country === "IN" ? "Pincode" : "ZIP / Postal Code", "pincode")}
       </div>
 
