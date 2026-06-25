@@ -15,6 +15,7 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed"
 import { getDashboardData } from "./data"
 import { auth } from "@/auth"
 import OpenCopilotButton from "@/components/ai/OpenCopilotButton"
+import ForecastCard from "./ForecastCard"
 
 export const metadata = { ...privateMetadata, title: "Dashboard" }
 export const dynamic = "force-dynamic"
@@ -150,6 +151,9 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
 
         {/* Stat cards */}
         <StatCards data={data.statCards} currency={currency} />
+
+        {/* AI Revenue Forecast */}
+        <ForecastCard currency={currency} />
 
         {/* Bottom row: revenue chart (left) + side panel (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-3">

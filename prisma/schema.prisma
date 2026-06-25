@@ -228,6 +228,7 @@ model Organization {
   stripeCustomerId String?   @unique
   isActive         Boolean   @default(true)
   acquisitionSource String?
+  lastForecastAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
