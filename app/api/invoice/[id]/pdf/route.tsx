@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     left: "15%",
     fontSize: 34,
     color: "#e5e7eb",
-    opacity: 0.06,
+    opacity: 0.12,
     transform: "rotate(-45deg)",
   },
   footer: { position: "absolute", bottom: 32, left: 48, right: 48 },
