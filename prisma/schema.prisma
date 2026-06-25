@@ -908,3 +908,9 @@ model ToolRateLimit {
   @@unique([ip, tool])
   @@index([ip, tool])
 }
+
+model EmailUnsubscribe {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

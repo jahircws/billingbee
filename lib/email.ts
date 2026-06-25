@@ -21,9 +21,12 @@ interface SendResult {
   error?: string
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.billingbee.co"
+
 export async function sendEmail({ to, subject, html, text, from, replyTo }: SendEmailOptions): Promise<SendResult> {
   try {
     const resend = getResend()
+    const unsubscribeUrl = `${BASE_URL}/unsubscribe?email=${encodeURIComponent(to)}`
     const { data, error } = await resend.emails.send({
       from: from ?? DEFAULT_FROM,
       to,
@@ -31,6 +34,10 @@ export async function sendEmail({ to, subject, html, text, from, replyTo }: Send
       html,
       text: text ?? "",
       ...(replyTo ? { reply_to: replyTo } : {}),
+      headers: {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     })
     if (error) return { error: error.message }
     return { id: data?.id }
