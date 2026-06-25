@@ -219,6 +219,7 @@ model Organization {
   gstin       String?
   pan         String?
   logo        String?
+  upiQrUrl    String?
   currency    Currency @default(INR)
   timezone    String   @default("Asia/Kolkata")
   plan             String    @default("free")

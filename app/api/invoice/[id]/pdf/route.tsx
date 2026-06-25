@@ -77,6 +77,9 @@ const styles = StyleSheet.create({
   payFooterRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   payFooterText: { fontSize: 8, color: "#6b7280" },
   payFooterUrl: { fontSize: 7, color: "#059669", marginTop: 3 },
+  upiSection: { borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 8, marginBottom: 8 },
+  upiHeading: { fontSize: 8, color: "#6b7280", marginBottom: 4 },
+  upiNote: { fontSize: 7, color: "#9ca3af", marginTop: 3 },
 })
 
 // fmt is defined per-invoice below, after we know the currency
@@ -103,7 +106,7 @@ export async function GET(
     }),
     prisma.organization.findUnique({
       where: { id: orgId },
-      select: { name: true, plan: true, logo: true, address: true, city: true, state: true, pincode: true, email: true, phone: true, gstin: true, pan: true },
+      select: { name: true, plan: true, logo: true, address: true, city: true, state: true, pincode: true, email: true, phone: true, gstin: true, pan: true, upiQrUrl: true },
     }),
   ])
 
@@ -124,6 +127,22 @@ export async function GET(
   }
 
   const isPro = org?.plan !== "free"
+
+  // Fetch UPI QR image as base64 data URL for PDF embedding (INR invoices only)
+  let upiQrDataUrl: string | null = null
+  const showUpiQr = invoice.currency === "INR" && !!org?.upiQrUrl
+  if (showUpiQr && org?.upiQrUrl) {
+    try {
+      const imgRes = await fetch(org.upiQrUrl)
+      if (imgRes.ok) {
+        const buf = Buffer.from(await imgRes.arrayBuffer())
+        const ct = imgRes.headers.get("content-type") ?? "image/png"
+        upiQrDataUrl = `data:${ct};base64,${buf.toString("base64")}`
+      }
+    } catch {
+      // skip UPI QR if fetch fails
+    }
+  }
 
   // ---- GST tax-type determination (CGST Rule 46) ----------------------------
   // The place of supply / tax type is derived from the GSTIN state codes, NOT
@@ -370,6 +389,14 @@ export async function GET(
 
         {/* Footer */}
         <View style={styles.footer}>
+          {upiQrDataUrl && (
+            <View style={styles.upiSection}>
+              <Text style={styles.upiHeading}>Pay via UPI</Text>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image src={upiQrDataUrl} style={{ width: 120, height: 120 }} />
+              <Text style={styles.upiNote}>Scan with any UPI app — Google Pay, PhonePe, Paytm</Text>
+            </View>
+          )}
           {showPayLink && payUrl && qrDataUrl && (
             <View style={styles.payFooter}>
               <View style={styles.payFooterRow}>
