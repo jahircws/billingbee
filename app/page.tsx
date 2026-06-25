@@ -289,7 +289,7 @@ export default async function HomePage() {
       </header>
 
       {/* ── Step 4 — Hero ────────────────────────────────────────────────── */}
-      <section className="bg-[#1e2330] flex flex-col items-center justify-center text-center px-4 py-20 md:py-16 relative overflow-hidden">
+      <section className="bg-[#1e2330] flex flex-col items-center justify-center text-center px-4 py-12 md:py-10 relative overflow-hidden">
         {/* Radial glow — cannot express in standard Tailwind */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -316,7 +316,7 @@ export default async function HomePage() {
           </div>
 
           {/* H1 — leads with user emotion, not product category */}
-          <h1 className="text-5xl sm:text-6xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6 md:mb-4">
+          <h1 className="text-5xl sm:text-6xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-4 md:mb-3">
             <span className="block">You do great work.</span>
             <span className="block">Getting paid shouldn&apos;t</span>
             <span className="block text-emerald-400">be the complicated part.</span>
