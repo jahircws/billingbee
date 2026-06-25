@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       metadata: { orgId, plan: "pro" },
+      allow_promotion_codes: true,
       subscription_data: { metadata: { orgId } },
       success_url: `${base}/settings?tab=plan&upgraded=true`,
       cancel_url: `${base}/settings?tab=plan`,
