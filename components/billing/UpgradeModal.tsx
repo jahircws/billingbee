@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
 import { Sparkles, X, CheckCircle2 } from "lucide-react"
 
 interface Props {
@@ -19,22 +19,15 @@ const FEATURES = [
 ]
 
 export default function UpgradeModal({ current, limit, type, onClose }: Props) {
-  const [loading, setLoading] = useState(false)
+  const heading =
+    type === "invoice"
+      ? `You've used all ${limit} free invoices this month`
+      : `You've reached the ${limit} client limit on Free`
 
-  async function handleUpgrade() {
-    setLoading(true)
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-    } catch {
-      setLoading(false)
-    }
-  }
+  const subtext =
+    type === "invoice"
+      ? "Upgrade to Pro for unlimited invoices, AI collections, and more."
+      : "Upgrade to Pro for unlimited clients and more."
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -51,10 +44,8 @@ export default function UpgradeModal({ current, limit, type, onClose }: Props) {
             <Sparkles className="w-5 h-5" />
             <span className="text-sm font-semibold uppercase tracking-wider">Upgrade to Pro</span>
           </div>
-          <h2 className="text-2xl font-bold">Unlock unlimited growth</h2>
-          <p className="text-emerald-100 text-sm mt-1">
-            You&apos;ve used {current}/{limit} {type === "invoice" ? "invoices this month" : "clients"}
-          </p>
+          <h2 className="text-xl font-bold leading-snug">{heading}</h2>
+          <p className="text-emerald-100 text-sm mt-1">{subtext}</p>
         </div>
 
         {/* Features */}
@@ -79,14 +70,18 @@ export default function UpgradeModal({ current, limit, type, onClose }: Props) {
               <p className="text-xs text-gray-500">/ month</p>
             </div>
           </div>
-          <button
-            onClick={handleUpgrade}
-            disabled={loading}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-70 text-sm"
+          <Link
+            href="/plans-price"
+            className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors text-sm text-center"
           >
-            {loading ? "Redirecting to checkout…" : "Upgrade to Pro — $9.99/month"}
+            Upgrade to Pro — $9.99/month
+          </Link>
+          <button
+            onClick={onClose}
+            className="w-full text-slate-500 hover:text-slate-700 text-sm py-1 transition-colors"
+          >
+            Maybe later
           </button>
-          <p className="text-center text-xs text-gray-400">Cancel anytime · No long-term commitment</p>
         </div>
       </div>
     </div>

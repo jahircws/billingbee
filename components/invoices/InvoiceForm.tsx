@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2, ChevronDown, Upload, X } from "lucide-react"
+import { Plus, Trash2, ChevronDown, Upload, X, Lock } from "lucide-react"
 import { createInvoice, updateInvoiceWithItems } from "@/app/actions/invoices"
 import { createQuote, updateQuoteWithItems } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
@@ -781,12 +781,18 @@ export default function InvoiceForm({
       {type === "invoice" && (
         <div className="bg-white rounded-xl border border-gray-100 p-4">
           <label className="flex items-center justify-between gap-4 cursor-pointer">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Auto follow-up</p>
+            <div
+              title={!isPro ? "Upgrade to Pro to enable AI payment reminders" : undefined}
+              className="flex-1"
+            >
+              <p className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                Auto follow-up
+                {!isPro && <Lock className="w-3.5 h-3.5 text-gray-400" />}
+              </p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {isPro
                   ? "Sends reminder emails at 3 days before, on the due date, and every 3 days after until paid"
-                  : "Upgrade to Pro to enable auto follow-ups"}
+                  : "Upgrade to Pro to enable AI payment reminders"}
               </p>
             </div>
             <button

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { Plus } from "lucide-react"
 import ClientFormModal from "./ClientFormModal"
@@ -12,12 +13,23 @@ export default function NewClientButton() {
   return (
     <>
       {limitReached && (
-        <UpgradeModal
-          current={limitReached.current}
-          limit={limitReached.limit}
-          type="client"
-          onClose={() => setLimitReached(null)}
-        />
+        <>
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-2.5 rounded-lg">
+            <span>
+              You&apos;ve reached the {limitReached.limit} client limit on Free plan.{" "}
+              <Link href="/plans-price" className="font-semibold underline underline-offset-2 hover:text-amber-800">
+                Upgrade to Pro
+              </Link>{" "}
+              for unlimited clients.
+            </span>
+          </div>
+          <UpgradeModal
+            current={limitReached.current}
+            limit={limitReached.limit}
+            type="client"
+            onClose={() => setLimitReached(null)}
+          />
+        </>
       )}
       <button
         onClick={() => setOpen(true)}
