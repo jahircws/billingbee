@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react"
 import { DemoWidget } from "./_demo-widget"
+import { ForecastSection } from "./_forecast-section"
 import { auth } from "@/auth"
 import { CounterStat } from "@/components/marketing/CounterStat"
 import { FadeInSection } from "@/components/marketing/FadeInSection"
@@ -617,6 +618,11 @@ export default async function HomePage() {
           </BentoCard>
         </div>
       </section>
+      </FadeInSection>
+
+      {/* ── AI Forecast Feature Section ──────────────────────────────────── */}
+      <FadeInSection>
+        <ForecastSection />
       </FadeInSection>
 
       {/* ── Step 10 — Global + India Callout ─────────────────────────────── */}
