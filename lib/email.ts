@@ -272,6 +272,7 @@ export async function sendPaymentReceiptEmail(
   currency: string,
   clientName: string,
   clientEmail: string,
+  portalLink?: string,
 ) {
   const formatted = fmtAmount(amount, currency)
   const now = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })
@@ -299,10 +300,11 @@ export async function sendPaymentReceiptEmail(
     </table>
     ${divider()}
     ${p(`This email is your receipt. Please keep it for your records.`)}
+    ${portalLink ? btn("View your invoice →", portalLink) : ""}
   `
   return sendEmail({
     to: clientEmail,
-    subject: `Payment confirmed — thank you`,
+    subject: `Payment confirmed — Invoice ${invoiceNumber} from ${orgName}`,
     html: layout(body, `Your payment of ${formatted} to ${orgName} has been confirmed.`),
     from: `${orgName} via BillingBee <noreply@billingbee.co>`,
   })
