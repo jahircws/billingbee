@@ -35,8 +35,19 @@ export async function GET(req: NextRequest) {
   const now = new Date()
 
   const parents = await db.invoice.findMany({
-    where: { isRecurring: true, recurringCron: { not: null } },
+    where: {
+      isRecurring: true,
+      recurringCron: { not: null },
+      OR: [
+        { recurringCron: "weekly",    issueDate: { lte: addDays(now, -7) } },
+        { recurringCron: "monthly",   issueDate: { lte: addDays(now, -30) } },
+        { recurringCron: "quarterly", issueDate: { lte: addDays(now, -90) } },
+        { recurringCron: "yearly",    issueDate: { lte: addDays(now, -365) } },
+      ],
+    },
     include: { items: { orderBy: { sortOrder: "asc" } } },
+    orderBy: { createdAt: "asc" },
+    take: 50,
   })
 
   let generated = 0
@@ -135,5 +146,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ generated, skipped, errors, total: parents.length })
+  const hasMore = parents.length === 50
+  return NextResponse.json({ generated, skipped, errors, total: parents.length, hasMore })
 }
