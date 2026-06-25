@@ -32,6 +32,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  // Fire and forget — don't await
+  setImmediate(() => {
+    processRecurringInvoices().catch(err =>
+      console.error("Recurring invoice cron error:", err)
+    )
+  })
+
+  return NextResponse.json({ status: "processing", message: "Cron started" })
+}
+
+async function processRecurringInvoices() {
   const now = new Date()
 
   const parents = await db.invoice.findMany({
@@ -147,5 +158,5 @@ export async function GET(req: NextRequest) {
   }
 
   const hasMore = parents.length === 50
-  return NextResponse.json({ generated, skipped, errors, total: parents.length, hasMore })
+  console.log("Recurring invoice cron done:", { generated, skipped, errors, total: parents.length, hasMore })
 }
