@@ -322,6 +322,7 @@ export async function deleteInvoice(invoiceId: string) {
 
   const existing = await prisma.invoice.findUnique({ where: { id: invoiceId, orgId } })
   if (!existing) return { error: "Not found" }
+  if (existing.status === "PAID") return { error: "Paid invoices cannot be deleted. Mark it as void or contact support." }
 
   await prisma.invoice.delete({ where: { id: invoiceId } })
   revalidatePath("/dashboard")
