@@ -7,14 +7,6 @@ import db from "@/lib/db"
 
 const anthropic = new Anthropic()
 
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  INR: "₹", USD: "$", EUR: "€", GBP: "£", CAD: "CA$", AUD: "A$",
-  SGD: "S$", AED: "AED", PKR: "Rs", BDT: "৳", LKR: "Rs", NPR: "Rs",
-  MVR: "Rf", MYR: "RM", THB: "฿", PHP: "₱", IDR: "Rp", VND: "₫",
-  KRW: "₩", JPY: "¥", CNY: "¥", HKD: "HK$", TWD: "NT$", ZAR: "R",
-  NGN: "₦", KES: "KSh", GHS: "₵", EGP: "£",
-}
-
 const RATE_LIMIT_HOURS = 1
 
 export async function POST() {
@@ -36,7 +28,10 @@ export async function POST() {
       (Date.now() - org.lastForecastAt.getTime()) / (1000 * 60 * 60)
     if (hoursSince < RATE_LIMIT_HOURS) {
       return NextResponse.json(
-        { error: "Rate limit: one forecast per hour", retryAfterMinutes: Math.ceil((RATE_LIMIT_HOURS - hoursSince) * 60) },
+        {
+          error: "Rate limit: one forecast per hour",
+          retryAfterMinutes: Math.ceil((RATE_LIMIT_HOURS - hoursSince) * 60),
+        },
         { status: 429 }
       )
     }
@@ -48,7 +43,12 @@ export async function POST() {
   ])
 
   const isPro = plan === "pro"
-  const currencySymbol = CURRENCY_SYMBOLS[facts.currency] ?? facts.currency
+
+  // Primary-currency figures for the stats bar display
+  const primaryOutstanding =
+    facts.totalOutstanding.find((a) => a.currency === facts.orgCurrency)?.total ?? 0
+  const primaryAvgMonthly =
+    facts.avgMonthlyRevenue.find((a) => a.currency === facts.orgCurrency)?.avg ?? 0
 
   if (!facts.hasSufficientData) {
     return NextResponse.json({
@@ -57,9 +57,9 @@ export async function POST() {
       hasSufficientData: false,
       isPro,
       stats: {
-        totalOutstanding: facts.totalOutstanding,
+        totalOutstanding: primaryOutstanding,
         overdueCount: facts.overdueCount,
-        avgMonthlyRevenue: facts.avgMonthlyRevenue,
+        avgMonthlyRevenue: primaryAvgMonthly,
         dormantClientCount: facts.dormantClients.length,
       },
     })
@@ -79,7 +79,7 @@ export async function POST() {
 Rules:
 * Write 2-3 sentences maximum
 * Never invent numbers — only use figures from the DATA block
-* Use the currency symbol "${currencySymbol}" for all amounts
+* Amounts may be in multiple currencies. Mention each currency separately using its symbol (₹ for INR, $ for USD, € for EUR). Do not convert between currencies.
 * Be specific and actionable
 * If there are overdue invoices, mention the risk
 * If there are dormant high-value clients, mention the opportunity
@@ -112,9 +112,9 @@ Rules:
       hasSufficientData: true,
       isPro,
       stats: {
-        totalOutstanding: facts.totalOutstanding,
+        totalOutstanding: primaryOutstanding,
         overdueCount: facts.overdueCount,
-        avgMonthlyRevenue: facts.avgMonthlyRevenue,
+        avgMonthlyRevenue: primaryAvgMonthly,
         dormantClientCount: facts.dormantClients.length,
       },
     })

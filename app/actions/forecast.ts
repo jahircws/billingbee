@@ -2,9 +2,20 @@
 
 import db from "@/lib/db"
 
+export interface CurrencyAmount {
+  currency: string
+  total: number
+}
+
+export interface CurrencyAvg {
+  currency: string
+  avg: number
+}
+
 export interface ClientStat {
   clientId: string
   clientName: string
+  currency: string
   totalBilled: number
   totalPaid: number
   avgDaysToPay: number | null
@@ -14,20 +25,28 @@ export interface ClientStat {
 }
 
 export interface RevenueForecastData {
-  totalPaidLast30Days: number
-  totalPaidLast90Days: number
-  avgMonthlyRevenue: number
+  paidLast30Days: CurrencyAmount[]
+  paidLast90Days: CurrencyAmount[]
+  avgMonthlyRevenue: CurrencyAvg[]
   paidInvoiceCount: number
-  currency: string
-  totalOutstanding: number
+  orgCurrency: string
+  totalOutstanding: CurrencyAmount[]
   overdueCount: number
-  overdueValue: number
+  overdueValue: CurrencyAmount[]
   oldestOverdueDays: number
   clientStats: ClientStat[]
-  slowPayers: Array<{ clientName: string; avgDaysToPay: number; outstandingValue: number }>
-  dormantClients: Array<{ clientName: string; totalPaid: number; daysSinceLastInvoice: number }>
+  slowPayers: Array<{ clientName: string; avgDaysToPay: number; outstandingValue: number; currency: string }>
+  dormantClients: Array<{ clientName: string; totalPaid: number; currency: string; daysSinceLastInvoice: number }>
   hasSufficientData: boolean
   dataWindowMonths: number
+}
+
+function groupByCurrency(invoices: Array<{ total: unknown; currency: string }>): CurrencyAmount[] {
+  const map = new Map<string, number>()
+  for (const inv of invoices) {
+    map.set(inv.currency, (map.get(inv.currency) ?? 0) + Number(inv.total ?? 0))
+  }
+  return Array.from(map.entries()).map(([currency, total]) => ({ currency, total }))
 }
 
 export async function getRevenueForecastData(orgId: string): Promise<RevenueForecastData> {
@@ -39,21 +58,19 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
     where: { id: orgId },
     select: { currency: true },
   })
-  const orgCurrency = org?.currency ?? "INR"
+  const orgCurrency = String(org?.currency ?? "INR")
 
   // All-time paid count — used only for the sufficiency gate so orgs with > 12 months history aren't blocked
   const allTimePaidCount = await db.invoice.count({
     where: { orgId, status: "PAID" },
   })
 
-  // Query 1 — paid invoices last 12 months, filtered to org currency
-  // Simplification: only invoices in org's primary currency are summed; cross-currency invoices excluded.
+  // Query 1 — paid invoices last 12 months, all currencies
   const paidInvoices = await db.invoice.findMany({
     where: {
       orgId,
       status: "PAID",
       paidAt: { gte: twelveMonthsAgo },
-      currency: orgCurrency,
     },
     select: {
       id: true,
@@ -67,12 +84,11 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
     },
   })
 
-  // Query 2 — unpaid/overdue invoices, filtered to org currency
+  // Query 2 — unpaid/overdue invoices, all currencies
   const openInvoices = await db.invoice.findMany({
     where: {
       orgId,
       status: { in: ["UNPAID", "OVERDUE"] },
-      currency: orgCurrency,
     },
     select: {
       id: true,
@@ -93,19 +109,20 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
 
   const toNum = (d: unknown) => Number(d ?? 0)
 
-  const totalPaidLast30Days = paidInvoices
-    .filter((i) => i.paidAt && i.paidAt >= thirtyDaysAgo)
-    .reduce((s, i) => s + toNum(i.total), 0)
+  const paidLast30Days = groupByCurrency(
+    paidInvoices.filter((i) => i.paidAt && i.paidAt >= thirtyDaysAgo)
+  )
+  const paidLast90Days = groupByCurrency(
+    paidInvoices.filter((i) => i.paidAt && i.paidAt >= ninetyDaysAgo)
+  )
+  const avgMonthlyRevenue: CurrencyAvg[] = paidLast90Days.map(({ currency, total }) => ({
+    currency,
+    avg: total / 3,
+  }))
 
-  const totalPaidLast90Days = paidInvoices
-    .filter((i) => i.paidAt && i.paidAt >= ninetyDaysAgo)
-    .reduce((s, i) => s + toNum(i.total), 0)
-
-  const avgMonthlyRevenue = totalPaidLast90Days / 3
-
-  const totalOutstanding = openInvoices.reduce((s, i) => s + toNum(i.total), 0)
+  const totalOutstanding = groupByCurrency(openInvoices)
   const overdueInvoices = openInvoices.filter((i) => i.status === "OVERDUE")
-  const overdueValue = overdueInvoices.reduce((s, i) => s + toNum(i.total), 0)
+  const overdueValue = groupByCurrency(overdueInvoices)
 
   const oldestOverdueDays = overdueInvoices.length
     ? Math.max(
@@ -124,7 +141,6 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
       clientName: string
       paidInvoices: PaidInv[]
       openInvoices: OpenInv[]
-      allInvoices: { createdAt: Date }[]
     }
   >()
 
@@ -133,10 +149,8 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
       clientName: inv.client.name,
       paidInvoices: [] as PaidInv[],
       openInvoices: [] as OpenInv[],
-      allInvoices: [] as { createdAt: Date }[],
     }
     entry.paidInvoices.push(inv)
-    entry.allInvoices.push({ createdAt: inv.createdAt })
     clientMap.set(inv.clientId, entry)
   }
 
@@ -145,10 +159,8 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
       clientName: inv.client.name,
       paidInvoices: [] as PaidInv[],
       openInvoices: [] as OpenInv[],
-      allInvoices: [] as { createdAt: Date }[],
     }
     entry.openInvoices.push(inv)
-    entry.allInvoices.push({ createdAt: inv.createdAt })
     clientMap.set(inv.clientId, entry)
   }
 
@@ -159,6 +171,12 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
       data.paidInvoices.reduce((s, i) => s + toNum(i.total), 0) +
       data.openInvoices.reduce((s, i) => s + toNum(i.total), 0)
     const totalPaid = data.paidInvoices.reduce((s, i) => s + toNum(i.total), 0)
+
+    // Dominant currency = most recent invoice's currency
+    const allInvsByDate = [...data.paidInvoices, ...data.openInvoices].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    )
+    const clientCurrency = allInvsByDate[0]?.currency ?? orgCurrency
 
     let avgDaysToPay: number | null = null
     if (data.paidInvoices.length >= 2) {
@@ -176,6 +194,7 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
     clientStats.push({
       clientId,
       clientName: data.clientName,
+      currency: String(clientCurrency),
       totalBilled,
       totalPaid,
       avgDaysToPay,
@@ -186,15 +205,11 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
   }
 
   const slowPayers = clientStats
-    .filter(
-      (c) =>
-        c.avgDaysToPay !== null &&
-        c.avgDaysToPay > 14 &&
-        c.hasOpenInvoice
-    )
+    .filter((c) => c.avgDaysToPay !== null && c.avgDaysToPay > 14 && c.hasOpenInvoice)
     .map((c) => ({
       clientName: c.clientName,
       avgDaysToPay: Math.round(c.avgDaysToPay!),
+      currency: c.currency,
       outstandingValue: openInvoices
         .filter((i) => i.clientId === c.clientId)
         .reduce((s, i) => s + toNum(i.total), 0),
@@ -214,25 +229,27 @@ export async function getRevenueForecastData(orgId: string): Promise<RevenueFore
     .map((c) => ({
       clientName: c.clientName,
       totalPaid: c.totalPaid,
+      currency: c.currency,
       daysSinceLastInvoice: Math.floor(
         (now.getTime() - c.lastInvoiceDate!.getTime()) / 86400000
       ),
     }))
 
-  const dataWindowMonths = paidInvoices.length > 0
-    ? Math.ceil(
-        (now.getTime() -
-          Math.min(...paidInvoices.map((i) => i.createdAt.getTime()))) /
-          (30 * 86400000)
-      )
-    : 0
+  const dataWindowMonths =
+    paidInvoices.length > 0
+      ? Math.ceil(
+          (now.getTime() -
+            Math.min(...paidInvoices.map((i) => i.createdAt.getTime()))) /
+            (30 * 86400000)
+        )
+      : 0
 
   return {
-    totalPaidLast30Days,
-    totalPaidLast90Days,
+    paidLast30Days,
+    paidLast90Days,
     avgMonthlyRevenue,
     paidInvoiceCount: paidInvoices.length,
-    currency: orgCurrency,
+    orgCurrency,
     totalOutstanding,
     overdueCount: overdueInvoices.length,
     overdueValue,
