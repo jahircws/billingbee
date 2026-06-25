@@ -630,6 +630,37 @@ export async function sendProposalEmail(
   })
 }
 
+// ── sendActivationDripEmail ────────────────────────────────────────────────
+
+export async function sendActivationDripEmail({ name, email }: { name: string; email: string }): Promise<void> {
+  const firstName = name?.split(" ")[0] || "there"
+  const body = `
+    ${h1(`Hey ${firstName},`)}
+    ${p(`You created your BillingBee account yesterday but haven't sent an invoice yet.`)}
+    ${p(`It takes about 90 seconds. Here's all you need:`)}
+    <ul style="margin:0 0 20px;padding-left:20px;font-size:15px;color:#374151;line-height:1.9;">
+      <li>Your client's name</li>
+      <li>The invoice amount</li>
+      <li>Your email (already done)</li>
+    </ul>
+    ${btn("Create My First Invoice →", `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.billingbee.co"}/invoices`)}
+    ${divider()}
+    ${p(`If you ran into any trouble, just reply to this email — I read every reply.`)}
+    <p style="margin:0;font-size:15px;color:#374151;">— Amit</p>
+  `
+  try {
+    await sendEmail({
+      to: email,
+      from: "Amit from BillingBee <amit@billingbee.co>",
+      replyTo: "amit@billingbee.co",
+      subject: "You signed up yesterday — did something stop you?",
+      html: layout(body, "It only takes 90 seconds to send your first invoice."),
+    })
+  } catch {
+    // never throw — email failure must not surface
+  }
+}
+
 // ── sendClientMagicLinkEmail ───────────────────────────────────────────────
 
 export async function sendClientMagicLinkEmail(
