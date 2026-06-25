@@ -87,7 +87,7 @@ Rules:
 * End with one specific action sentence starting with "Watch:" or "Tip:" or "Opportunity:"
 * For free plan users: only reference 30-day figures, never 90-day
 * For pro plan users: give full 90-day picture with client-level insight
-* Do not use markdown formatting. No **bold**, no *italics*, no bullet points. Plain text only.`
+* Do not use markdown formatting. No **bold**, no *italics*, no bullet points, no headers. Plain text only.`
 
   const userMessage = `Here is the payment data for this business. Write their revenue forecast.\n\nDATA:\n${JSON.stringify(dataForAI, null, 2)}\n\nPlan: ${isPro ? "pro" : "free"}`
 
