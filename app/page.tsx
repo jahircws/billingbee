@@ -573,6 +573,7 @@ export default async function HomePage() {
                 </span>
               ))}
             </div>
+            <p className="text-xs text-slate-500 mt-3">UPI QR — clients scan and pay instantly, zero fees</p>
           </BentoCard>
 
           {/* Card C — Collections */}
@@ -638,20 +639,23 @@ export default async function HomePage() {
               heading: "Global payments",
               body: "Stripe integration, 100+ currencies. Send in USD, EUR, GBP — FX conversion happens automatically.",
               tags: ["100+ currencies", "Stripe"],
+              logos: undefined,
             },
             {
               icon: Zap,
               heading: "India-native",
-              body: "Razorpay, UPI support, GST-compliant invoices with INR billing. Everything Indian freelancers need — built in, not bolted on.",
+              body: "Razorpay, UPI support, GST-compliant invoices with INR billing. Everything Indian freelancers need — built in, not bolted on. UPI QR code on every invoice.",
               tags: ["Razorpay", "UPI", "GST-ready"],
+              logos: "GPay · PhonePe · Paytm · Razorpay",
             },
             {
               icon: Users,
               heading: "Clients anywhere",
               body: "Your client gets a branded portal link. They sign and pay from any device, any country — no account required.",
               tags: ["No client signup", "Magic link"],
+              logos: undefined,
             },
-          ].map(({ icon: Icon, heading, body, tags }) => (
+          ].map(({ icon: Icon, heading, body, tags, logos }) => (
             <div
               key={heading}
               className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors"
@@ -671,6 +675,7 @@ export default async function HomePage() {
                   </span>
                 ))}
               </div>
+              {logos && <p className="text-xs text-slate-400 mt-3">{logos}</p>}
             </div>
           ))}
         </div>
