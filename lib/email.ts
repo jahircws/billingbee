@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import { getCurrencyLocale } from "@/lib/utils"
 
 const DEFAULT_FROM = process.env.RESEND_FROM ?? "BillingBee <hello@billingbee.co>"
 
@@ -104,7 +105,7 @@ function divider(): string {
 
 function fmtAmount(amount: number, currency = "INR"): string {
   try {
-    return new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 2 }).format(amount)
+    return new Intl.NumberFormat(getCurrencyLocale(currency), { style: "currency", currency, maximumFractionDigits: 2 }).format(amount)
   } catch {
     return `${currency} ${amount.toFixed(2)}`
   }
@@ -165,9 +166,9 @@ export async function sendInvoiceSentEmail(
 ) {
   const currency = invoice.currency ?? "INR"
   const formatted = fmtAmount(invoice.total, currency)
-  const issueStr = new Date(invoice.issueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+  const issueStr = new Date(invoice.issueDate).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })
   const dueStr = invoice.dueDate
-    ? new Date(invoice.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+    ? new Date(invoice.dueDate).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })
     : "—"
 
   const lineItemsHtml = invoice.items?.length
@@ -275,7 +276,7 @@ export async function sendPaymentReceiptEmail(
   portalLink?: string,
 ) {
   const formatted = fmtAmount(amount, currency)
-  const now = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })
+  const now = new Date().toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric" })
   const body = `
     ${h1(`Payment confirmed — thank you!`)}
     ${p(`Hi ${clientName}, we've received your payment of <strong>${formatted}</strong> for invoice <strong>${invoiceNumber}</strong>. Your account is up to date.`)}

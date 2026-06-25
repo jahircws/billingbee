@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import prisma from "@/lib/db"
 import { sendEmail } from "@/lib/email"
+import { getCurrencyLocale } from "@/lib/utils"
 import { generatePaymentToken } from "@/lib/payment-token"
 import { format, differenceInDays } from "date-fns"
 
@@ -68,7 +69,7 @@ export async function processEvent(event: EventWithRelations): Promise<"sent" | 
   const paymentToken = generatePaymentToken(invoice.id, event.orgId)
   const paymentUrl = `${BASE_URL}/pay/${paymentToken}`
 
-  const amountFmt = `${Number(invoice.amountDue).toLocaleString("en-IN", { minimumFractionDigits: 2 })} ${invoice.currency}`
+  const amountFmt = `${Number(invoice.amountDue).toLocaleString(getCurrencyLocale(invoice.currency), { minimumFractionDigits: 2 })} ${invoice.currency}`
   const dueDateFmt = invoice.dueDate ? format(invoice.dueDate, "d MMMM yyyy") : "—"
 
   // AI-generated email
