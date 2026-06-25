@@ -20,6 +20,8 @@ import {
 } from "lucide-react"
 import { DemoWidget } from "./_demo-widget"
 import { auth } from "@/auth"
+import { CounterStat } from "@/components/marketing/CounterStat"
+import { FadeInSection } from "@/components/marketing/FadeInSection"
 
 // ── Step 2 — Metadata ─────────────────────────────────────────────────────────
 
@@ -351,23 +353,25 @@ export default async function HomePage() {
       </section>
 
       {/* ── Stats Strip ──────────────────────────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-emerald-50 border-y border-emerald-100 py-10">
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-0">
             <div className="flex-1 text-center px-8">
-              <div className="text-4xl font-bold text-emerald-500">$40M+</div>
+              <CounterStat prefix="$" value={40} suffix="M+" className="text-4xl font-bold text-emerald-500" />
               <div className="text-sm font-medium text-emerald-800 mt-1">invoiced through BillingBee</div>
               <div className="text-xs text-slate-500 mt-1">across 12 currencies worldwide</div>
             </div>
             <div className="hidden sm:block w-px h-16 bg-emerald-200" />
             <div className="flex-1 text-center px-8">
-              <div className="text-4xl font-bold text-emerald-500">7,000+</div>
+              <CounterStat value={7000} suffix="+" className="text-4xl font-bold text-emerald-500" />
               <div className="text-sm font-medium text-emerald-800 mt-1">freelancers trust BillingBee</div>
               <div className="text-xs text-slate-500 mt-1">from 13+ countries</div>
             </div>
           </div>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 5 — Workflow Strip ───────────────────────────────────────── */}
       <section className="bg-white border-y border-slate-100 py-10">
@@ -449,6 +453,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── Step 7 — AI Demo Section ─────────────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-slate-50 py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
@@ -477,8 +482,10 @@ export default async function HomePage() {
           </p>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 8 — How It Works ────────────────────────────────────────── */}
+      <FadeInSection>
       <section id="how-it-works" className="bg-white py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
@@ -531,8 +538,10 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 9 — Features Bento Grid ─────────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-slate-50 py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
@@ -608,8 +617,10 @@ export default async function HomePage() {
           </BentoCard>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 10 — Global + India Callout ─────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-[#1e2330] py-24 px-4 relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none"
@@ -680,8 +691,10 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 11 — Testimonials ───────────────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-white py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
@@ -722,8 +735,10 @@ export default async function HomePage() {
           />
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 12 — Pricing ────────────────────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-slate-50 py-24 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
@@ -822,8 +837,10 @@ export default async function HomePage() {
           </Link>
         </p>
       </section>
+      </FadeInSection>
 
       {/* ── Free Calculators ─────────────────────────────────────────────── */}
+      <FadeInSection>
       <section className="bg-white py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
@@ -859,6 +876,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── Step 13 — Final CTA ──────────────────────────────────────────── */}
       <section className="bg-[#1e2330] py-32 px-4 relative overflow-hidden">
