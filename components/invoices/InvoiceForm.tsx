@@ -784,6 +784,7 @@ export default function InvoiceForm({
             <div
               title={!isPro ? "Upgrade to Pro to enable AI payment reminders" : undefined}
               className="flex-1"
+              onClick={() => { if (!isPro) setLimitReached({ current: 5, limit: 5 }) }}
             >
               <p className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                 Auto follow-up
