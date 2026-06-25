@@ -1,13 +1,70 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
+import { PrismaAdapter } from "@auth/prisma-adapter"
 import { compare } from "bcryptjs"
 import { jwtVerify } from "jose"
 import prisma from "@/lib/db"
 import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma),
   ...authConfig,
+  callbacks: {
+    session: authConfig.callbacks!.session!,
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        const orgUser = await prisma.orgUser.findFirst({
+          where: { userId: user.id!, isActive: true },
+        })
+        if (!orgUser) {
+          const name = user.name || user.email!.split("@")[0]
+          const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "org"
+          let orgSlug = baseSlug
+          const slugTaken = await prisma.organization.findUnique({ where: { slug: orgSlug } })
+          if (slugTaken) orgSlug = `${orgSlug}-${Math.random().toString(36).slice(2, 7)}`
+          await prisma.$transaction(async (tx) => {
+            const org = await tx.organization.create({ data: { name, slug: orgSlug } })
+            await tx.orgUser.create({ data: { orgId: org.id, userId: user.id!, role: "OWNER" } })
+          })
+        }
+      }
+      return true
+    },
+    async jwt({ token, user, account }) {
+      if (user) {
+        if ((user as { userType?: string }).userType) {
+          // Credentials sign-in: custom fields already on user object
+          token.userId = (user as { userId?: string }).userId
+          token.orgId = (user as { orgId?: string }).orgId
+          token.orgName = (user as { orgName?: string }).orgName
+          token.orgSlug = (user as { orgSlug?: string }).orgSlug
+          token.role = (user as { role?: string }).role
+          token.userType = (user as { userType?: "STAFF" | "CLIENT" }).userType
+          token.clientId = (user as { clientId?: string }).clientId
+        } else if (account?.provider === "google") {
+          const orgUser = await prisma.orgUser.findFirst({
+            where: { userId: user.id!, isActive: true },
+            include: { org: true },
+          })
+          if (orgUser) {
+            token.userId = user.id
+            token.orgId = orgUser.orgId
+            token.orgName = orgUser.org.name
+            token.orgSlug = orgUser.org.slug
+            token.role = orgUser.role
+            token.userType = "STAFF"
+          }
+        }
+      }
+      return token
+    },
+  },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
     Credentials({
       id: "staff",
       credentials: {
