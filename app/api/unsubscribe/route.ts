@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/db"
 import { randomUUID } from "crypto"
+import { SESv2Client, PutSuppressedDestinationCommand } from "@aws-sdk/client-sesv2"
+
+const sesClient = new SESv2Client({
+  region: process.env.AWS_REGION ?? "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
+  },
+})
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -13,6 +22,14 @@ async function recordUnsubscribe(email: string) {
     create: { id: randomUUID(), email: normalized },
     update: {},
   })
+  try {
+    await sesClient.send(new PutSuppressedDestinationCommand({
+      EmailAddress: normalized,
+      Reason: "COMPLAINT",
+    }))
+  } catch {
+    // DB record is source of truth; SES failure is non-fatal
+  }
 }
 
 export async function POST(req: NextRequest) {
