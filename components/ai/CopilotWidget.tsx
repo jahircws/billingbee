@@ -24,7 +24,7 @@ export default function CopilotWidget({ username }: { username?: string }) {
 
   useEffect(() => {
     if (!sessionStorage.getItem(SESSION_KEY)) {
-      setOpen(true)
+      if (window.innerWidth >= 768) setOpen(true)
       sessionStorage.setItem(SESSION_KEY, "1")
     }
     function handleOpenEvent() {
@@ -51,7 +51,7 @@ export default function CopilotWidget({ username }: { username?: string }) {
       {!open && (
         <button
           onClick={() => { setOpen(true); setMinimised(false) }}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center transition-colors"
+          className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center transition-colors"
           aria-label={`Open ${title}`}
         >
           <Icon size={22} />
@@ -60,7 +60,7 @@ export default function CopilotWidget({ username }: { username?: string }) {
 
       {open && (
         <div
-          className={`fixed bottom-6 right-6 z-50 w-[380px] bg-white rounded-2xl shadow-2xl border border-emerald-100 flex flex-col overflow-hidden transition-all duration-200 ${
+          className={`fixed bottom-20 right-4 left-4 md:left-auto md:bottom-6 md:right-6 md:w-[380px] z-50 bg-white rounded-2xl shadow-2xl border border-emerald-100 flex flex-col overflow-hidden transition-all duration-200 ${
             minimised ? "h-[56px]" : "h-[520px]"
           }`}
         >
