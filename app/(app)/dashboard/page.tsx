@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { privateMetadata } from "@/lib/metadata"
 import { getOrgId } from "@/lib/session"
@@ -13,6 +14,7 @@ import QuickActions from "@/components/dashboard/QuickActions"
 import ActivityFeed from "@/components/dashboard/ActivityFeed"
 import { getDashboardData } from "./data"
 import { auth } from "@/auth"
+import OpenCopilotButton from "@/components/ai/OpenCopilotButton"
 
 export const metadata = { ...privateMetadata, title: "Dashboard" }
 export const dynamic = "force-dynamic"
@@ -120,6 +122,22 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                 {verified === "expired" ? "Verification link expired" : "Verification link invalid"}
               </p>
               <p className="text-xs text-amber-700">Please request a new verification email.</p>
+            </div>
+          </div>
+        )}
+
+        {/* First-time hero card — shown only until first invoice is created */}
+        {data.invoiceCount === 0 && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-8 flex flex-col items-start gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-emerald-900">Create your first invoice in 60 seconds</h2>
+              <p className="text-sm text-emerald-700 mt-1">Type what you did, BillingBee handles the rest.</p>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <OpenCopilotButton label="Create Invoice with AI →" />
+              <Link href="/invoices/new" className="text-sm text-emerald-700 hover:text-emerald-900 font-medium underline underline-offset-2">
+                Create manually →
+              </Link>
             </div>
           </div>
         )}

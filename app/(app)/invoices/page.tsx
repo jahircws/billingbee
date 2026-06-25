@@ -118,7 +118,7 @@ export default async function InvoicesPage({ searchParams }: Props) {
             <p className="text-sm text-gray-400 mt-1 mb-5">Your AI assistant can create one for you in seconds</p>
             <OpenCopilotButton />
             <p className="text-xs text-gray-400 mt-3">
-              Try: <em>&quot;Invoice Acme Corp ₹10,000 for design work&quot;</em>
+              Try: <em>&quot;Invoice Acme Corp {fmtCurrency(10000, org?.currency ?? "INR")} for design work&quot;</em>
             </p>
           </div>
         ) : (

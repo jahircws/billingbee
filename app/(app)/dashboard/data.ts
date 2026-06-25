@@ -58,6 +58,7 @@ export interface DashboardData {
     topCategory: string | null
   }
   isNewUser: boolean
+  invoiceCount: number
 }
 
 // ── Safe defaults ─────────────────────────────────────────────────────────────
@@ -87,6 +88,7 @@ function emptyData(): DashboardData {
     recentActivity: [],
     expenseSnapshot: { thisMonth: 0, lastMonth: 0, topCategory: null },
     isNewUser: true,
+    invoiceCount: 0,
   }
 }
 
@@ -152,6 +154,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
     const [
       overdueAgg,
       dueSoonAgg,
+      invoiceCount,
       draftCount,
       unsignedContractCount,
       outstandingAgg,
@@ -194,6 +197,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         _count: { _all: true },
         _sum: { amountDue: true },
       }),
+      prisma.invoice.count({ where: { orgId } }),
       prisma.invoice.count({ where: { orgId, status: "DRAFT" } }),
       prisma.contract.count({
         where: { orgId, status: "SENT", signedAt: null },
@@ -465,6 +469,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         topCategory: topCategoryName,
       },
       isNewUser,
+      invoiceCount,
     }
   } catch (err) {
     console.error("[getDashboardData] failed:", err)

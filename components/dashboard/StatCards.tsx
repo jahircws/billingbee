@@ -18,12 +18,19 @@ interface Props {
 function MultiCurrencyValue({
   byCurrency,
   orgCurrency,
+  emptyLabel,
 }: {
   byCurrency: Record<string, number>
   orgCurrency: string
+  emptyLabel?: string
 }) {
   const entries = Object.entries(byCurrency).filter(([, v]) => v > 0)
-  if (entries.length === 0) return <span className="text-2xl font-bold text-slate-900">—</span>
+  if (entries.length === 0) return (
+    <div>
+      <span className="text-2xl font-bold text-slate-900">—</span>
+      {emptyLabel && <p className="text-xs text-slate-400 mt-0.5">{emptyLabel}</p>}
+    </div>
+  )
 
   entries.sort(([a], [b]) => {
     if (a === orgCurrency) return -1
@@ -55,7 +62,7 @@ export default function StatCards({ data, currency }: Props) {
         </div>
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Total outstanding</p>
-          <MultiCurrencyValue byCurrency={data.outstandingByCurrency} orgCurrency={currency} />
+          <MultiCurrencyValue byCurrency={data.outstandingByCurrency} orgCurrency={currency} emptyLabel="No invoices yet" />
           <Link href="/invoices?status=UNPAID" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
             Send reminder →
           </Link>
@@ -68,7 +75,7 @@ export default function StatCards({ data, currency }: Props) {
         </div>
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Paid this month</p>
-          <MultiCurrencyValue byCurrency={data.paidThisMonthByCurrency} orgCurrency={currency} />
+          <MultiCurrencyValue byCurrency={data.paidThisMonthByCurrency} orgCurrency={currency} emptyLabel="No payments yet" />
           <Link href="/invoices/new" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
             New invoice →
           </Link>
@@ -82,6 +89,7 @@ export default function StatCards({ data, currency }: Props) {
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Active proposals</p>
           <p className="text-2xl font-bold text-slate-900 leading-tight">{data.activeProposals}</p>
+          {data.activeProposals === 0 && <p className="text-xs text-slate-400 mt-0.5">No proposals yet</p>}
           <Link href="/proposals" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
             New proposal →
           </Link>
@@ -95,6 +103,7 @@ export default function StatCards({ data, currency }: Props) {
         <div className="min-w-0">
           <p className="text-xs text-slate-500 mb-1">Total clients</p>
           <p className="text-2xl font-bold text-slate-900 leading-tight">{data.clientCount}</p>
+          {data.clientCount === 0 && <p className="text-xs text-slate-400 mt-0.5">No clients yet</p>}
           <Link href="/clients" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
             Add client →
           </Link>
