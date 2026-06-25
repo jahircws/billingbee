@@ -617,8 +617,8 @@ export default function InvoiceForm({
         )}
 
         <div className="space-y-3">
-          {/* Column headers */}
-          <div className="grid grid-cols-12 gap-2 px-1">
+          {/* Column headers — desktop only */}
+          <div className="hidden md:grid grid-cols-12 gap-2 px-1">
             <span className={`${currency === 'INR' ? 'col-span-3' : 'col-span-4'} text-xs text-gray-400`}>Description</span>
             {currency === 'INR' && <span className="col-span-1 text-xs text-gray-400 text-center">HSN/SAC</span>}
             <span className="col-span-1 text-xs text-gray-400 text-center">Qty</span>
@@ -627,97 +627,212 @@ export default function InvoiceForm({
             <span className="col-span-2 text-xs text-gray-400 text-center">Tax Name</span>
           </div>
           {items.map((item, idx) => (
-            <div key={idx} className="space-y-1.5">
-              <div className="grid grid-cols-12 gap-2 items-center">
-                <input
-                  className={`${currency === 'INR' ? 'col-span-3' : 'col-span-4'} text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                  placeholder="Description"
-                  list={savedItems.length > 0 ? "bb-saved-items" : undefined}
-                  value={item.description}
-                  onChange={(e) => {
-                    const val = e.target.value
-                    if (!applySavedItem(idx, val)) updateItem(idx, "description", val)
-                  }}
-                  onKeyDown={(e) => handleKeyDown(e, idx)}
-                />
-                {currency === 'INR' && (
+            <div key={idx}>
+              {/* Mobile card layout */}
+              <div className="md:hidden bg-slate-50 rounded-lg p-3 mb-1 border border-slate-200 space-y-2">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Description</p>
                   <input
-                    className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    placeholder="HSN"
-                    value={item.hsn}
-                    onChange={(e) => updateItem(idx, "hsn", e.target.value)}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="Description"
+                    list={savedItems.length > 0 ? "bb-saved-items" : undefined}
+                    value={item.description}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (!applySavedItem(idx, val)) updateItem(idx, "description", val)
+                    }}
+                    onKeyDown={(e) => handleKeyDown(e, idx)}
                   />
-                )}
-                <input
-                  className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  placeholder="Qty"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(idx, "quantity", e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                />
-                <input
-                  className="col-span-2 text-sm border border-gray-200 rounded-lg px-2 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="Price"
-                  value={item.unitPrice}
-                  onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                />
-                <div className="col-span-2 flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
-                  <input
-                    className="w-full text-sm px-2 py-2 text-center focus:outline-none bg-white"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    placeholder={item.taxType === "FIXED" ? "₹" : "%"}
-                    value={item.taxRate}
-                    onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
-                    onFocus={(e) => e.target.select()}
-                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {currency === 'INR' && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">HSN/SAC</p>
+                      <input
+                        className="w-full text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="HSN"
+                        value={item.hsn}
+                        onChange={(e) => updateItem(idx, "hsn", e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Qty</p>
+                    <input
+                      className="w-full text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Price</p>
+                    <input
+                      className="w-full text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Price"
+                      value={item.unitPrice}
+                      onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Tax %/₹</p>
+                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-2 focus-within:ring-emerald-500">
+                      <input
+                        className="w-full text-sm px-2 py-2 text-center focus:outline-none bg-white"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        placeholder={item.taxType === "FIXED" ? "₹" : "%"}
+                        value={item.taxRate}
+                        onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateItem(idx, "taxType", item.taxType === "FIXED" ? "PERCENTAGE" : "FIXED")}
+                        className="px-1.5 py-2 text-xs font-medium text-gray-400 hover:text-emerald-600 hover:bg-gray-50 border-l border-gray-200 bg-white transition-colors select-none"
+                        title="Toggle % / Fixed"
+                      >
+                        {item.taxType === "FIXED" ? "₹" : "%"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 mb-1">Tax Name</p>
+                    <select
+                      value={item.taxName}
+                      onChange={(e) => {
+                        const name = e.target.value
+                        const orgTax = orgTaxes.find((t) => t.name === name)
+                        updateItem(idx, "taxName", name)
+                        if (orgTax) updateItem(idx, "taxRate", orgTax.rate)
+                      }}
+                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-2 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      {taxNames.map((n) => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => updateItem(idx, "taxType", item.taxType === "FIXED" ? "PERCENTAGE" : "FIXED")}
-                    className="px-1.5 py-2 text-xs font-medium text-gray-400 hover:text-emerald-600 hover:bg-gray-50 border-l border-gray-200 bg-white transition-colors select-none"
-                    title="Toggle % / Fixed"
+                    onClick={() => removeItem(idx)}
+                    disabled={items.length === 1}
+                    className="flex items-center justify-center text-gray-300 hover:text-red-400 disabled:opacity-20 transition-colors pb-2"
                   >
-                    {item.taxType === "FIXED" ? "₹" : "%"}
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="col-span-2 relative">
-                  <select
-                    value={item.taxName}
-                    onChange={(e) => {
-                      const name = e.target.value
-                      const orgTax = orgTaxes.find((t) => t.name === name)
-                      updateItem(idx, "taxName", name)
-                      if (orgTax) updateItem(idx, "taxRate", orgTax.rate)
-                    }}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                  >
-                    {taxNames.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeItem(idx)}
-                  disabled={items.length === 1}
-                  className="col-span-1 flex justify-center text-gray-300 hover:text-red-400 disabled:opacity-20 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {item.taxName === "CGST+SGST" && item.taxType === "PERCENTAGE" && (
+                  <p className="text-xs text-gray-400 text-center">
+                    ({(item.taxRate / 2).toFixed(1)}% CGST + {(item.taxRate / 2).toFixed(1)}% SGST)
+                  </p>
+                )}
               </div>
-              {item.taxName === "CGST+SGST" && item.taxType === "PERCENTAGE" && (
-                <div className="grid grid-cols-12 gap-2 px-0">
-                  <span className="col-span-4 col-start-8 text-xs text-gray-400 text-center">
-                    ({(item.taxRate / 2).toFixed(1)}% + {(item.taxRate / 2).toFixed(1)}%)
-                  </span>
+
+              {/* Desktop grid layout */}
+              <div className="hidden md:block space-y-1.5">
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  <input
+                    className={`${currency === 'INR' ? 'col-span-3' : 'col-span-4'} text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                    placeholder="Description"
+                    list={savedItems.length > 0 ? "bb-saved-items" : undefined}
+                    value={item.description}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (!applySavedItem(idx, val)) updateItem(idx, "description", val)
+                    }}
+                    onKeyDown={(e) => handleKeyDown(e, idx)}
+                  />
+                  {currency === 'INR' && (
+                    <input
+                      className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder="HSN"
+                      value={item.hsn}
+                      onChange={(e) => updateItem(idx, "hsn", e.target.value)}
+                    />
+                  )}
+                  <input
+                    className="col-span-1 text-sm border border-gray-200 rounded-lg px-2 py-2 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    placeholder="Qty"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <input
+                    className="col-span-2 text-sm border border-gray-200 rounded-lg px-2 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Price"
+                    value={item.unitPrice}
+                    onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <div className="col-span-2 flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                    <input
+                      className="w-full text-sm px-2 py-2 text-center focus:outline-none bg-white"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      placeholder={item.taxType === "FIXED" ? "₹" : "%"}
+                      value={item.taxRate}
+                      onChange={(e) => updateItem(idx, "taxRate", e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => updateItem(idx, "taxType", item.taxType === "FIXED" ? "PERCENTAGE" : "FIXED")}
+                      className="px-1.5 py-2 text-xs font-medium text-gray-400 hover:text-emerald-600 hover:bg-gray-50 border-l border-gray-200 bg-white transition-colors select-none"
+                      title="Toggle % / Fixed"
+                    >
+                      {item.taxType === "FIXED" ? "₹" : "%"}
+                    </button>
+                  </div>
+                  <div className="col-span-2 relative">
+                    <select
+                      value={item.taxName}
+                      onChange={(e) => {
+                        const name = e.target.value
+                        const orgTax = orgTaxes.find((t) => t.name === name)
+                        updateItem(idx, "taxName", name)
+                        if (orgTax) updateItem(idx, "taxRate", orgTax.rate)
+                      }}
+                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    >
+                      {taxNames.map((n) => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(idx)}
+                    disabled={items.length === 1}
+                    className="col-span-1 flex justify-center text-gray-300 hover:text-red-400 disabled:opacity-20 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-              )}
+                {item.taxName === "CGST+SGST" && item.taxType === "PERCENTAGE" && (
+                  <div className="grid grid-cols-12 gap-2 px-0">
+                    <span className="col-span-4 col-start-8 text-xs text-gray-400 text-center">
+                      ({(item.taxRate / 2).toFixed(1)}% + {(item.taxRate / 2).toFixed(1)}%)
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
