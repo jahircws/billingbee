@@ -477,6 +477,20 @@ ${pricingHTML}
       </div>
 
       <p className="text-xs text-gray-400">Created {format(new Date(proposal.createdAt), "d MMMM yyyy")}</p>
+
+      {/* Sticky Save bar — mobile only, editing mode only */}
+      {editing && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-10">
+          <button
+            onClick={saveDraft}
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2.5 rounded-lg disabled:opacity-60 transition-colors"
+          >
+            <Save className="w-3.5 h-3.5" />
+            {saving ? "Saving…" : "Save Proposal"}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
