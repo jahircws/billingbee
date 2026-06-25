@@ -57,7 +57,7 @@ export default async function PayPage({ params, searchParams }: Props) {
       include: {
         client: true,
         items: true,
-        org: { select: { name: true, email: true, address: true, gstin: true, upiQrUrl: true } },
+        org: { select: { name: true, email: true, address: true, gstin: true, upiQrUrl: true, upiId: true } },
       },
     })
 
@@ -278,32 +278,57 @@ export default async function PayPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {/* UPI QR — manual payment, INR only, unpaid invoices only */}
-          {showForm && invoice.currency === "INR" && invoice.org.upiQrUrl && (
+          {/* UPI — manual payment, INR only, unpaid invoices only */}
+          {showForm && invoice.currency === "INR" && (invoice.org.upiQrUrl || invoice.org.upiId) && (
             <div className="border-t border-gray-100 p-6 md:p-8">
               <div className="bg-white border border-slate-200 rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-sm font-semibold text-gray-900">Pay via UPI</span>
                   <span className="text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">Free</span>
                 </div>
-                <div className="hidden sm:flex justify-center">
-                  <Image
-                    src={invoice.org.upiQrUrl}
-                    alt="UPI QR Code"
-                    width={200}
-                    height={200}
-                    className="rounded-lg border border-gray-100"
-                    unoptimized
-                  />
+
+                {/* Desktop: QR image */}
+                {invoice.org.upiQrUrl && (
+                  <>
+                    <div className="hidden sm:flex justify-center">
+                      <Image
+                        src={invoice.org.upiQrUrl}
+                        alt="UPI QR Code"
+                        width={200}
+                        height={200}
+                        className="rounded-lg border border-gray-100"
+                        unoptimized
+                      />
+                    </div>
+                    <p className="hidden sm:block text-xs text-gray-500 text-center mt-3">
+                      Scan with Google Pay, PhonePe, or Paytm
+                    </p>
+                  </>
+                )}
+
+                {/* Mobile: deep-link button or fallback text */}
+                <div className="block sm:hidden">
+                  {invoice.org.upiId ? (
+                    <>
+                      <a
+                        href={`upi://pay?pa=${encodeURIComponent(invoice.org.upiId)}&pn=${encodeURIComponent(invoice.org.name)}&am=${Number(invoice.amountDue)}&tn=${encodeURIComponent(invoice.invoiceNumber)}&cu=INR`}
+                        className="block w-full bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold py-3 rounded-xl transition-colors"
+                      >
+                        Pay {fmt(invoice.amountDue)} via UPI App
+                      </a>
+                      <p className="text-xs text-gray-400 text-center mt-2">
+                        Opens Google Pay, PhonePe, or Paytm automatically
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center">
+                      Open your UPI app and scan the QR code sent by {invoice.org.name}
+                    </p>
+                  )}
                 </div>
-                <p className="hidden sm:block text-xs text-gray-500 text-center mt-3">
-                  Scan with Google Pay, PhonePe, or Paytm
-                </p>
-                <p className="sm:hidden text-xs text-gray-400 text-center">
-                  Ask the sender for their UPI QR code to scan from your phone
-                </p>
+
                 <p className="text-xs text-amber-600 italic text-center mt-2">
-                  After payment, ask your client to confirm
+                  After payment, reply to confirm
                 </p>
               </div>
             </div>

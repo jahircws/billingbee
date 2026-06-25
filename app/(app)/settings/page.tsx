@@ -94,7 +94,7 @@ export default async function SettingsPage({ searchParams }: Props) {
             <div className="space-y-8">
               <OrgTab org={org} />
               <div className="border-t border-gray-100 pt-6">
-                <UpiQrSection initialUrl={org.upiQrUrl ?? null} />
+                <UpiQrSection initialUrl={org.upiQrUrl ?? null} initialUpiId={org.upiId ?? null} />
               </div>
             </div>
           )}

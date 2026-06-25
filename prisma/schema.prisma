@@ -220,6 +220,7 @@ model Organization {
   pan         String?
   logo        String?
   upiQrUrl    String?
+  upiId       String?
   currency    Currency @default(INR)
   timezone    String   @default("Asia/Kolkata")
   plan             String    @default("free")
