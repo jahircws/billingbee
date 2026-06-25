@@ -282,6 +282,7 @@ export async function signContractWithProof(
     if (ownerEmail) {
       const base = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
       const contractLink = `${base}/contracts/${contract.id}`
+      const invoiceLink = `${base}/invoices/new?clientId=${contract.clientId}`
       const signedAtStr = format(signedAt, "d MMMM yyyy, h:mm a")
       const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"/></head>
@@ -311,9 +312,19 @@ export async function signContractWithProof(
       <td style="padding:6px 0;color:#374151;text-align:right;">${ipAddress || "—"}</td>
     </tr>
   </table>
-  <table cellpadding="0" cellspacing="0" style="margin:24px 0;">
+  <table cellpadding="0" cellspacing="0" style="margin:24px 0 12px;">
     <tr><td style="background:#059669;border-radius:8px;">
       <a href="${contractLink}" style="display:inline-block;color:#fff;font-size:15px;font-weight:600;padding:12px 28px;text-decoration:none;">View signed contract →</a>
+    </td></tr>
+  </table>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>
+  <p style="margin:0 0 12px;font-size:14px;color:#374151;font-weight:600;">Ready to invoice?</p>
+  <p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.6;">
+    ${contract.client.name} just signed — create their invoice now to keep the momentum going.
+  </p>
+  <table cellpadding="0" cellspacing="0">
+    <tr><td style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+      <a href="${invoiceLink}" style="display:inline-block;color:#059669;font-size:15px;font-weight:600;padding:12px 28px;text-decoration:none;">Create Invoice →</a>
     </td></tr>
   </table>
 </td></tr>

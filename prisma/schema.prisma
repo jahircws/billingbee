@@ -787,6 +787,7 @@ model Proposal {
   timeline   String?
   aiPrompt   String?        @db.Text
   sentAt     DateTime?
+  viewedAt   DateTime?
   acceptedAt DateTime?
   rejectedAt DateTime?
   createdAt  DateTime       @default(now())

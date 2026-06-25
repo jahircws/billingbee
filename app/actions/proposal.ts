@@ -1,11 +1,12 @@
 "use server"
 
+import { randomBytes } from "crypto"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
 import Anthropic from "@anthropic-ai/sdk"
-import { sendProposalEmail, sendContractEmail } from "@/lib/email"
+import { sendProposalEmail, sendContractEmail, sendEmail } from "@/lib/email"
 import { SignJWT } from "jose"
 import { headers } from "next/headers"
 
@@ -249,7 +250,18 @@ export async function respondToProposal(proposalId: string, response: "ACCEPTED"
 
   const proposal = await prisma.proposal.findUnique({
     where: { id: proposalId, clientId: session.user.clientId },
-    include: { client: { include: { org: { select: { slug: true, name: true } } } } },
+    include: {
+      client: { include: { org: { select: { slug: true, name: true } } } },
+      org: {
+        select: {
+          orgUsers: {
+            where: { role: "OWNER" },
+            include: { user: { select: { email: true } } },
+            take: 1,
+          },
+        },
+      },
+    },
   })
   if (!proposal) return { error: "Proposal not found" }
   if (proposal.status !== "SENT") return { error: "This proposal is no longer open for response" }
@@ -258,6 +270,9 @@ export async function respondToProposal(proposalId: string, response: "ACCEPTED"
     where: { id: proposalId },
     data: { status: response, ...(response === "ACCEPTED" ? { acceptedAt: new Date() } : { rejectedAt: new Date() }) },
   })
+
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
+  const ownerEmail = proposal.org.orgUsers[0]?.user?.email
 
   // Phase 4 — auto-generate contract + notify client when proposal is accepted
   if (response === "ACCEPTED") {
@@ -282,6 +297,9 @@ Write a complete contract with: parties, scope of work, payment terms, timeline,
 
       const content = message.content[0].type === "text" ? message.content[0].text : ""
 
+      // Generate a signing token so the client can sign via the token-based URL
+      const token = randomBytes(32).toString("hex")
+
       const contract = await prisma.contract.create({
         data: {
           orgId: proposal.orgId,
@@ -290,14 +308,14 @@ Write a complete contract with: parties, scope of work, payment terms, timeline,
           title: `Contract — ${proposal.title}`,
           content,
           status: "SENT",
+          token,
+          sentAt: new Date(),
         },
       })
 
-      // Email client the contract link
+      // Email client the correct token-based signing URL
       if (proposal.client.email) {
-        const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
-        const orgSlug = proposal.client.org.slug
-        const contractUrl = `${base}/portal/${orgSlug}/contract/${contract.id}`
+        const contractUrl = `${base}/portal/contract/${contract.token}`
         sendContractEmail(
           proposal.client.name,
           proposal.client.email,
@@ -309,6 +327,41 @@ Write a complete contract with: parties, scope of work, payment terms, timeline,
     } catch {
       // Auto-contract generation failing should not block the acceptance response
     }
+  }
+
+  // Fix 5 — notify org owner when proposal is declined
+  if (response === "REJECTED" && ownerEmail) {
+    const proposalLink = `${base}/proposals/${proposalId}`
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:32px 16px;">
+<tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+<tr><td style="background:#059669;border-radius:12px 12px 0 0;padding:24px 32px;">
+  <span style="color:#fff;font-size:20px;font-weight:800;">BillingBee</span>
+</td></tr>
+<tr><td style="background:#fff;padding:32px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+  <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#111827;">Proposal declined</h1>
+  <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.6;">
+    <strong>${proposal.client.name}</strong> declined your proposal: &ldquo;<strong>${proposal.title}</strong>&rdquo;.
+  </p>
+  <p style="margin:0 0 24px;font-size:14px;color:#6b7280;line-height:1.6;">
+    They may have questions or need adjustments. Consider reaching out to understand their concerns and revise if needed.
+  </p>
+  <table cellpadding="0" cellspacing="0">
+    <tr><td style="background:#059669;border-radius:8px;">
+      <a href="${proposalLink}" style="display:inline-block;color:#fff;font-size:15px;font-weight:600;padding:12px 28px;text-decoration:none;">View &amp; revise proposal →</a>
+    </td></tr>
+  </table>
+</td></tr>
+</table></td></tr>
+</table>
+</body></html>`
+    sendEmail({
+      to: ownerEmail,
+      subject: `${proposal.client.name} declined your proposal`,
+      html,
+    }).catch(() => {})
   }
 
   return { proposal: serialize(updated) }

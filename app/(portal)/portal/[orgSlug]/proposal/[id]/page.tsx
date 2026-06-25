@@ -28,6 +28,11 @@ export default async function PortalProposalPage({ params }: Props) {
 
   if (!proposal) notFound()
 
+  // Track first view
+  if (!proposal.viewedAt) {
+    await prisma.proposal.update({ where: { id: proposal.id }, data: { viewedAt: new Date() } })
+  }
+
   const sections = proposal.sections as unknown as Section[]
   const pricing = proposal.pricing as { description?: string; total?: number; currency?: string } | null
 
