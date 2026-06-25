@@ -70,8 +70,20 @@ export async function POST(req: NextRequest) {
     // Primary: checkout session completed (always fires for Stripe Checkout payments)
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session
+      const { invoiceId, orgId, plan } = session.metadata ?? {}
+
+      // Pro plan upgrade
+      if (plan === "pro" && orgId && !invoiceId) {
+        await prisma.organization.update({
+          where: { id: orgId },
+          data: { plan: "pro" },
+        })
+        console.log(`[stripe] Org ${orgId} upgraded to Pro`)
+        break
+      }
+
+      // Invoice payment (existing logic)
       if (session.payment_status === "paid") {
-        const { invoiceId, orgId } = session.metadata ?? {}
         if (invoiceId && orgId) {
           await markInvoicePaid(invoiceId, orgId, session.payment_intent as string ?? session.id)
         }

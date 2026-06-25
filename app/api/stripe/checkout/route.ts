@@ -41,9 +41,10 @@ export async function POST(req: NextRequest) {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
+      metadata: { orgId, plan: "pro" },
       subscription_data: { metadata: { orgId } },
-      success_url: `${base}/dashboard?upgraded=true`,
-      cancel_url: `${base}/dashboard`,
+      success_url: `${base}/settings?tab=plan&upgraded=true`,
+      cancel_url: `${base}/settings?tab=plan`,
     })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
