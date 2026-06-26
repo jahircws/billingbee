@@ -6,6 +6,7 @@ import { compare } from "bcryptjs"
 import { jwtVerify } from "jose"
 import prisma from "@/lib/db"
 import { authConfig } from "./auth.config"
+import { getGeoDefaults } from "@/lib/geo"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -46,8 +47,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           let orgSlug = baseSlug
           const slugTaken = await prisma.organization.findUnique({ where: { slug: orgSlug } })
           if (slugTaken) orgSlug = `${orgSlug}-${Math.random().toString(36).slice(2, 7)}`
+          const geo = await getGeoDefaults()
           const org = await prisma.$transaction(async (tx) => {
-            const created = await tx.organization.create({ data: { name, slug: orgSlug } })
+            const created = await tx.organization.create({ data: { name, slug: orgSlug, currency: geo.currency as never, country: geo.country } })
             await tx.orgUser.create({ data: { orgId: created.id, userId: token.sub!, role: "OWNER" } })
             return created
           })

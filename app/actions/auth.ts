@@ -8,6 +8,7 @@ import DOMPurify from "isomorphic-dompurify"
 import { sendWelcomeEmail } from "@/lib/email"
 import { validatePassword } from "@/lib/sanitize"
 import { addDays } from "date-fns"
+import { getGeoDefaults } from "@/lib/geo"
 
 interface PendingDocItem {
   description: string
@@ -92,10 +93,11 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     // simply plan=pro with a planExpiry date; lib/plan.ts downgrades to free
     // automatically once it passes.
     const trialData = trial === "pro" ? { plan: "pro", planExpiry: addDays(new Date(), 14) } : {}
+    const geo = await getGeoDefaults()
 
     await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name: orgName, slug: orgSlug, ...(acquisitionSource ? { acquisitionSource } : {}), ...trialData },
+        data: { name: orgName, slug: orgSlug, currency: geo.currency as never, country: geo.country, ...(acquisitionSource ? { acquisitionSource } : {}), ...trialData },
       })
       const user = await tx.user.create({
         data: { email, name, passwordHash },
