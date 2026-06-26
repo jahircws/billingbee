@@ -228,6 +228,8 @@ model Organization {
   stripeCustomerId String?   @unique
   isActive         Boolean   @default(true)
   acquisitionSource String?
+  onboardingGoal  String?
+  onboardingDone  Boolean   @default(false)
   lastForecastAt        DateTime?
   day5ProNudgeSentAt    DateTime?
   day14UpgradePushSentAt DateTime?

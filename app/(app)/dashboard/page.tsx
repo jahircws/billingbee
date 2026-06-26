@@ -40,7 +40,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const [org, data, userRecord, onboarding] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
-      select: { currency: true, plan: true, planExpiry: true },
+      select: { currency: true, plan: true, planExpiry: true, onboardingDone: true },
     }),
     getDashboardData(orgId),
     userId
@@ -79,6 +79,10 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
       }
     })(),
   ])
+
+  if (!org?.onboardingDone) {
+    redirect("/onboarding")
+  }
 
   const currency = org?.currency ?? "INR"
   const isTrial = org?.plan === "pro" && org?.planExpiry != null
