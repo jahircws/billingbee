@@ -50,9 +50,10 @@ interface Props {
   initial?: ClientData
   onClose: () => void
   onLimitReached?: (current: number, limit: number) => void
+  onCreated?: (clientId: string, clientName: string) => void
 }
 
-export default function ClientFormModal({ mode, initial = {}, onClose, onLimitReached }: Props) {
+export default function ClientFormModal({ mode, initial = {}, onClose, onLimitReached, onCreated }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -98,7 +99,11 @@ export default function ClientFormModal({ mode, initial = {}, onClose, onLimitRe
       }
       onClose()
       router.refresh()
-      router.push(`/clients/${result.client.id}`)
+      if (onCreated) {
+        onCreated(result.client.id, name)
+      } else {
+        router.push(`/clients/${result.client.id}`)
+      }
     } else {
       const result = await updateClient(initial.id!, data)
       setLoading(false)

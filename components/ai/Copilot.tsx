@@ -148,6 +148,15 @@ export default function Copilot({
     el.scrollTop = el.scrollHeight
   }, [messages])
 
+  useEffect(() => {
+    function handleSetInput(e: CustomEvent) {
+      setInput(e.detail?.text ?? "")
+      setTimeout(() => textareaRef.current?.focus(), 50)
+    }
+    window.addEventListener("bb:copilot-set-input", handleSetInput as EventListener)
+    return () => window.removeEventListener("bb:copilot-set-input", handleSetInput as EventListener)
+  }, [])
+
   const historyForAPI = useCallback(() => {
     return messages
       .filter((m) => m.type !== "action")

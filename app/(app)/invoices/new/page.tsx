@@ -4,6 +4,7 @@ import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import InvoiceForm from "@/components/invoices/InvoiceForm"
 import { privateMetadata } from "@/lib/metadata"
+import OnboardingCopilotTrigger from "./OnboardingCopilotTrigger"
 
 export const metadata = { ...privateMetadata, title: "New Invoice" }
 export const dynamic = "force-dynamic"
@@ -18,6 +19,7 @@ interface Props {
     currency?: string
     source?: string
     mode?: string
+    onboarding?: string
   }>
 }
 
@@ -26,7 +28,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
 
-  const { clientId, clientName, amount, description, dueDate, mode } = await searchParams
+  const { clientId, clientName, amount, description, dueDate, mode, onboarding } = await searchParams
 
   const [clients, org, taxes, items] = await Promise.all([
     prisma.client.findMany({
@@ -45,6 +47,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <Topbar title="New Invoice" />
+      {onboarding === "true" && <OnboardingCopilotTrigger clientName={clientName} />}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
         <InvoiceForm

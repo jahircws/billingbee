@@ -1,6 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
 import { hash } from "bcryptjs"
 import { AuthError } from "next-auth"
 import { signIn, signOut } from "@/auth"
@@ -187,9 +186,8 @@ export async function registerOrg(_prevState: unknown, formData: FormData) {
     return { error: "Registration failed. Please try again.", values }
   }
 
-  const destination = createdDocPath ?? (callbackUrl || "/dashboard")
-  const loginUrl = `/login?registered=1&callbackUrl=${encodeURIComponent(destination)}`
-  redirect(loginUrl)
+  const destination = createdDocPath ?? (callbackUrl || "/onboarding")
+  await signIn("staff", { email, password, redirectTo: destination })
 }
 
 export async function loginStaff(_prevState: unknown, formData: FormData) {
