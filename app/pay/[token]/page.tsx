@@ -57,7 +57,7 @@ export default async function PayPage({ params, searchParams }: Props) {
       include: {
         client: true,
         items: true,
-        org: { select: { name: true, email: true, address: true, gstin: true, upiQrUrl: true, upiId: true } },
+        org: { select: { name: true, email: true, address: true, gstin: true, upiQrUrl: true, upiId: true, plan: true } },
       },
     })
 
@@ -336,9 +336,11 @@ export default async function PayPage({ params, searchParams }: Props) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-400">
-          Secured by BillingBee · billingbee.co
-        </p>
+        {invoice.org.plan !== "pro" && (
+          <p className="text-center text-xs text-gray-400">
+            Secured by BillingBee · billingbee.co
+          </p>
+        )}
       </div>
     </div>
   )
