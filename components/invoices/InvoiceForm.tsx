@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2, ChevronDown, Upload, X, Lock } from "lucide-react"
+import { Plus, Trash2, ChevronDown, Upload, X, Lock, Info } from "lucide-react"
 import { createInvoice, updateInvoiceWithItems } from "@/app/actions/invoices"
 import { createQuote, updateQuoteWithItems } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
@@ -134,6 +134,7 @@ export default function InvoiceForm({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
+  const [orgStateBannerDismissed, setOrgStateBannerDismissed] = useState(false)
 
   // Upload mode
   const [uploadStep, setUploadStep] = useState<"idle" | "extracting" | "done">(uploadMode ? "idle" : "done")
@@ -645,6 +646,21 @@ export default function InvoiceForm({
           </>
         )}
       </div>
+
+      {/* Org state missing nudge */}
+      {isGstCurrency(currency) && !orgState && clientId && !orgStateBannerDismissed && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3 text-sm flex items-start gap-2">
+          <Info size={16} className="text-amber-500 mt-0.5 shrink-0" />
+          <span className="flex-1">
+            Add your business state in{" "}
+            <a href="/settings?tab=org" className="underline font-medium">Settings</a>
+            {" "}to enable automatic GST calculation (CGST/SGST vs IGST).
+          </span>
+          <button onClick={() => setOrgStateBannerDismissed(true)} className="text-amber-500 hover:text-amber-700 shrink-0">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Line items */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
