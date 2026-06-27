@@ -37,6 +37,15 @@ export function isGstCurrency(currency: string): boolean {
   return currency === "INR"
 }
 
+export function getGstType(
+  orgState: string | null | undefined,
+  clientState: string | null | undefined
+): "CGST+SGST" | "IGST" | "GST" {
+  if (!orgState || !clientState) return "GST"
+  if (orgState.trim().toLowerCase() === clientState.trim().toLowerCase()) return "CGST+SGST"
+  return "IGST"
+}
+
 export function formatDate(date: Date | string, currency?: string): string {
   const d = new Date(date)
   if (currency === "INR") {

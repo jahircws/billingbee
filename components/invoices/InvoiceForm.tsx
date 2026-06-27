@@ -8,13 +8,14 @@ import { createQuote, updateQuoteWithItems } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
 import { isValidEmail } from "@/lib/sanitize"
 import { computeInvoiceTotals } from "@/lib/invoice-totals"
-import { getTaxLabel, isGstCurrency } from "@/lib/utils"
+import { getTaxLabel, isGstCurrency, getGstType } from "@/lib/utils"
 import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Client {
   id: string
   name: string
   email?: string | null
+  state?: string | null
 }
 
 interface LineItem {
@@ -63,6 +64,7 @@ interface Props {
   clients: Client[]
   savedItems?: SavedItem[]
   orgTaxes?: OrgTax[]
+  orgState?: string | null
   defaultClientId?: string
   defaultClientName?: string
   defaultAmount?: number
@@ -82,6 +84,7 @@ const DEFAULT_TAX_NAMES_GLOBAL = ["Tax", "VAT", "None"]
 export default function InvoiceForm({
   type = "invoice",
   clients,
+  orgState,
   defaultClientId,
   defaultClientName,
   defaultAmount,
@@ -181,6 +184,13 @@ export default function InvoiceForm({
   const [localClients, setLocalClients] = useState(clients)
 
   const [currency, setCurrency] = useState(initialData?.currency ?? defaultCurrency)
+
+  function resolveGstType(selectedClientId: string): string {
+    if (!isGstCurrency(currency)) return getTaxLabel(currency)
+    const client = localClients.find((c) => c.id === selectedClientId)
+    return getGstType(orgState, client?.state)
+  }
+
   const defaultTaxNames = isGstCurrency(currency) ? DEFAULT_TAX_NAMES_INR : DEFAULT_TAX_NAMES_GLOBAL
   const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : defaultTaxNames
   const netSubtotal = items.reduce(
@@ -226,8 +236,23 @@ export default function InvoiceForm({
     return () => clearInterval(timer)
   }, [saveDraft])
 
+  // Auto-set GST type on initial load when clientId is pre-filled
+  useEffect(() => {
+    if (!clientId || !isGstCurrency(currency)) return
+    const gstType = resolveGstType(clientId)
+    setItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        taxName: gstType,
+        taxRate: item.taxRate === 0 ? 18 : item.taxRate,
+      }))
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally only on mount
+
   function addItem() {
-    setItems((prev) => [...prev, { description: "", hsn: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: getTaxLabel(currency), taxType: "PERCENTAGE", discount: 0 }])
+    const gstType = clientId ? resolveGstType(clientId) : getTaxLabel(currency)
+    setItems((prev) => [...prev, { description: "", hsn: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: gstType, taxType: "PERCENTAGE", discount: 0 }])
   }
 
   function removeItem(idx: number) {
@@ -457,7 +482,20 @@ export default function InvoiceForm({
           <div className="relative flex-1">
             <select
               value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
+              onChange={(e) => {
+                const newClientId = e.target.value
+                setClientId(newClientId)
+                if (newClientId && isGstCurrency(currency)) {
+                  const gstType = resolveGstType(newClientId)
+                  setItems((prev) =>
+                    prev.map((item) => ({
+                      ...item,
+                      taxName: gstType,
+                      taxRate: item.taxRate === 0 ? 18 : item.taxRate,
+                    }))
+                  )
+                }
+              }}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
             >
               <option value="">Select client…</option>

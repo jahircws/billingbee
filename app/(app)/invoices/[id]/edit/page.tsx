@@ -29,10 +29,10 @@ export default async function EditInvoicePage({ params }: Props) {
     }),
     prisma.client.findMany({
       where: { orgId },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, state: true },
       orderBy: { name: "asc" },
     }),
-    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true, state: true } }),
     prisma.tax.findMany({ where: { orgId, isActive: true }, select: { id: true, name: true, rate: true }, orderBy: { name: "asc" } }),
     prisma.item.findMany({ where: { orgId, isActive: true }, select: { id: true, name: true, description: true, unitPrice: true, taxRate: true, hsn: true }, orderBy: { name: "asc" } }),
   ])
@@ -41,6 +41,7 @@ export default async function EditInvoicePage({ params }: Props) {
 
   const serialized = serialize(invoice)
   const isPro = org?.plan !== "free"
+  const orgState = org?.state ?? null
 
   const initialData = {
     invoiceId: serialized.id,
@@ -74,6 +75,7 @@ export default async function EditInvoicePage({ params }: Props) {
           savedItems={items.map((i) => ({ id: i.id, name: i.name, description: i.description, unitPrice: Number(i.unitPrice), taxRate: Number(i.taxRate), hsn: i.hsn }))}
           orgTaxes={taxes.map((t) => ({ id: t.id, name: t.name, rate: Number(t.rate) }))}
           isPro={isPro}
+          orgState={orgState}
           defaultCurrency={org?.currency ?? "INR"}
           initialData={initialData}
         />
