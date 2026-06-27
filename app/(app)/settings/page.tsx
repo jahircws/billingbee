@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
+import { getGeoDefaults } from "@/lib/geo"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
 import ProfileTab from "./ProfileTab"
@@ -35,12 +36,16 @@ export default async function SettingsPage({ searchParams }: Props) {
 
   const { tab = "profile" } = await searchParams
 
-  const [org, user, taxes, items] = serialize(await Promise.all([
-    prisma.organization.findUnique({ where: { id: orgId } }),
-    prisma.user.findUnique({ where: { id: session.user.userId! } }),
-    prisma.tax.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
-    prisma.item.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
-  ]))
+  const [[org, user, taxes, items], geo] = await Promise.all([
+    prisma.$transaction([
+      prisma.organization.findUnique({ where: { id: orgId } }),
+      prisma.user.findUnique({ where: { id: session.user.userId! } }),
+      prisma.tax.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
+      prisma.item.findMany({ where: { orgId, isActive: true }, orderBy: { name: "asc" } }),
+    ]).then(serialize),
+    getGeoDefaults(),
+  ])
+  const isIndia = geo.country === "IN"
 
   if (!org || !user) redirect("/login")
 
@@ -105,6 +110,7 @@ export default async function SettingsPage({ searchParams }: Props) {
               org={org}
               invoiceCount={invoiceCount}
               clientCount={clientCount}
+              isIndia={isIndia}
             />
           )}
         </div>

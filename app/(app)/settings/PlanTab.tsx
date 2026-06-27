@@ -13,6 +13,7 @@ interface Props {
   org: Org
   invoiceCount: number
   clientCount: number
+  isIndia?: boolean
 }
 
 const FREE_LIMITS = { invoices: 5, clients: 3 }
@@ -41,7 +42,7 @@ function UsageBar({ label, current, limit }: { label: string; current: number; l
   )
 }
 
-export default function PlanTab({ org, invoiceCount, clientCount }: Props) {
+export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const isPro = org.plan === "pro" || org.plan === "business"
@@ -216,7 +217,7 @@ export default function PlanTab({ org, invoiceCount, clientCount }: Props) {
             disabled={loading}
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-70"
           >
-            {loading ? "Redirecting…" : "Upgrade to Pro — $9.99/month"}
+            {loading ? "Redirecting…" : isIndia ? "Upgrade to Pro — ₹849/month" : "Upgrade to Pro — $9.99/month"}
           </button>
           <p className="text-center text-xs text-gray-400">
             Cancel anytime · {" "}

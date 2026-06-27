@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { CheckCircle, XCircle, Loader2, Eye, EyeOff, ClipboardCopy, Lock } from "lucide-react"
-import Link from "next/link"
 
 interface Props {
   gateway: string
@@ -28,6 +27,23 @@ export default function GatewayForm({ gateway, label, status, fields, labels, we
   const [copied, setCopied] = useState(false)
 
   const isConfigured = status?.isActive
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
+
+  async function handleUpgrade() {
+    setUpgradeLoading(true)
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {
+      // ignore
+    }
+    setUpgradeLoading(false)
+  }
 
   async function save() {
     if (fields.some((f) => !values[f])) return
@@ -209,12 +225,13 @@ export default function GatewayForm({ gateway, label, status, fields, labels, we
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/60 backdrop-blur-[2px]">
           <Lock size={22} className="text-gray-500" />
           <p className="text-sm font-semibold text-gray-700">Pro plan required</p>
-          <Link
-            href="/plans-price"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+          <button
+            onClick={handleUpgrade}
+            disabled={upgradeLoading}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
           >
-            Upgrade to Pro
-          </Link>
+            {upgradeLoading ? "Redirecting…" : "Upgrade to Pro"}
+          </button>
         </div>
       </div>
     )
