@@ -89,7 +89,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
 
   const isDraft = status === "DRAFT"
   const isPaid = status === "PAID"
-  const canPay = status === "UNPAID" || status === "OVERDUE"
+  const canPay = status === "UNPAID" || status === "OVERDUE" || status === "PARTIALLY_PAID"
   const canRemind = canPay && !!clientEmail
 
   return (

@@ -13,15 +13,19 @@ import {
   MoreHorizontal, Link2, Check, Pencil,
 } from "lucide-react"
 import UpgradeModal from "@/components/billing/UpgradeModal"
+import RecordPaymentModal from "@/components/invoices/RecordPaymentModal"
 
 interface Props {
   invoiceId: string
   invoiceNumber: string
   status: string
   clientEmail: string | null
+  total: number
+  amountPaid: number
+  currency: string
 }
 
-export default function InvoiceActions({ invoiceId, invoiceNumber, status, clientEmail }: Props) {
+export default function InvoiceActions({ invoiceId, invoiceNumber, status, clientEmail, total, amountPaid, currency }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -75,7 +79,7 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
   }
 
   const isPaid = status === "PAID"
-  const canPay = status === "UNPAID" || status === "OVERDUE"
+  const canPay = status === "UNPAID" || status === "OVERDUE" || status === "PARTIALLY_PAID"
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -109,6 +113,16 @@ export default function InvoiceActions({ invoiceId, invoiceNumber, status, clien
           <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
           {loading === "paid" ? "Saving…" : "Mark paid"}
         </button>
+      )}
+
+      {/* Record partial payment */}
+      {!isPaid && (
+        <RecordPaymentModal
+          invoiceId={invoiceId}
+          total={total}
+          amountPaid={amountPaid}
+          currency={currency}
+        />
       )}
 
       {/* Download PDF */}

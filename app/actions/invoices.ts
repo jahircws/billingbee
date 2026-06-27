@@ -546,3 +546,63 @@ export async function sendReminder(invoiceId: string) {
 
   return { success: true }
 }
+
+export async function recordPayment(
+  invoiceId: string,
+  data: {
+    amount: number
+    method: string
+    paidAt: string
+    notes?: string
+  }
+) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId, orgId } })
+  if (!invoice) return { error: "Invoice not found" }
+
+  const remaining = Number(invoice.total) - Number(invoice.amountPaid)
+  if (data.amount <= 0) return { error: "Amount must be greater than 0" }
+  if (data.amount > remaining + 0.001) return { error: `Amount exceeds remaining balance of ${remaining}` }
+
+  const newAmountPaid = Number(invoice.amountPaid) + data.amount
+  const isFullyPaid = newAmountPaid >= Number(invoice.total) - 0.001
+  const newStatus = isFullyPaid ? "PAID" : "PARTIALLY_PAID"
+  const newAmountDue = Math.max(0, Number(invoice.total) - newAmountPaid)
+
+  const [updated] = await prisma.$transaction([
+    prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        amountPaid: newAmountPaid,
+        amountDue: newAmountDue,
+        status: newStatus as never,
+        ...(isFullyPaid ? { paidAt: new Date() } : {}),
+      },
+    }),
+    prisma.payment.create({
+      data: {
+        orgId,
+        invoiceId,
+        clientId: invoice.clientId,
+        amount: data.amount,
+        currency: invoice.currency,
+        method: data.method as never,
+        status: "captured",
+        paidAt: new Date(data.paidAt),
+        notes: data.notes || null,
+      },
+    }),
+  ])
+
+  if (isFullyPaid) {
+    await cancelCollections(orgId, invoiceId)
+  }
+
+  revalidatePath("/dashboard")
+  revalidatePath("/invoices")
+  revalidatePath(`/invoices/${invoiceId}`)
+  return { invoice: serialize(updated) }
+}

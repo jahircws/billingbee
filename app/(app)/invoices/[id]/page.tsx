@@ -69,6 +69,9 @@ export default async function InvoicePage({ params, searchParams }: Props) {
             invoiceNumber={invoice.invoiceNumber}
             status={invoice.status}
             clientEmail={invoice.client.email}
+            total={Number(invoice.total)}
+            amountPaid={Number(invoice.amountPaid)}
+            currency={currency}
           />
         </div>
 
@@ -160,6 +163,56 @@ export default async function InvoicePage({ params, searchParams }: Props) {
                 </tfoot>
               </table>
             </div>
+
+            {/* Partial payment progress */}
+            {invoice.status === "PARTIALLY_PAID" && (
+              <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-orange-700 font-medium">
+                    Paid {fmt(invoice.amountPaid)} of {fmt(invoice.total)}
+                  </span>
+                  <span className="text-orange-600 font-semibold">
+                    {Math.round((Number(invoice.amountPaid) / Number(invoice.total)) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-orange-100 rounded-full h-2">
+                  <div
+                    className="bg-orange-400 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (Number(invoice.amountPaid) / Number(invoice.total)) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-orange-600">Balance due: {fmt(invoice.amountDue)}</p>
+              </div>
+            )}
+
+            {/* Payment history */}
+            {invoice.payments.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-700">Payment history</h3>
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50">
+                      <th className="py-2 px-4 text-left text-xs text-gray-400 font-medium">Date</th>
+                      <th className="py-2 px-4 text-right text-xs text-gray-400 font-medium">Amount</th>
+                      <th className="py-2 px-4 text-left text-xs text-gray-400 font-medium hidden sm:table-cell">Method</th>
+                      <th className="py-2 px-4 text-left text-xs text-gray-400 font-medium hidden md:table-cell">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.payments.map((p) => (
+                      <tr key={p.id} className="border-b border-gray-50 last:border-0">
+                        <td className="py-2 px-4 text-gray-600">{p.paidAt ? format(p.paidAt, "d MMM yyyy") : "—"}</td>
+                        <td className="py-2 px-4 text-right font-semibold text-emerald-700">{fmt(p.amount)}</td>
+                        <td className="py-2 px-4 text-gray-500 hidden sm:table-cell">{p.method.replace("_", " ")}</td>
+                        <td className="py-2 px-4 text-gray-400 hidden md:table-cell">{p.notes ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {invoice.notes && (
               <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">

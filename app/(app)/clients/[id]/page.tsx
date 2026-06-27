@@ -23,6 +23,7 @@ const statusColor: Record<string, string> = {
   UNPAID: "bg-amber-100 text-amber-700",
   PAID: "bg-emerald-100 text-emerald-700",
   OVERDUE: "bg-red-100 text-red-700",
+  PARTIALLY_PAID: "bg-orange-50 text-orange-700 border border-orange-200",
 }
 
 export default async function ClientPage({ params }: Props) {
