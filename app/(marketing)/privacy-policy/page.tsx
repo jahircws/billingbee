@@ -34,10 +34,7 @@ export default function PrivacyPolicyPage() {
         <p className="text-sm text-gray-400 mb-10">Last updated: {LAST_UPDATED}</p>
 
         <div className="bg-white rounded-2xl border border-gray-100 p-8 space-y-6 text-gray-600 text-sm leading-relaxed">
-          <p className="text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-            This is a placeholder policy provided for transparency during our beta. It will be
-            replaced with a final, legally reviewed version before general availability.
-          </p>
+          
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-2">1. Information we collect</h2>
