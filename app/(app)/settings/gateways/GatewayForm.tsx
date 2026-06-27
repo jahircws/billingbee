@@ -52,9 +52,10 @@ interface Props {
   webhookUrl?: string
   webhookSecretField?: boolean
   locked?: boolean
+  isIndia?: boolean
 }
 
-export default function GatewayForm({ gateway, label, status, fields, labels, webhookUrl, webhookSecretField, locked }: Props) {
+export default function GatewayForm({ gateway, label, status, fields, labels, webhookUrl, webhookSecretField, locked, isIndia }: Props) {
   const [values, setValues] = useState<Record<string, string>>(
     Object.fromEntries([...fields, ...(webhookSecretField ? ["webhookSecret"] : [])].map((f) => [f, ""]))
   )
@@ -71,18 +72,50 @@ export default function GatewayForm({ gateway, label, status, fields, labels, we
 
   async function handleUpgrade() {
     setUpgradeLoading(true)
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-    } catch {
-      // ignore
+    if (isIndia) {
+      try {
+        const res = await fetch("/api/payments/razorpay-subscription/create", { method: "POST" })
+        const data = await res.json()
+        if (!res.ok) { setUpgradeLoading(false); return }
+
+        const script = document.createElement("script")
+        script.src = "https://checkout.razorpay.com/v1/checkout.js"
+        script.async = true
+        document.body.appendChild(script)
+        script.onload = () => {
+          const options = {
+            key: data.key,
+            subscription_id: data.subscriptionId,
+            name: "BillingBee",
+            description: "Pro Plan — ₹849/month",
+            image: "/logo.png",
+            handler: () => { window.location.href = "/settings/gateways?upgraded=true" },
+            theme: { color: "#10b981" },
+            modal: { ondismiss: () => { setUpgradeLoading(false) } },
+          }
+          // @ts-ignore — Razorpay loaded via script tag
+          const rzp = new window.Razorpay(options)
+          rzp.open()
+          setUpgradeLoading(false)
+        }
+        script.onerror = () => { setUpgradeLoading(false) }
+      } catch {
+        setUpgradeLoading(false)
+      }
+    } else {
+      try {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        })
+        const data = await res.json()
+        if (data.url) window.location.href = data.url
+      } catch {
+        // ignore
+      }
+      setUpgradeLoading(false)
     }
-    setUpgradeLoading(false)
   }
 
   async function save() {
@@ -272,7 +305,7 @@ export default function GatewayForm({ gateway, label, status, fields, labels, we
             disabled={upgradeLoading}
             className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
           >
-            {upgradeLoading ? "Redirecting…" : "Upgrade to Pro"}
+            {upgradeLoading ? (isIndia ? "Processing…" : "Redirecting…") : isIndia ? "Upgrade to Pro — ₹849/mo" : "Upgrade to Pro"}
           </button>
         </div>
       </div>

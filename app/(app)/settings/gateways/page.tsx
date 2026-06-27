@@ -34,10 +34,11 @@ export default async function GatewaysPage() {
 
   const [status, org] = await Promise.all([
     loadGatewayStatus(orgId),
-    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } }),
   ])
 
   const isPro = org?.plan === "pro"
+  const isIndia = org?.currency === "INR"
   const appUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"
 
   return (
@@ -69,6 +70,7 @@ export default async function GatewaysPage() {
             webhookUrl={`${appUrl}/api/webhooks/stripe`}
             webhookSecretField
             locked={!isPro}
+            isIndia={isIndia}
           />
           <GatewayForm
             gateway="PAYPAL"
@@ -78,6 +80,7 @@ export default async function GatewaysPage() {
             labels={["Client ID", "Client Secret"]}
             webhookUrl={`${appUrl}/api/webhooks/paypal`}
             locked={!isPro}
+            isIndia={isIndia}
           />
         </div>
       </div>
