@@ -8,6 +8,7 @@ import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
 import ConvertQuoteButton from "./ConvertQuoteButton"
 import SendQuoteButton from "./SendQuoteButton"
+import RejectQuoteButton from "./RejectQuoteButton"
 import { fmtCurrency } from "@/lib/currency"
 
 export const metadata = { ...privateMetadata, title: "Quote" }
@@ -87,6 +88,9 @@ export default async function QuotePage({ params }: Props) {
           )}
           {(quote.status as string) !== "CONVERTED" && (
             <ConvertQuoteButton quoteId={quote.id} />
+          )}
+          {!["CONVERTED", "REJECTED"].includes(quote.status as string) && (
+            <RejectQuoteButton quoteId={quote.id} />
           )}
         </div>
 

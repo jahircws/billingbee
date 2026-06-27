@@ -10,7 +10,9 @@ export interface ExtractionResult {
   items: { description: string; qty: number; rate: number }[]
   currency: string
   totalAmount: number | null
+  taxAmount: number | null
   dueDate: string | null
+  paymentTerms: string | null
   notes: string | null
   confidence: "high" | "medium" | "low"
 }

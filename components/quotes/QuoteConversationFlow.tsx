@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { MessageSquare, Loader2, ArrowLeft, Sparkles } from "lucide-react"
 import InvoiceForm from "@/components/invoices/InvoiceForm"
+import { fmtCurrency } from "@/lib/currency"
 
 interface Client {
   id: string
@@ -30,13 +31,20 @@ interface SavedItem {
   hsn: string | null
 }
 
+interface OrgTax {
+  id: string
+  name: string
+  rate: number
+}
+
 interface Props {
   clients: Client[]
   isPro?: boolean
   savedItems?: SavedItem[]
+  orgTaxes?: OrgTax[]
 }
 
-export default function QuoteConversationFlow({ clients, isPro = false, savedItems = [] }: Props) {
+export default function QuoteConversationFlow({ clients, isPro = false, savedItems = [], orgTaxes = [] }: Props) {
   const [step, setStep] = useState<"paste" | "review" | "manual">("paste")
   const [text, setText] = useState("")
   const [extracting, setExtracting] = useState(false)
@@ -80,7 +88,7 @@ export default function QuoteConversationFlow({ clients, isPro = false, savedIte
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to conversation paste
         </button>
-        <InvoiceForm type="quote" clients={clients} isPro={isPro} savedItems={savedItems} />
+        <InvoiceForm type="quote" clients={clients} isPro={isPro} savedItems={savedItems} orgTaxes={orgTaxes} />
       </div>
     )
   }
@@ -122,7 +130,7 @@ export default function QuoteConversationFlow({ clients, isPro = false, savedIte
                "Low confidence — fill in the blanks"}
             </span>
             {extracted.clientName && <span className="ml-2 font-normal">· {extracted.clientName}</span>}
-            {defaultAmount ? <span className="ml-2 font-normal">· ₹{defaultAmount.toLocaleString("en-IN")}</span> : null}
+            {defaultAmount ? <span className="ml-2 font-normal">· {fmtCurrency(defaultAmount, extracted.currency ?? "INR")}</span> : null}
           </div>
           <button
             onClick={() => { setStep("paste"); setExtracted(null) }}
@@ -137,11 +145,13 @@ export default function QuoteConversationFlow({ clients, isPro = false, savedIte
           clients={clients}
           isPro={isPro}
           savedItems={savedItems}
+          orgTaxes={orgTaxes}
           defaultClientId={matchedClient?.id}
           defaultClientName={extracted.clientName ?? undefined}
           defaultAmount={defaultAmount}
           defaultDescription={defaultDescription}
           defaultDueDate={extracted.dueDate ?? undefined}
+          defaultCurrency={extracted.currency ?? undefined}
         />
       </div>
     )
@@ -161,7 +171,7 @@ export default function QuoteConversationFlow({ clients, isPro = false, savedIte
 
       <textarea
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => { setText(e.target.value); if (extracted) { setExtracted(null); setStep("paste") } }}
         rows={10}
         placeholder={`Paste a chat or email here, e.g.\n\n"Hi, can you send me a quote for the logo design project? Budget is around ₹15,000. Need it done by end of month.\n— Rahul Mehta, rahul@acmecorp.in"`}
         className="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none text-gray-700 placeholder-gray-300 leading-relaxed"

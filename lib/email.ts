@@ -613,6 +613,26 @@ export async function sendQuoteEmail(
   })
 }
 
+export async function sendQuoteRejectedEmail(
+  clientName: string,
+  clientEmail: string,
+  orgName: string,
+  quoteNumber: string,
+) {
+  const body = `
+    ${h1(`Quote ${quoteNumber} was not accepted`)}
+    ${p(`Hi ${clientName}, thank you for considering <strong>${orgName}</strong>.`)}
+    ${p(`We're letting you know that quote <strong>${quoteNumber}</strong> has been marked as rejected.`)}
+    ${divider()}
+    ${p(`If you'd like to discuss further or receive a revised quote, please get in touch.`)}
+  `
+  return sendEmail({
+    to: clientEmail,
+    subject: `Quote ${quoteNumber} from ${orgName}`,
+    html: layout(body, `Quote ${quoteNumber} was not accepted.`),
+  })
+}
+
 export async function sendProposalEmail(
   clientName: string,
   clientEmail: string,

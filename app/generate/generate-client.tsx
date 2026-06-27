@@ -437,8 +437,11 @@ export default function GenerateClient({ loggedIn = false }: { loggedIn?: boolea
       items: data.items.length
         ? data.items.map((i) => ({ ...i, id: crypto.randomUUID() }))
         : f.items,
+      currency: data.currency ?? f.currency,
       notes: data.notes ?? f.notes,
       dueDate: data.dueDate ?? f.dueDate,
+      paymentTerms: data.paymentTerms ?? f.paymentTerms,
+      ...(data.taxAmount && data.taxAmount > 0 ? { taxEnabled: true } : {}),
     }))
     setShowUpload(false)
   }

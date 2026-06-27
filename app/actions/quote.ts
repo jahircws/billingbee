@@ -5,7 +5,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
 import { computeInvoiceTotals } from "@/lib/invoice-totals"
-import { sendQuoteEmail } from "@/lib/email"
+import { sendQuoteEmail, sendQuoteRejectedEmail } from "@/lib/email"
 import { fmtCurrency } from "@/lib/currency"
 import { addDays } from "date-fns"
 import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
@@ -190,6 +190,27 @@ export async function sendQuote(quoteId: string) {
   const quoteUrl = `${base}/portal/${quote.org.slug}/quote/${quote.id}`
   const amount = fmtCurrency(Number(quote.total), quote.currency)
   sendQuoteEmail(quote.client.name, quote.client.email, quote.org.name, quote.quoteNumber, amount, quoteUrl).catch(() => {})
+
+  return { success: true }
+}
+
+export async function rejectQuote(quoteId: string) {
+  const session = await auth()
+  const orgId = session?.user?.orgId
+  if (!orgId) redirect("/login")
+
+  const quote = await prisma.quote.findUnique({
+    where: { id: quoteId, orgId },
+    include: { client: { select: { name: true, email: true } }, org: { select: { name: true } } },
+  })
+  if (!quote) return { error: "Not found" }
+  if ((quote.status as string) === "CONVERTED") return { error: "Cannot reject a converted quote" }
+
+  await prisma.quote.update({ where: { id: quoteId }, data: { status: "REJECTED" as never } })
+
+  if (quote.client.email) {
+    sendQuoteRejectedEmail(quote.client.name, quote.client.email, quote.org.name, quote.quoteNumber).catch(() => {})
+  }
 
   return { success: true }
 }
