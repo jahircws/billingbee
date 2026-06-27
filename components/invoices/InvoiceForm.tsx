@@ -94,8 +94,6 @@ export default function InvoiceForm({
   orgTaxes = [],
   savedItems = [],
 }: Props) {
-  const defaultTaxNames = isGstCurrency(currency) ? DEFAULT_TAX_NAMES_INR : DEFAULT_TAX_NAMES_GLOBAL
-  const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : defaultTaxNames
   const editMode = !!initialData
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
@@ -183,6 +181,8 @@ export default function InvoiceForm({
   const [localClients, setLocalClients] = useState(clients)
 
   const [currency, setCurrency] = useState(initialData?.currency ?? defaultCurrency)
+  const defaultTaxNames = isGstCurrency(currency) ? DEFAULT_TAX_NAMES_INR : DEFAULT_TAX_NAMES_GLOBAL
+  const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : defaultTaxNames
   const netSubtotal = items.reduce(
     (s, i) => s + (i.taxType === "FIXED" ? i.quantity * i.unitPrice : i.quantity * i.unitPrice * (1 - i.discount / 100)),
     0
