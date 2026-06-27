@@ -47,7 +47,7 @@ export function PhoneOtpFlow({ callbackUrl }: Props) {
   const getRecaptcha = () => {
     if (recaptchaRef.current) return recaptchaRef.current
     const verifier = new RecaptchaVerifier(firebaseAuth, recaptchaContainerRef.current!, {
-      size: "invisible",
+      size: "normal",
     })
     recaptchaRef.current = verifier
     return verifier
