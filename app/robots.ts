@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           "/contact",
           "/free-invoice-generator",
           "/free-invoice-resources",
+          "/invoicing-software-for-freelancers-india",
           "/privacy-policy",
           "/terms-service",
         ],
