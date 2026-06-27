@@ -2,6 +2,46 @@
 
 import { useState } from "react"
 import { CheckCircle, XCircle, Loader2, Eye, EyeOff, ClipboardCopy, Lock } from "lucide-react"
+import { FieldHint } from "@/components/ui/field-hint"
+
+const FIELD_HINTS: Record<string, string[]> = {
+  publishableKey: [
+    "Go to dashboard.stripe.com → Developers → API Keys",
+    "Copy the Publishable key (starts with pk_live_)",
+  ],
+  secretKey: [
+    "Go to dashboard.stripe.com → Developers → API Keys",
+    "Click 'Reveal live key' next to Secret key",
+    "Copy the key (starts with sk_live_)",
+  ],
+  webhookSecret: [
+    "Go to dashboard.stripe.com → Developers → Webhooks",
+    "Click 'Add endpoint'",
+    "Paste this URL: https://www.billingbee.co/api/webhooks/stripe",
+    "Select events: checkout.session.completed, invoice.payment_succeeded, customer.subscription.updated, customer.subscription.deleted",
+    "Save, then click into the endpoint",
+    "Under 'Signing secret' click Reveal and copy the value (starts with whsec_)",
+  ],
+  keyId: [
+    "Go to dashboard.razorpay.com → Settings → API Keys",
+    "Generate a new key if needed",
+    "Copy the Key ID (starts with rzp_live_)",
+  ],
+  keySecret: [
+    "Go to dashboard.razorpay.com → Settings → API Keys",
+    "Copy the Key Secret shown alongside Key ID",
+    "Store it safely — Razorpay only shows it once",
+  ],
+  clientId: [
+    "Go to developer.paypal.com → Apps & Credentials",
+    "Select your app under Live credentials",
+    "Copy the Client ID",
+  ],
+  clientSecret: [
+    "Same page as Client ID",
+    "Click 'Show' next to Client Secret and copy it",
+  ],
+}
 
 interface Props {
   gateway: string
@@ -140,7 +180,8 @@ export default function GatewayForm({ gateway, label, status, fields, labels, we
           return (
             <div key={field}>
               <label className="block text-xs font-medium text-gray-600 mb-1">{labels[i]}</label>
-              <div className="relative">
+              {FIELD_HINTS[field] && <FieldHint steps={FIELD_HINTS[field]} />}
+              <div className="relative mt-1">
                 <input
                   type={isSecret && !show[field] ? "password" : "text"}
                   value={values[field]}
@@ -166,7 +207,8 @@ export default function GatewayForm({ gateway, label, status, fields, labels, we
         {webhookSecretField && (
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Webhook Secret</label>
-            <div className="relative">
+            {FIELD_HINTS["webhookSecret"] && <FieldHint steps={FIELD_HINTS["webhookSecret"]} />}
+            <div className="relative mt-1">
               <input
                 type={show["webhookSecret"] ? "text" : "password"}
                 value={values["webhookSecret"]}
