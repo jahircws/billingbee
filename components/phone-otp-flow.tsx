@@ -69,7 +69,7 @@ export function PhoneOtpFlow({ callbackUrl }: Props) {
     } catch (err: unknown) {
       cleanupRecaptcha()
       const msg = err instanceof Error ? err.message : "Failed to send OTP"
-      setError(msg.includes("too-many-requests") ? "Too many attempts. Please try again later." : "Failed to send OTP. Please try again.")
+      setError(msg)
     } finally {
       setLoading(false)
     }
