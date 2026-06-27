@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 import { CheckCircle2, TrendingUp, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
@@ -45,6 +46,7 @@ function UsageBar({ label, current, limit }: { label: string; current: number; l
 export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { data: session } = useSession()
   const isPro = org.plan === "pro" || org.plan === "business"
   const isBusiness = org.plan === "business"
 
@@ -91,6 +93,57 @@ export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Pro
         window.location.href = data.url
       } else {
         setError(data.error ?? "Failed to open billing portal. Please try again.")
+        setLoading(false)
+      }
+    } catch {
+      setError("Network error. Please try again.")
+      setLoading(false)
+    }
+  }
+
+  async function handleRazorpayUpgrade() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/payments/razorpay-subscription/create", { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        setLoading(false)
+        return
+      }
+
+      const script = document.createElement("script")
+      script.src = "https://checkout.razorpay.com/v1/checkout.js"
+      script.async = true
+      document.body.appendChild(script)
+
+      script.onload = () => {
+        const options = {
+          key: data.key,
+          subscription_id: data.subscriptionId,
+          name: "BillingBee",
+          description: "Pro Plan — ₹849/month",
+          image: "/logo.png",
+          handler: () => {
+            window.location.href = "/settings?tab=plan&upgraded=true"
+          },
+          prefill: {
+            email: session?.user?.email ?? "",
+          },
+          theme: { color: "#10b981" },
+          modal: {
+            ondismiss: () => { setLoading(false) },
+          },
+        }
+        // @ts-ignore — Razorpay loaded via script tag
+        const rzp = new window.Razorpay(options)
+        rzp.open()
+        setLoading(false)
+      }
+
+      script.onerror = () => {
+        setError("Failed to load payment SDK. Please try again.")
         setLoading(false)
       }
     } catch {
@@ -213,11 +266,11 @@ export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Pro
             ))}
           </div>
           <button
-            onClick={handleUpgrade}
+            onClick={isIndia ? handleRazorpayUpgrade : handleUpgrade}
             disabled={loading}
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-70"
           >
-            {loading ? "Redirecting…" : isIndia ? "Upgrade to Pro — ₹849/month" : "Upgrade to Pro — $9.99/month"}
+            {loading ? (isIndia ? "Processing…" : "Redirecting…") : isIndia ? "Upgrade to Pro — ₹849/month" : "Upgrade to Pro — $9.99/month"}
           </button>
           <p className="text-center text-xs text-gray-400">
             Cancel anytime · {" "}

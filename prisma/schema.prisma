@@ -224,9 +224,10 @@ model Organization {
   upiId       String?
   currency    Currency @default(INR)
   timezone    String   @default("Asia/Kolkata")
-  plan             String    @default("free")
-  planExpiry       DateTime?
-  stripeCustomerId String?   @unique
+  plan                   String    @default("free")
+  planExpiry             DateTime?
+  stripeCustomerId       String?   @unique
+  razorpaySubscriptionId String?
   isActive         Boolean   @default(true)
   acquisitionSource String?
   onboardingGoal  String?
