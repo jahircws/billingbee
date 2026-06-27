@@ -46,7 +46,7 @@ function UsageBar({ label, current, limit }: { label: string; current: number; l
 export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { data: session } = useSession()
+  const session = useSession()?.data
   const isPro = org.plan === "pro" || org.plan === "business"
   const isBusiness = org.plan === "business"
 
