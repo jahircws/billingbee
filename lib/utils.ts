@@ -29,12 +29,20 @@ export function formatCurrency(amount: number, currency = "INR"): string {
   }).format(amount)
 }
 
-export function formatDate(date: Date | string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(date))
+export function getTaxLabel(currency: string): string {
+  return currency === "INR" ? "GST" : "Tax"
+}
+
+export function isGstCurrency(currency: string): boolean {
+  return currency === "INR"
+}
+
+export function formatDate(date: Date | string, currency?: string): string {
+  const d = new Date(date)
+  if (currency === "INR") {
+    return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+  }
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
 export function generateInvoiceNumber(count: number): string {

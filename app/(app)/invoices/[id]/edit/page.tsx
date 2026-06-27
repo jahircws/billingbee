@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/Topbar"
 import InvoiceForm from "@/components/invoices/InvoiceForm"
 import { privateMetadata } from "@/lib/metadata"
 import { format } from "date-fns"
+import { getTaxLabel } from "@/lib/utils"
 
 export const metadata = { ...privateMetadata, title: "Edit Invoice" }
 export const dynamic = "force-dynamic"
@@ -58,7 +59,7 @@ export default async function EditInvoicePage({ params }: Props) {
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice),
       taxRate: Number(item.taxRate),
-      taxName: (item.taxName as string) ?? "GST",
+      taxName: (item.taxName as string) ?? getTaxLabel(serialized.currency ?? org?.currency ?? "INR"),
       taxType: (item.taxType as string) ?? "PERCENTAGE",
       discount: Number(item.discount ?? 0),
     })),

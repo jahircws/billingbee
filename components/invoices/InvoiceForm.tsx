@@ -8,6 +8,7 @@ import { createQuote, updateQuoteWithItems } from "@/app/actions/quote"
 import { createClient } from "@/app/actions/client"
 import { isValidEmail } from "@/lib/sanitize"
 import { computeInvoiceTotals } from "@/lib/invoice-totals"
+import { getTaxLabel, isGstCurrency } from "@/lib/utils"
 import UpgradeModal from "@/components/billing/UpgradeModal"
 
 interface Client {
@@ -75,7 +76,8 @@ interface Props {
 
 const DRAFT_KEY = "billingbee_draft_invoice"
 
-const DEFAULT_TAX_NAMES = ["GST", "IGST", "CGST+SGST", "None"]
+const DEFAULT_TAX_NAMES_INR = ["GST", "IGST", "CGST+SGST", "None"]
+const DEFAULT_TAX_NAMES_GLOBAL = ["Tax", "VAT", "None"]
 
 export default function InvoiceForm({
   type = "invoice",
@@ -92,7 +94,8 @@ export default function InvoiceForm({
   orgTaxes = [],
   savedItems = [],
 }: Props) {
-  const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : DEFAULT_TAX_NAMES
+  const defaultTaxNames = isGstCurrency(currency) ? DEFAULT_TAX_NAMES_INR : DEFAULT_TAX_NAMES_GLOBAL
+  const taxNames = orgTaxes.length > 0 ? orgTaxes.map((t) => t.name) : defaultTaxNames
   const editMode = !!initialData
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
@@ -121,7 +124,7 @@ export default function InvoiceForm({
         quantity: 1,
         unitPrice: defaultAmount ?? 0,
         taxRate: 0,
-        taxName: "GST",
+        taxName: getTaxLabel(defaultCurrency ?? "INR"),
         taxType: "PERCENTAGE",
         discount: 0,
       },
@@ -160,7 +163,7 @@ export default function InvoiceForm({
           quantity: i.qty ?? 1,
           unitPrice: i.rate ?? 0,
           taxRate: 0,
-          taxName: "GST",
+          taxName: getTaxLabel(currency),
           taxType: "PERCENTAGE",
           discount: 0,
         })))
@@ -224,7 +227,7 @@ export default function InvoiceForm({
   }, [saveDraft])
 
   function addItem() {
-    setItems((prev) => [...prev, { description: "", hsn: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: "GST", taxType: "PERCENTAGE", discount: 0 }])
+    setItems((prev) => [...prev, { description: "", hsn: "", quantity: 1, unitPrice: 0, taxRate: 0, taxName: getTaxLabel(currency), taxType: "PERCENTAGE", discount: 0 }])
   }
 
   function removeItem(idx: number) {
