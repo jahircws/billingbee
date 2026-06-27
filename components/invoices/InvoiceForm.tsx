@@ -214,7 +214,7 @@ export default function InvoiceForm({
           setNotes(d.notes ?? "")
           setTerms(d.terms ?? "")
           if (d.notes || d.terms) setShowNotesTerms(true)
-          setItems(d.items)
+          setItems(d.items.map((item: LineItem) => ({ ...item, taxName: getTaxLabel(defaultCurrency ?? "INR") })))
           setDiscountAmount(d.discountAmount ?? 0)
         }
       } catch {}
