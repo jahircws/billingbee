@@ -3,8 +3,9 @@ import { redirect } from "next/navigation"
 import prisma from "@/lib/db"
 import { Topbar } from "@/components/layout/Topbar"
 import { privateMetadata } from "@/lib/metadata"
-import { Download, AlertCircle, ArrowLeft } from "lucide-react"
+import { AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import TaxExportPanel from "./TaxExportPanel"
 
 export const metadata = { ...privateMetadata, title: "GST Assistant" }
 export const dynamic = "force-dynamic"
@@ -32,13 +33,18 @@ export default async function TaxPage() {
   if (!session?.user?.orgId) redirect("/login")
   const orgId = session.user.orgId
 
-  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true, plan: true } })
   if (org?.currency !== "INR") {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
         <Topbar title="Tax Assistant" />
-        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-16 text-center space-y-4">
-          <p className="text-gray-700 text-base">Tax Assistant is currently available for GST (India) only. Support for VAT and Sales Tax is coming soon.</p>
+        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-16 space-y-6">
+          <p className="text-gray-700 text-base">GST Assistant is currently available for India (INR) only. Support for VAT and Sales Tax is coming soon.</p>
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+            <h2 className="text-base font-bold text-gray-900">Export P&amp;L Summary</h2>
+            <p className="text-sm text-gray-500">Download a monthly profit &amp; loss CSV for any date range.</p>
+            <TaxExportPanel isPro={org?.plan === "pro"} isINR={false} />
+          </div>
           <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium">
             <ArrowLeft className="h-4 w-4" /> Back to Dashboard
           </Link>
@@ -97,18 +103,12 @@ export default async function TaxPage() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar title="GST Assistant" />
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">GST Assistant</h1>
             <p className="text-gray-500 text-sm mt-0.5">Quarter: {qLabel}</p>
           </div>
-          <a
-            href="/api/tax/export-csv"
-            className="inline-flex items-center gap-2 text-sm font-semibold border border-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            Export GST CSV
-          </a>
+          <TaxExportPanel isPro={org.plan === "pro"} isINR={true} />
         </div>
 
         {/* GST Summary */}
