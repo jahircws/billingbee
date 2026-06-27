@@ -11,7 +11,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://stripe.com https://razorpay.com https://*.stripe.com https://*.razorpay.com https://*.google.com https://*.googleapis.com https://*.gstatic.com https://googleads.g.doubleclick.net https://ad.doubleclick.net",
       "frame-src https://js.stripe.com https://checkout.razorpay.com https://www.paypal.com https://www.sandbox.paypal.com https://accounts.google.com https://www.gstatic.com https://recaptcha.google.com https://www.google.com",
-      "connect-src 'self' https://api.stripe.com https://api.razorpay.com https://www.paypal.com https://*.supabase.co wss://*.supabase.co https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://analytics.google.com https://stats.g.doubleclick.net https://ad.doubleclick.net",
+      "connect-src 'self' https://api.stripe.com https://api.razorpay.com https://www.paypal.com https://*.supabase.co wss://*.supabase.co https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://analytics.google.com https://stats.g.doubleclick.net https://ad.doubleclick.net https://www.google.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
