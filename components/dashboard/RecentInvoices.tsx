@@ -88,7 +88,7 @@ export default function RecentInvoices({ invoices, currency }: Props) {
                   </Link>
                 )}
                 {inv.status === "PAID" && inv.paidAt && (
-                  <span className="text-xs text-slate-400">{formatDate(inv.paidAt)}</span>
+                  <span className="text-xs text-slate-400">{formatDate(inv.paidAt, inv.currency)}</span>
                 )}
               </div>
             </div>
