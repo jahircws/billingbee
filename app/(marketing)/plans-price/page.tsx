@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { generatePageMetadata } from "@/lib/metadata"
+import { getGeoDefaults } from "@/lib/geo"
 import PlansClient from "./PlansClient"
 
 export const revalidate = 3600
@@ -60,6 +61,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function PlansPage() {
-  return <PlansClient />
+export default async function PlansPage() {
+  const geo = await getGeoDefaults()
+  const isIndia = geo.country === "IN"
+  return <PlansClient isIndia={isIndia} />
 }

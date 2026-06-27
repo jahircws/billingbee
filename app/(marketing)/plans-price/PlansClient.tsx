@@ -98,7 +98,7 @@ function Cell({ value }: { value: boolean | string }) {
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-export default function PricingPage() {
+export default function PricingPage({ isIndia }: { isIndia: boolean }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
@@ -168,7 +168,9 @@ export default function PricingPage() {
                   ) : (
                     <div>
                       <div className="flex items-end gap-1">
-                        <span className="text-4xl font-black text-gray-900">${price}</span>
+                        <span className="text-4xl font-black text-gray-900">
+                          {isIndia ? "₹849" : "$9.99"}
+                        </span>
                         <span className="text-gray-400 mb-1">/mo</span>
                       </div>
                     </div>
