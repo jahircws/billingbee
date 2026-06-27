@@ -112,12 +112,13 @@ export default function OrgTab({ org }: { org: Org }) {
     }
   }
 
-  const field = (label: string, key: keyof typeof form, type = "text") => (
+  const field = (label: string, key: keyof typeof form, type = "text", placeholder?: string) => (
     <div>
       <label className="block text-xs text-gray-500 mb-1">{label}</label>
       <input
         type={type}
         value={form[key]}
+        placeholder={placeholder}
         onChange={(e) => set(key, e.target.value)}
         className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
       />
@@ -211,10 +212,14 @@ export default function OrgTab({ org }: { org: Org }) {
         {field(form.country === "IN" ? "Pincode" : "ZIP / Postal Code", "pincode")}
       </div>
 
-      {form.country === "IN" && (
+      {form.country === "IN" ? (
         <div className="grid grid-cols-2 gap-3">
-          {field("GSTIN", "gstin")}
+          {field("GSTIN", "gstin", "text", "22AAAAA0000A1Z5")}
           {field("PAN", "pan")}
+        </div>
+      ) : (
+        <div>
+          {field("Tax ID", "gstin", "text", "Enter your Tax ID")}
         </div>
       )}
 
