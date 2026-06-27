@@ -8,8 +8,9 @@ import { PasswordInput } from "@/components/ui/password-input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { registerOrg } from "@/app/actions/auth"
+import { PhoneOtpFlow } from "@/components/phone-otp-flow"
 
-export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; trial?: string }) {
+export function RegisterForm({ callbackUrl, trial, isIndia }: { callbackUrl?: string; trial?: string; isIndia?: boolean }) {
   const isProTrial = trial === "pro"
   const [state, action, pending] = useActionState(registerOrg, undefined)
   const acqRef = useRef<HTMLInputElement>(null)
@@ -50,6 +51,20 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
             : "No credit card required · Set up in under 2 minutes"}
         </p>
       </div>
+
+      {isIndia && (
+        <>
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Sign up with mobile</p>
+            <PhoneOtpFlow callbackUrl={callbackUrl} />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs text-slate-400">or</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+        </>
+      )}
 
       <button
         type="button"

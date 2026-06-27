@@ -8,6 +8,15 @@ import prisma from "@/lib/db"
 import { authConfig } from "./auth.config"
 import { getGeoDefaults } from "@/lib/geo"
 
+type PhoneTokenPayload = {
+  userId: string
+  orgId: string
+  orgName: string
+  orgSlug: string
+  role: string
+  userType: "STAFF"
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   ...authConfig,
@@ -200,6 +209,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           orgId: org.id,
           email: portalUser.email,
           userType: "CLIENT" as const,
+        }
+      },
+    }),
+    Credentials({
+      id: "phone",
+      credentials: {
+        sessionToken: { label: "SessionToken", type: "text" },
+      },
+      async authorize(credentials) {
+        const token = credentials?.sessionToken
+        if (typeof token !== "string") return null
+        const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET ?? "")
+        let payload: PhoneTokenPayload
+        try {
+          const result = await jwtVerify(token, secret)
+          payload = result.payload as PhoneTokenPayload
+        } catch {
+          return null
+        }
+        return {
+          id: payload.userId,
+          userId: payload.userId,
+          orgId: payload.orgId,
+          orgName: payload.orgName,
+          orgSlug: payload.orgSlug,
+          role: payload.role,
+          userType: "STAFF" as const,
         }
       },
     }),

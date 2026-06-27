@@ -8,13 +8,15 @@ import { PasswordInput } from "@/components/ui/password-input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { loginStaff } from "@/app/actions/auth"
+import { PhoneOtpFlow } from "@/components/phone-otp-flow"
 
 interface Props {
   callbackUrl?: string
   registered?: boolean
+  isIndia?: boolean
 }
 
-export function LoginForm({ callbackUrl, registered }: Props) {
+export function LoginForm({ callbackUrl, registered, isIndia }: Props) {
   const [state, action, pending] = useActionState(loginStaff, undefined)
 
   return (
@@ -28,6 +30,20 @@ export function LoginForm({ callbackUrl, registered }: Props) {
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
         <p className="text-gray-500 text-sm">Sign in to your BillingBee account</p>
       </div>
+
+      {isIndia && (
+        <>
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Login with mobile</p>
+            <PhoneOtpFlow callbackUrl={callbackUrl} />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs text-slate-400">or</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+        </>
+      )}
 
       <button
         type="button"
