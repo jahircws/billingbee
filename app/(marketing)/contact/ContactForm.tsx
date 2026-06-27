@@ -14,6 +14,12 @@ export default function ContactForm() {
     const form = e.currentTarget
     const data = Object.fromEntries(new FormData(form).entries())
 
+    // Honeypot — bots fill this; silently fake success
+    if (data.website) {
+      setStatus("sent")
+      return
+    }
+
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
@@ -49,6 +55,8 @@ export default function ContactForm() {
     <div className="bg-white rounded-2xl border border-gray-100 p-8">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Send us a message</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Honeypot — hidden from real users, bots fill it */}
+        <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0 }} />
         {error && (
           <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-3 py-2.5 rounded-lg">
             {error}

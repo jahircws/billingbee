@@ -9,6 +9,8 @@ import { sendWelcomeEmail } from "@/lib/email"
 import { validatePassword } from "@/lib/sanitize"
 import { addDays } from "date-fns"
 import { getGeoDefaults } from "@/lib/geo"
+import { headers } from "next/headers"
+import { checkRateLimitByIP } from "@/lib/rate-limit"
 
 interface PendingDocItem {
   description: string
@@ -37,6 +39,18 @@ function sanitize(value: unknown): string {
 }
 
 export async function registerOrg(_prevState: unknown, formData: FormData) {
+  // Honeypot — bots fill this; show a fake "check email" message so they think it worked
+  if (formData.get("website")) {
+    return { honeypot: true }
+  }
+
+  const headersList = await headers()
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headersList.get("x-real-ip") ?? "127.0.0.1"
+  const limited = await checkRateLimitByIP(ip, "register")
+  if (limited) {
+    return { error: "Too many attempts. Please try again later." }
+  }
+
   const rawOrgName = sanitize(formData.get("orgName"))
   const email = sanitize(formData.get("email")).toLowerCase()
   const password = sanitize(formData.get("password"))

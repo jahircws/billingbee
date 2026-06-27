@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendEmail } from "@/lib/email"
 import { isValidEmail, sanitizeInput } from "@/lib/sanitize"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 const SUPPORT_INBOX = process.env.CONTACT_INBOX ?? "hello@billingbee.co"
 
 export async function POST(req: NextRequest) {
-  let body: { name?: string; email?: string; subject?: string; message?: string }
+  const limited = await checkRateLimit(req, "contact")
+  if (limited) return limited
+
+  let body: { name?: string; email?: string; subject?: string; message?: string; website?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+  }
+
+  // Honeypot — bots fill hidden fields; real users never see this field
+  if (body.website) {
+    return NextResponse.json({ success: true })
   }
 
   const name = sanitizeInput(body.name)

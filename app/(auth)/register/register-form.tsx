@@ -71,6 +71,14 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
         <div className="h-px flex-1 bg-slate-200" />
       </div>
 
+      {state?.honeypot && (
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3">
+          <p className="text-sm text-emerald-700">
+            Almost there! We sent a verification link to your email — please check your inbox to activate your account.
+          </p>
+        </div>
+      )}
+
       <form
         key={state?.error ? "retry" : "initial"}
         action={action}
@@ -79,6 +87,8 @@ export function RegisterForm({ callbackUrl, trial }: { callbackUrl?: string; tri
           try { localStorage.removeItem("bb_pending_doc") } catch { /* ignore */ }
         }}
       >
+        {/* Honeypot — hidden from real users, bots fill it */}
+        <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0 }} />
         <input ref={acqRef} type="hidden" name="acquisitionSource" />
         <input ref={pendingDocRef} type="hidden" name="pendingDoc" />
         {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
