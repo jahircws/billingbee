@@ -47,7 +47,7 @@ export function PhoneOtpFlow({ callbackUrl }: Props) {
   const getRecaptcha = () => {
     if (recaptchaRef.current) return recaptchaRef.current
     const verifier = new RecaptchaVerifier(firebaseAuth, recaptchaContainerRef.current!, {
-      size: "normal",
+      size: "invisible",
     })
     recaptchaRef.current = verifier
     return verifier
@@ -69,7 +69,7 @@ export function PhoneOtpFlow({ callbackUrl }: Props) {
     } catch (err: unknown) {
       cleanupRecaptcha()
       const msg = err instanceof Error ? err.message : "Failed to send OTP"
-      setError(msg)
+      setError(msg.includes("too-many-requests") ? "Too many attempts. Please try again later." : "Failed to send OTP. Please try again.")
     } finally {
       setLoading(false)
     }
