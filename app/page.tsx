@@ -21,6 +21,7 @@ import {
 import { DemoWidget } from "./_demo-widget"
 import { ForecastSection } from "./_forecast-section"
 import { auth } from "@/auth"
+import { getGeoDefaults } from "@/lib/geo"
 import { CounterStat } from "@/components/marketing/CounterStat"
 import { FadeInSection } from "@/components/marketing/FadeInSection"
 
@@ -235,6 +236,8 @@ function MiniCashflowPreview() {
 
 export default async function HomePage() {
   const session = await auth()
+  const geo = await getGeoDefaults()
+  const isIndia = geo.country === "IN"
   return (
     <div className="min-h-screen bg-white">
 
@@ -803,7 +806,9 @@ export default async function HomePage() {
               Pro
             </p>
             <div className="mt-2">
-              <span className="text-4xl font-bold text-slate-900">$9.99</span>
+              <span className="text-4xl font-bold text-slate-900">
+                {isIndia ? "₹849" : "$9.99"}
+              </span>
               <span className="text-slate-400 text-lg ml-1">/month</span>
             </div>
             <p className="text-slate-500 text-sm mt-1">
