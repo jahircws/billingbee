@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/utils"
 interface StatCardsData {
   outstandingByCurrency: Record<string, number>
   paidThisMonthByCurrency: Record<string, number>
+  prevMonthPaidByCurrency: Record<string, number>
   activeProposals: number
   clientCount: number
 }
@@ -14,7 +15,6 @@ interface Props {
   currency: string  // org default — shown first
 }
 
-// Render stacked currency amounts: primary large, others as smaller chips
 function MultiCurrencyValue({
   byCurrency,
   orgCurrency,
@@ -27,7 +27,7 @@ function MultiCurrencyValue({
   const entries = Object.entries(byCurrency).filter(([, v]) => v > 0)
   if (entries.length === 0) return (
     <div>
-      <span className="text-2xl font-bold text-slate-900">—</span>
+      <span className="text-2xl font-semibold text-slate-900 tracking-tight">—</span>
       {emptyLabel && <p className="text-xs text-slate-400 mt-0.5">{emptyLabel}</p>}
     </div>
   )
@@ -41,7 +41,7 @@ function MultiCurrencyValue({
   const [primary, ...rest] = entries
   return (
     <div>
-      <p className="text-2xl font-bold text-slate-900 leading-tight">
+      <p className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">
         {formatCurrency(primary[1], primary[0])}
       </p>
       {rest.map(([cur, amt]) => (
@@ -53,61 +53,85 @@ function MultiCurrencyValue({
   )
 }
 
-export default function StatCards({ data, currency }: Props) {
+function TrendPill({ thisPaid, prevPaid }: { thisPaid: number; prevPaid: number }) {
+  if (prevPaid === 0) return null
+  const pct = Math.round(((thisPaid - prevPaid) / prevPaid) * 100)
+  const up = pct >= 0
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-      <div className="bg-white rounded-xl border-l-4 border-l-amber-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-amber-50">
-          <DollarSign size={18} className="text-amber-600" />
+    <span
+      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+        up ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
+      }`}
+    >
+      {up ? "↑" : "↓"} {Math.abs(pct)}% vs last month
+    </span>
+  )
+}
+
+export default function StatCards({ data, currency }: Props) {
+  const thisPaid = data.paidThisMonthByCurrency[currency] ?? 0
+  const prevPaid = data.prevMonthPaidByCurrency[currency] ?? 0
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Outstanding */}
+      <div className="relative bg-white border border-slate-200 rounded-lg p-5 shadow overflow-hidden">
+        <span className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-amber-400" />
+        <div className="flex items-center gap-1.5 mb-2">
+          <DollarSign size={13} className="text-amber-500 shrink-0" />
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Outstanding</p>
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-slate-500 mb-1">Total outstanding</p>
+        <div className="mb-2">
           <MultiCurrencyValue byCurrency={data.outstandingByCurrency} orgCurrency={currency} emptyLabel="No invoices yet" />
-          <Link href="/invoices?status=UNPAID" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
-            Send reminder →
-          </Link>
         </div>
+        <Link href="/invoices?status=UNPAID" className="text-xs text-emerald-600 font-medium hover:underline">
+          Send reminder →
+        </Link>
       </div>
 
-      <div className="bg-white rounded-xl border-l-4 border-l-emerald-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50">
-          <TrendingUp size={18} className="text-emerald-600" />
+      {/* Paid this month */}
+      <div className="relative bg-white border border-slate-200 rounded-lg p-5 shadow overflow-hidden">
+        <span className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-emerald-500" />
+        <div className="flex items-center gap-1.5 mb-2">
+          <TrendingUp size={13} className="text-emerald-500 shrink-0" />
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Paid this month</p>
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-slate-500 mb-1">Paid this month</p>
+        <div className="mb-2">
           <MultiCurrencyValue byCurrency={data.paidThisMonthByCurrency} orgCurrency={currency} emptyLabel="No payments yet" />
-          <Link href="/invoices/new" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
-            New invoice →
-          </Link>
         </div>
+        <TrendPill thisPaid={thisPaid} prevPaid={prevPaid} />
       </div>
 
-      <div className="bg-white rounded-xl border-l-4 border-l-violet-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-violet-50">
-          <FileSignature size={18} className="text-violet-600" />
+      {/* Active proposals */}
+      <div className="relative bg-white border border-slate-200 rounded-lg p-5 shadow overflow-hidden">
+        <span className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-violet-400" />
+        <div className="flex items-center gap-1.5 mb-2">
+          <FileSignature size={13} className="text-violet-500 shrink-0" />
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Proposals</p>
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-slate-500 mb-1">Active proposals</p>
-          <p className="text-2xl font-bold text-slate-900 leading-tight">{data.activeProposals}</p>
+        <div className="mb-2">
+          <p className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{data.activeProposals}</p>
           {data.activeProposals === 0 && <p className="text-xs text-slate-400 mt-0.5">No proposals yet</p>}
-          <Link href="/proposals" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
-            New proposal →
-          </Link>
         </div>
+        <Link href="/proposals" className="text-xs text-emerald-600 font-medium hover:underline">
+          New proposal →
+        </Link>
       </div>
 
-      <div className="bg-white rounded-xl border-l-4 border-l-sky-400 border border-slate-200 shadow-sm p-5 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-sky-50">
-          <Users size={18} className="text-sky-600" />
+      {/* Clients */}
+      <div className="relative bg-white border border-slate-200 rounded-lg p-5 shadow overflow-hidden">
+        <span className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-sky-400" />
+        <div className="flex items-center gap-1.5 mb-2">
+          <Users size={13} className="text-sky-500 shrink-0" />
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Clients</p>
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-slate-500 mb-1">Total clients</p>
-          <p className="text-2xl font-bold text-slate-900 leading-tight">{data.clientCount}</p>
+        <div className="mb-2">
+          <p className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{data.clientCount}</p>
           {data.clientCount === 0 && <p className="text-xs text-slate-400 mt-0.5">No clients yet</p>}
-          <Link href="/clients" className="text-xs text-emerald-600 font-medium mt-1 hover:underline block">
-            Add client →
-          </Link>
         </div>
+        <Link href="/clients" className="text-xs text-emerald-600 font-medium hover:underline">
+          Add client →
+        </Link>
       </div>
     </div>
   )

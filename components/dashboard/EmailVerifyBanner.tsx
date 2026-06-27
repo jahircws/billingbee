@@ -41,10 +41,10 @@ export default function EmailVerifyBanner() {
   if (!visible) return null
 
   return (
-    <div className="mx-4 mt-3 flex items-center justify-between gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5">
+    <div className="mx-4 mt-3 flex items-center justify-between gap-3 bg-white border border-slate-200 border-l-4 border-l-emerald-500 rounded-lg px-4 py-3 shadow-sm mb-2">
       <div className="flex items-center gap-2.5">
-        <Mail className="h-4 w-4 text-blue-500 shrink-0" />
-        <p className="text-sm text-blue-800">
+        <Mail className="h-4 w-4 text-emerald-500 shrink-0" />
+        <p className="text-sm text-slate-700">
           {status === "sent" ? (
             "Verification email sent — check your inbox."
           ) : (
@@ -52,7 +52,7 @@ export default function EmailVerifyBanner() {
               <button
                 onClick={sendVerification}
                 disabled={status === "sending"}
-                className="font-semibold underline underline-offset-2 hover:text-blue-600 transition-colors disabled:opacity-60"
+                className="font-semibold underline underline-offset-2 hover:text-emerald-700 transition-colors disabled:opacity-60"
               >
                 {status === "sending" ? (
                   <span className="inline-flex items-center gap-1">
@@ -72,7 +72,7 @@ export default function EmailVerifyBanner() {
       </div>
       <button
         onClick={dismiss}
-        className="text-blue-400 hover:text-blue-600 transition-colors shrink-0"
+        className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />

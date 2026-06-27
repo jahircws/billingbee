@@ -1,59 +1,37 @@
 import Link from "next/link"
 import { Plus, FileText, PenLine, UserPlus } from "lucide-react"
 
-const actions = [
-  {
-    href: "/invoices/new",
-    label: "New Invoice",
-    icon: Plus,
-    wrapperClass: "bg-emerald-500",
-    iconClass: "bg-white/20",
-    labelClass: "text-white",
-  },
-  {
-    href: "/proposals/new",
-    label: "New Proposal",
-    icon: FileText,
-    wrapperClass: "bg-violet-50 border border-violet-200",
-    iconClass: "bg-violet-100",
-    labelClass: "text-violet-700",
-  },
-  {
-    href: "/contracts/new",
-    label: "New Contract",
-    icon: PenLine,
-    wrapperClass: "bg-blue-50 border border-blue-200",
-    iconClass: "bg-blue-100",
-    labelClass: "text-blue-700",
-  },
-  {
-    href: "/clients",
-    label: "New Client",
-    icon: UserPlus,
-    wrapperClass: "bg-amber-50 border border-amber-200",
-    iconClass: "bg-amber-100",
-    labelClass: "text-amber-700",
-  },
-] as const
-
 export default function QuickActions() {
   return (
-    <div>
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Quick actions</p>
-      <div className="grid grid-cols-4 gap-2">
-        {actions.map(({ href, label, icon: Icon, wrapperClass, iconClass, labelClass }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`rounded-xl py-3 px-2 min-h-0 flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-150 hover:shadow-sm ${wrapperClass}`}
-          >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconClass}`}>
-              <Icon size={15} />
-            </div>
-            <span className={`text-xs font-medium text-center leading-tight ${labelClass}`}>{label}</span>
-          </Link>
-        ))}
-      </div>
+    <div className="flex items-center gap-3 flex-wrap">
+      <Link
+        href="/invoices/new"
+        className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors duration-150"
+      >
+        <Plus size={15} strokeWidth={2.5} />
+        New Invoice
+      </Link>
+      <Link
+        href="/proposals/new"
+        className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg px-3 py-2 text-sm flex items-center gap-2 transition-colors duration-150"
+      >
+        <FileText size={14} />
+        New Proposal
+      </Link>
+      <Link
+        href="/contracts/new"
+        className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg px-3 py-2 text-sm flex items-center gap-2 transition-colors duration-150"
+      >
+        <PenLine size={14} />
+        New Contract
+      </Link>
+      <Link
+        href="/clients"
+        className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg px-3 py-2 text-sm flex items-center gap-2 transition-colors duration-150"
+      >
+        <UserPlus size={14} />
+        Add Client
+      </Link>
     </div>
   )
 }

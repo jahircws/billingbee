@@ -23,6 +23,7 @@ export interface DashboardData {
   statCards: {
     outstandingByCurrency: Record<string, number>  // e.g. { INR: 60900, USD: 40003 }
     paidThisMonthByCurrency: Record<string, number>
+    prevMonthPaidByCurrency: Record<string, number>
     activeProposals: number
     clientCount: number
   }
@@ -34,6 +35,7 @@ export interface DashboardData {
     currency: string
     status: string
     createdAt: Date
+    dueDate: Date | null
     paidAt: Date | null
     client: { name: string }
   }>
@@ -76,6 +78,7 @@ function emptyData(): DashboardData {
     statCards: {
       outstandingByCurrency: {},
       paidThisMonthByCurrency: {},
+      prevMonthPaidByCurrency: {},
       activeProposals: 0,
       clientCount: 0,
     },
@@ -172,6 +175,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       activityPayments,
       activityContracts,
       activityProposals,
+      prevMonthPaidAgg,
       ...chartResults
     ] = await Promise.all([
       // Alert strip — groupBy currency to get counts + amounts per currency
@@ -232,6 +236,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
           currency: true,
           status: true,
           createdAt: true,
+          dueDate: true,
           paidAt: true,
           client: { select: { name: true } },
         },
@@ -342,6 +347,16 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
         },
       }),
 
+      // Previous month paid — for trend pill on stat card
+      prisma.payment.groupBy({
+        by: ["currency"],
+        where: {
+          orgId,
+          createdAt: { gte: prevMonthStart, lte: prevMonthEnd },
+        },
+        _sum: { amount: true },
+      }),
+
       // Revenue chart queries (12 queries: 6 paid + 6 outstanding)
       ...chartPaidQueries,
       ...chartOutstandingQueries,
@@ -419,6 +434,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       ...inv,
       amountDue: Number(inv.amountDue),
       currency: inv.currency as string,
+      dueDate: inv.dueDate ?? null,
     }))
 
     const isNewUser = normalizedInvoices.length === 0 && clientCount === 0
@@ -453,6 +469,7 @@ async function _getDashboardData(orgId: string): Promise<DashboardData> {
       statCards: {
         outstandingByCurrency: toAmountMap(outstandingAgg as unknown as GroupByRow[]),
         paidThisMonthByCurrency: toPayAmountMap(paidThisMonthAgg as unknown as PayGroupByRow[]),
+        prevMonthPaidByCurrency: toPayAmountMap(prevMonthPaidAgg as unknown as PayGroupByRow[]),
         activeProposals,
         clientCount,
       },

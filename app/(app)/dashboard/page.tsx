@@ -16,6 +16,7 @@ import { getDashboardData } from "./data"
 import { auth } from "@/auth"
 import OpenCopilotButton from "@/components/ai/OpenCopilotButton"
 import ForecastCard from "./ForecastCard"
+import RecentInvoices from "@/components/dashboard/RecentInvoices"
 
 export const metadata = { ...privateMetadata, title: "Dashboard" }
 export const dynamic = "force-dynamic"
@@ -156,14 +157,17 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         {/* Stat cards */}
         <StatCards data={data.statCards} currency={currency} />
 
-        {/* AI Revenue Forecast */}
-        <ForecastCard currency={currency} />
+        {/* Main grid: chart + invoices (2 cols) + sidebar (1 col) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Left: revenue chart + recent invoices */}
+          <div className="lg:col-span-2 flex flex-col gap-5">
+            <RevenueChart months={data.revenueChart} currency={currency} />
+            <RecentInvoices invoices={data.recentInvoices} currency={currency} />
+          </div>
 
-        {/* Bottom row: revenue chart (left) + side panel (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-3">
-          <RevenueChart months={data.revenueChart} currency={currency} />
-
+          {/* Right: activity feed + onboarding */}
           <div className="flex flex-col gap-3">
+            <ActivityFeed events={data.recentActivity} />
             {onboarding.show && (
               <OnboardingChecklist
                 steps={onboarding.steps}
@@ -171,9 +175,11 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
                 orgId={orgId}
               />
             )}
-            <ActivityFeed events={data.recentActivity} />
           </div>
         </div>
+
+        {/* AI Revenue Forecast — below main grid */}
+        <ForecastCard currency={currency} />
       </div>
     </div>
   )
