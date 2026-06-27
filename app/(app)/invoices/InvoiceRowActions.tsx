@@ -12,9 +12,10 @@ interface Props {
   invoiceNumber: string
   status: string
   clientEmail: string | null
+  isIndia?: boolean
 }
 
-export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, clientEmail }: Props) {
+export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, clientEmail, isIndia }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
@@ -100,6 +101,7 @@ export default function InvoiceRowActions({ invoiceId, invoiceNumber, status, cl
           limit={limitReached.limit}
           type="invoice"
           onClose={() => setLimitReached(null)}
+          isIndia={isIndia}
         />
       )}
       {/* Toast */}

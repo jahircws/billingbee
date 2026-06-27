@@ -181,6 +181,7 @@ export default async function InvoicesPage({ searchParams }: Props) {
                           invoiceNumber={invoice.invoiceNumber}
                           status={invoice.status}
                           clientEmail={invoice.client.email ?? null}
+                          isIndia={org?.currency === "INR"}
                         />
                       </td>
                     </tr>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Sparkles, X, CheckCircle2 } from "lucide-react"
 
@@ -8,6 +9,7 @@ interface Props {
   limit: number
   type: "invoice" | "client"
   onClose: () => void
+  isIndia?: boolean
 }
 
 const FEATURES = [
@@ -18,7 +20,41 @@ const FEATURES = [
   "Priority support",
 ]
 
-export default function UpgradeModal({ current, limit, type, onClose }: Props) {
+export default function UpgradeModal({ current, limit, type, onClose, isIndia }: Props) {
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
+
+  async function handleRazorpayUpgrade() {
+    setUpgradeLoading(true)
+    try {
+      const res = await fetch("/api/payments/razorpay-subscription/create", { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) { setUpgradeLoading(false); return }
+
+      const script = document.createElement("script")
+      script.src = "https://checkout.razorpay.com/v1/checkout.js"
+      script.async = true
+      document.body.appendChild(script)
+      script.onload = () => {
+        const options = {
+          key: data.key,
+          subscription_id: data.subscriptionId,
+          name: "BillingBee",
+          description: "Pro Plan — ₹849/month",
+          image: "/logo.png",
+          handler: () => { window.location.href = "/settings?tab=plan&upgraded=true" },
+          theme: { color: "#10b981" },
+          modal: { ondismiss: () => { setUpgradeLoading(false) } },
+        }
+        // @ts-ignore — Razorpay loaded via script tag
+        const rzp = new window.Razorpay(options)
+        rzp.open()
+        setUpgradeLoading(false)
+      }
+      script.onerror = () => { setUpgradeLoading(false) }
+    } catch {
+      setUpgradeLoading(false)
+    }
+  }
   const heading =
     type === "invoice"
       ? `You've used all ${limit} free invoices this month`
@@ -66,16 +102,26 @@ export default function UpgradeModal({ current, limit, type, onClose }: Props) {
               <p className="text-xs text-gray-500">Everything you need to grow</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-black text-emerald-700">$9.99</p>
+              <p className="text-2xl font-black text-emerald-700">{isIndia ? "₹849" : "$9.99"}</p>
               <p className="text-xs text-gray-500">/ month</p>
             </div>
           </div>
-          <Link
-            href="/plans-price"
-            className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors text-sm text-center"
-          >
-            Upgrade to Pro — $9.99/month
-          </Link>
+          {isIndia ? (
+            <button
+              onClick={handleRazorpayUpgrade}
+              disabled={upgradeLoading}
+              className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors text-sm text-center disabled:opacity-60"
+            >
+              {upgradeLoading ? "Processing…" : "Upgrade to Pro — ₹849/month"}
+            </button>
+          ) : (
+            <Link
+              href="/plans-price"
+              className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors text-sm text-center"
+            >
+              Upgrade to Pro — $9.99/month
+            </Link>
+          )}
           <button
             onClick={onClose}
             className="w-full text-slate-500 hover:text-slate-700 text-sm py-1 transition-colors"

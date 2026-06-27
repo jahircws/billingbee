@@ -30,11 +30,15 @@ export default async function ClientsPage({ searchParams }: Props) {
     ]
   }
 
-  const clients = await prisma.client.findMany({
-    where,
-    include: { _count: { select: { invoices: true } } },
-    orderBy: { name: "asc" },
-  })
+  const [clients, org] = await Promise.all([
+    prisma.client.findMany({
+      where,
+      include: { _count: { select: { invoices: true } } },
+      orderBy: { name: "asc" },
+    }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } }),
+  ])
+  const isIndia = org?.currency === "INR"
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -43,7 +47,7 @@ export default async function ClientsPage({ searchParams }: Props) {
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 pb-20 md:pb-6">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm text-gray-500">{clients.length} client{clients.length !== 1 ? "s" : ""}</p>
-          <NewClientButton />
+          <NewClientButton isIndia={isIndia} />
         </div>
 
         {clients.length > 0 && (
@@ -66,7 +70,7 @@ export default async function ClientsPage({ searchParams }: Props) {
             <Users className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No clients yet</p>
             <div className="mt-5">
-              <NewClientButton />
+              <NewClientButton isIndia={isIndia} />
             </div>
             <p className="text-sm text-gray-400 mt-3">or upload a chat screenshot or email to extract client details</p>
           </div>

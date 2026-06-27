@@ -6,7 +6,7 @@ import { Plus } from "lucide-react"
 import ClientFormModal from "./ClientFormModal"
 import UpgradeModal from "@/components/billing/UpgradeModal"
 
-export default function NewClientButton() {
+export default function NewClientButton({ isIndia }: { isIndia?: boolean }) {
   const [open, setOpen] = useState(false)
   const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
 
@@ -28,6 +28,7 @@ export default function NewClientButton() {
             limit={limitReached.limit}
             type="client"
             onClose={() => setLimitReached(null)}
+            isIndia={isIndia}
           />
         </>
       )}
