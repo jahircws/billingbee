@@ -17,31 +17,13 @@ export async function getGeoDefaults(): Promise<GeoDefaults> {
       return { currency: "USD", country: "US" }
     }
 
-    let countryCode: string | undefined
-
-    try {
-      const res = await fetch(`https://ip-api.com/json/${ip}?fields=countryCode`, {
-        signal: AbortSignal.timeout(3000),
-      })
-      if (res.ok) {
-        const data = await res.json() as { countryCode?: string }
-        countryCode = data.countryCode
-      }
-    } catch { /* fall through to next provider */ }
-
-    if (!countryCode) {
-      try {
-        const res = await fetch(`https://ipapi.co/${ip}/country/`, {
-          signal: AbortSignal.timeout(3000),
-        })
-        if (res.ok) {
-          const text = (await res.text()).trim()
-          if (text.length === 2) countryCode = text
-        }
-      } catch { /* fall through to default */ }
+    const res = await fetch(`https://ipinfo.io/${ip}/country`, {
+      signal: AbortSignal.timeout(3000),
+    })
+    if (res.ok) {
+      const countryCode = (await res.text()).trim()
+      if (countryCode === "IN") return { currency: "INR", country: "IN" }
     }
-
-    if (countryCode === "IN") return { currency: "INR", country: "IN" }
     return { currency: "USD", country: "US" }
   } catch {
     return { currency: "USD", country: "US" }
