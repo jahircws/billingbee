@@ -15,6 +15,8 @@ export default function robots(): MetadataRoute.Robots {
           "/free-invoice-generator",
           "/free-invoice-resources",
           "/invoicing-software-for-freelancers-india",
+          "/razorpay-invoice-software",
+          "/gst-invoice-software-india",
           "/privacy-policy",
           "/terms-service",
         ],
