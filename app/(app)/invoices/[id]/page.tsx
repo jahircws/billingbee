@@ -49,7 +49,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title={invoice.invoiceNumber} />
+      <Topbar title={invoice.invoiceNumber} showBack backHref="/invoices" />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 pb-20 md:pb-6">
         {/* Header row */}

@@ -21,7 +21,7 @@ export default async function NewProposalPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title="New Proposal" />
+      <Topbar title="New Proposal" showBack backHref="/proposals" />
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
           <NewProposalForm clients={clients} />

@@ -42,7 +42,7 @@ export default async function ProposalPage({ params }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title={proposal.title} />
+      <Topbar title={proposal.title} showBack backHref="/proposals" />
       <ProposalEditor proposal={serialized} />
     </div>
   )

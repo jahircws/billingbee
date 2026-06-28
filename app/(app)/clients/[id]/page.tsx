@@ -84,7 +84,7 @@ export default async function ClientPage({ params }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title={client.name} />
+      <Topbar title={client.name} showBack backHref="/clients" />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 pb-20 md:pb-6">
         {/* Client info */}

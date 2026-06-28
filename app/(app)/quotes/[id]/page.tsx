@@ -49,7 +49,7 @@ export default async function QuotePage({ params }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title={quote.quoteNumber} />
+      <Topbar title={quote.quoteNumber} showBack backHref="/quotes" />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 pb-20 md:pb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">

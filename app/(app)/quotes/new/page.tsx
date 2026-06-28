@@ -32,7 +32,7 @@ export default async function NewQuotePage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title="New Quote" />
+      <Topbar title="New Quote" showBack backHref="/quotes" />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full pb-20 md:pb-6">
         <QuoteConversationFlow
           clients={clients}

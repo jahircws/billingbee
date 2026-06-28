@@ -47,7 +47,7 @@ export default async function NewInvoicePage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title="New Invoice" />
+      <Topbar title="New Invoice" showBack backHref="/invoices" />
       {onboarding === "true" && <OnboardingCopilotTrigger clientName={clientName} />}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">

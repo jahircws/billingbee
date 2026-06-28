@@ -68,7 +68,7 @@ export default async function EditInvoicePage({ params }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title={`Edit ${serialized.invoiceNumber}`} />
+      <Topbar title={`Edit ${serialized.invoiceNumber}`} showBack backHref={`/invoices/${serialized.id}`} />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full pb-20 md:pb-6">
         <InvoiceForm
           clients={clients}

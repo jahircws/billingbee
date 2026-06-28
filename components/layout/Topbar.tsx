@@ -4,14 +4,16 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Search, Plus, LogOut, Settings } from "lucide-react"
+import { Search, Plus, LogOut, Settings, ChevronLeft } from "lucide-react"
 import { NotificationBell } from "./NotificationBell"
 
 interface Props {
   title: string
+  showBack?: boolean
+  backHref?: string
 }
 
-export function Topbar({ title }: Props) {
+export function Topbar({ title, showBack, backHref }: Props) {
   const [query, setQuery] = useState("")
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -34,8 +36,15 @@ export function Topbar({ title }: Props) {
 
   return (
     <header className="h-14 bg-white border-b border-gray-100 flex items-center gap-4 px-4 shrink-0">
-      {/* Page title */}
-      <h1 className="text-sm font-semibold text-gray-900 shrink-0">{title}</h1>
+      {/* Back button + Page title */}
+      <div className="flex items-center gap-1 shrink-0">
+        {showBack && backHref && (
+          <Link href={backHref} className="text-slate-500 hover:text-slate-700 transition-all duration-150">
+            <ChevronLeft size={20} />
+          </Link>
+        )}
+        <h1 className="text-sm font-semibold text-gray-900">{title}</h1>
+      </div>
 
       {/* Global search — center */}
       <form onSubmit={handleSearch} className="flex-1 max-w-sm mx-auto">
