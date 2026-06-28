@@ -27,7 +27,7 @@ export default async function NewContractPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Topbar title="New Contract" />
+      <Topbar title="New Contract" showBack backHref="/contracts" />
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
           <NewContractForm clients={clients} orgName={org?.name ?? "Your Business"} />
