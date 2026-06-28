@@ -16,7 +16,7 @@ export default async function NewQuotePage() {
   const [clients, org, items, taxes] = await Promise.all([
     prisma.client.findMany({
       where: { orgId },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, city: true, state: true },
       orderBy: { name: "asc" },
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),

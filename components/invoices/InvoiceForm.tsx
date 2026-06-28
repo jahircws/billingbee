@@ -15,6 +15,7 @@ interface Client {
   id: string
   name: string
   email?: string | null
+  city?: string | null
   state?: string | null
 }
 
@@ -501,7 +502,9 @@ export default function InvoiceForm({
             >
               <option value="">Select client…</option>
               {localClients.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}{[c.city, c.state].filter(Boolean).length > 0 ? ` (${[c.city, c.state].filter(Boolean).join(", ")})` : ""}
+                </option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />

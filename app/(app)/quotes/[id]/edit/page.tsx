@@ -29,7 +29,7 @@ export default async function EditQuotePage({ params }: Props) {
     }),
     prisma.client.findMany({
       where: { orgId },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, city: true, state: true },
       orderBy: { name: "asc" },
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true } }),

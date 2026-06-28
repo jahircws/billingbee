@@ -29,7 +29,7 @@ export default async function EditInvoicePage({ params }: Props) {
     }),
     prisma.client.findMany({
       where: { orgId },
-      select: { id: true, name: true, email: true, state: true },
+      select: { id: true, name: true, email: true, city: true, state: true },
       orderBy: { name: "asc" },
     }),
     prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true, currency: true, state: true } }),
