@@ -134,7 +134,7 @@ export default function InvoiceForm({
   )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [limitReached, setLimitReached] = useState<{ current: number; limit: number } | null>(null)
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number; limitType?: "invoice" | "client" } | null>(null)
   const [orgStateBannerDismissed, setOrgStateBannerDismissed] = useState(false)
 
   // Upload mode
@@ -308,6 +308,10 @@ export default function InvoiceForm({
     const result = await createClient({ name: newClientName.trim(), email: newClientEmail.trim() || undefined })
     setCreatingClient(false)
     if ("error" in result) {
+      if (result.error === "LIMIT_REACHED" && "current" in result) {
+        setLimitReached({ current: result.current as number, limit: result.limit as number, limitType: "client" })
+        return
+      }
       setError(result.error ?? "Failed to create client")
       return
     }
@@ -380,7 +384,7 @@ export default function InvoiceForm({
     if ("error" in result) {
       const r = result as { error?: unknown; current?: unknown; limit?: unknown }
       if (r.error === "LIMIT_REACHED") {
-        setLimitReached({ current: r.current as number, limit: r.limit as number })
+        setLimitReached({ current: r.current as number, limit: r.limit as number, limitType: "invoice" })
         return
       }
       showError(String(r.error ?? "Error"))
@@ -404,8 +408,9 @@ export default function InvoiceForm({
       <UpgradeModal
         current={limitReached.current}
         limit={limitReached.limit}
-        type="invoice"
+        type={limitReached.limitType ?? "invoice"}
         onClose={() => setLimitReached(null)}
+        isIndia={isGstCurrency(currency)}
       />
     )}
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
