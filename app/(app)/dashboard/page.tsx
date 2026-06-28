@@ -17,6 +17,7 @@ import { auth } from "@/auth"
 import OpenCopilotButton from "@/components/ai/OpenCopilotButton"
 import ForecastCard from "./ForecastCard"
 import RecentInvoices from "@/components/dashboard/RecentInvoices"
+import ActivationNudgeBanner from "@/components/dashboard/ActivationNudgeBanner"
 
 export const metadata = { ...privateMetadata, title: "Dashboard" }
 export const dynamic = "force-dynamic"
@@ -38,7 +39,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const session = await auth()
   const userId = session?.user?.userId
 
-  const [org, data, userRecord, onboarding] = await Promise.all([
+  const [org, data, userRecord, activationNudge, onboarding] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { currency: true, plan: true, planExpiry: true, onboardingDone: true },
@@ -47,6 +48,21 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     userId
       ? prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } })
       : Promise.resolve(null),
+    (async () => {
+      const [invoiceCount, clientCount] = await Promise.all([
+        prisma.invoice.count({ where: { orgId } }),
+        prisma.client.count({ where: { orgId } }),
+      ])
+      if (clientCount >= 1 && invoiceCount === 0) {
+        const recentClient = await prisma.client.findFirst({
+          where: { orgId },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, name: true },
+        })
+        return recentClient ? { clientId: recentClient.id, clientName: recentClient.name } : null
+      }
+      return null
+    })(),
     (async () => {
       const [orgRow, clients, sentInvoice, draftInvoice, gateway] = await Promise.all([
         prisma.organization.findUnique({
@@ -130,6 +146,14 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
               <p className="text-xs text-amber-700">Please request a new verification email.</p>
             </div>
           </div>
+        )}
+
+        {/* Activation nudge — client added but no invoice yet */}
+        {activationNudge && (
+          <ActivationNudgeBanner
+            clientId={activationNudge.clientId}
+            clientName={activationNudge.clientName}
+          />
         )}
 
         {/* First-time hero card — shown only until first invoice is created */}

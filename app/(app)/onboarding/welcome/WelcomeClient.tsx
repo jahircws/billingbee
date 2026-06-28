@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation"
 import { completeOnboarding } from "@/app/actions/onboarding"
 
 const GOAL_CTA: Record<string, { label: string; href: string }> = {
-  invoices:    { label: "Set up your first client →", href: "/clients/new?onboarding=true" },
-  proposals:   { label: "Set up your first client →", href: "/clients/new?onboarding=true" },
-  payments:    { label: "Set up your first client →", href: "/clients/new?onboarding=true" },
-  collections: { label: "Set up your first client →", href: "/clients/new?onboarding=true" },
+  invoices:    { label: "Create your first invoice →", href: "/invoices/new" },
+  proposals:   { label: "Create your first invoice →", href: "/invoices/new" },
+  payments:    { label: "Create your first invoice →", href: "/invoices/new" },
+  collections: { label: "Create your first invoice →", href: "/invoices/new" },
 }
 
 const STEPS = [

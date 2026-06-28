@@ -233,6 +233,7 @@ model Organization {
   onboardingGoal  String?
   onboardingDone  Boolean   @default(false)
   lastForecastAt        DateTime?
+  day0NudgeSent          Boolean   @default(false)
   day5ProNudgeSentAt    DateTime?
   day14UpgradePushSentAt DateTime?
   createdAt   DateTime @default(now())

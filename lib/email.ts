@@ -686,6 +686,32 @@ export async function sendActivationDripEmail({ name, email }: { name: string; e
   }
 }
 
+// ── sendDay0NudgeEmail ────────────────────────────────────────────────────
+
+export async function sendDay0NudgeEmail({ name, email }: { name: string; email: string }): Promise<void> {
+  const firstName = name?.split(" ")[0] || "there"
+  const body = `
+    ${h1(`Hi ${firstName},`)}
+    ${p(`You signed up for BillingBee a couple of hours ago — just wanted to make sure you found your way around.`)}
+    ${p(`Creating your first invoice takes about 2 minutes:`)}
+    ${btn("Create your first invoice →", "https://www.billingbee.co/invoices/new")}
+    ${divider()}
+    ${p(`If you hit any snag or have a question, just reply to this email.`)}
+    <p style="margin:0;font-size:15px;color:#374151;">— Amit<br>BillingBee</p>
+  `
+  try {
+    await sendEmail({
+      to: email,
+      from: "Amit from BillingBee <amit@billingbee.co>",
+      replyTo: "amit@billingbee.co",
+      subject: "Your BillingBee account is ready — create your first invoice",
+      html: layout(body, "Creating your first invoice takes about 2 minutes."),
+    })
+  } catch {
+    // never throw — email failure must not surface
+  }
+}
+
 // ── sendClientMagicLinkEmail ───────────────────────────────────────────────
 
 // ── sendDay5ProNudgeEmail ──────────────────────────────────────────────────
