@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { INDIAN_STATES } from "@/lib/utils"
 
 interface Org {
   id: string
@@ -208,7 +209,27 @@ export default function OrgTab({ org }: { org: Org }) {
 
       <div className="grid grid-cols-3 gap-3">
         {field("City", "city")}
-        {field(form.country === "IN" ? "State" : "State / Province", "state")}
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">{form.country === "IN" ? "State" : "State / Province"}</label>
+          {form.country === "IN" ? (
+            <select
+              value={form.state}
+              onChange={(e) => set("state", e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              <option value="">Select state</option>
+              {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={form.state}
+              placeholder="State / Province"
+              onChange={(e) => set("state", e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          )}
+        </div>
         {field(form.country === "IN" ? "Pincode" : "ZIP / Postal Code", "pincode")}
       </div>
 
