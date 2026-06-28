@@ -39,15 +39,6 @@ interface CreateInvoiceInput {
   discountAmount?: number
 }
 
-async function nextInvoiceNumber(orgId: string): Promise<string> {
-  const invoices = await prisma.invoice.findMany({ where: { orgId }, select: { invoiceNumber: true } })
-  const maxNum = invoices.reduce((max, inv) => {
-    const m = inv.invoiceNumber.match(/(\d+)$/)
-    return m ? Math.max(max, parseInt(m[1], 10)) : max
-  }, 0)
-  return `INV-${String(maxNum + 1).padStart(3, "0")}`
-}
-
 export async function createInvoice(input: CreateInvoiceInput) {
   const session = await auth()
   const orgId = session?.user?.orgId
@@ -57,8 +48,6 @@ export async function createInvoice(input: CreateInvoiceInput) {
   if (!limit.allowed) {
     return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
   }
-
-  const invoiceNumber = await nextInvoiceNumber(orgId)
 
   const issueDate = input.issueDate ? new Date(input.issueDate) : new Date()
   const dueDate = input.dueDate
@@ -96,30 +85,45 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const baseCurrency = org?.currency ?? "INR"
   const fxRate = (await getFxRate(invoiceCurrency, baseCurrency, issueDate)) ?? 1
 
-  const invoice = await prisma.invoice.create({
-    data: {
-      orgId,
-      clientId: input.clientId,
-      invoiceNumber,
-      status: "DRAFT",
-      issueDate,
-      dueDate,
-      currency: invoiceCurrency as never,
-      fxRate,
-      subtotal,
-      taxAmount,
-      discountAmount,
-      total,
-      amountPaid: 0,
-      amountDue: total,
-      notes: input.notes,
-      terms: input.terms,
-      autoFollowUp,
-      isRecurring: input.isRecurring ?? false,
-      recurringCron: input.recurringCron ?? null,
-      items: { create: lineItems },
-    },
+  // SELECT FOR UPDATE inside a transaction prevents two concurrent createInvoice
+  // calls from reading the same maxNum before either writes (race condition).
+  const invoice = await prisma.$transaction(async (tx) => {
+    const rows = await tx.$queryRaw<{ invoiceNumber: string }[]>`
+      SELECT "invoiceNumber" FROM "Invoice" WHERE "orgId" = ${orgId} FOR UPDATE
+    `
+    const maxNum = rows.reduce((max, inv) => {
+      const m = inv.invoiceNumber.match(/(\d+)$/)
+      return m ? Math.max(max, parseInt(m[1], 10)) : max
+    }, 0)
+    const invoiceNumber = `INV-${String(maxNum + 1).padStart(3, "0")}`
+
+    return tx.invoice.create({
+      data: {
+        orgId,
+        clientId: input.clientId,
+        invoiceNumber,
+        status: "DRAFT",
+        issueDate,
+        dueDate,
+        currency: invoiceCurrency as never,
+        fxRate,
+        subtotal,
+        taxAmount,
+        discountAmount,
+        total,
+        amountPaid: 0,
+        amountDue: total,
+        notes: input.notes,
+        terms: input.terms,
+        autoFollowUp,
+        isRecurring: input.isRecurring ?? false,
+        recurringCron: input.recurringCron ?? null,
+        items: { create: lineItems },
+      },
+    })
   })
+
+  const invoiceNumber = invoice.invoiceNumber
 
   if (autoFollowUp && dueDate) {
     await scheduleCollections(orgId, invoice.id, dueDate)
@@ -395,46 +399,55 @@ export async function duplicateInvoice(invoiceId: string) {
     return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
   }
 
-  const invoiceNumber = await nextInvoiceNumber(orgId)
-
   // New issue date → re-resolve the frozen FX rate for today.
   const dupIssueDate = new Date()
   const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { currency: true } })
   const fxRate = (await getFxRate(source.currency, org?.currency ?? "INR", dupIssueDate)) ?? 1
 
-  const invoice = await prisma.invoice.create({
-    data: {
-      orgId,
-      clientId: source.clientId,
-      invoiceNumber,
-      status: "DRAFT",
-      issueDate: dupIssueDate,
-      dueDate: addDays(dupIssueDate, 30),
-      currency: source.currency,
-      fxRate,
-      subtotal: source.subtotal,
-      taxAmount: source.taxAmount,
-      discountAmount: source.discountAmount,
-      total: source.total,
-      amountPaid: 0,
-      amountDue: source.total,
-      notes: source.notes,
-      terms: source.terms,
-      autoFollowUp: source.autoFollowUp,
-      items: {
-        create: source.items.map((item) => ({
-          description: item.description,
-          hsn: item.hsn,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          taxRate: item.taxRate,
-          taxAmount: item.taxAmount,
-          discount: item.discount,
-          total: item.total,
-          sortOrder: item.sortOrder,
-        })),
+  const invoice = await prisma.$transaction(async (tx) => {
+    const rows = await tx.$queryRaw<{ invoiceNumber: string }[]>`
+      SELECT "invoiceNumber" FROM "Invoice" WHERE "orgId" = ${orgId} FOR UPDATE
+    `
+    const maxNum = rows.reduce((max, inv) => {
+      const m = inv.invoiceNumber.match(/(\d+)$/)
+      return m ? Math.max(max, parseInt(m[1], 10)) : max
+    }, 0)
+    const invoiceNumber = `INV-${String(maxNum + 1).padStart(3, "0")}`
+
+    return tx.invoice.create({
+      data: {
+        orgId,
+        clientId: source.clientId,
+        invoiceNumber,
+        status: "DRAFT",
+        issueDate: dupIssueDate,
+        dueDate: addDays(dupIssueDate, 30),
+        currency: source.currency,
+        fxRate,
+        subtotal: source.subtotal,
+        taxAmount: source.taxAmount,
+        discountAmount: source.discountAmount,
+        total: source.total,
+        amountPaid: 0,
+        amountDue: source.total,
+        notes: source.notes,
+        terms: source.terms,
+        autoFollowUp: source.autoFollowUp,
+        items: {
+          create: source.items.map((item) => ({
+            description: item.description,
+            hsn: item.hsn,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            taxRate: item.taxRate,
+            taxAmount: item.taxAmount,
+            discount: item.discount,
+            total: item.total,
+            sortOrder: item.sortOrder,
+          })),
+        },
       },
-    },
+    })
   })
   invalidatePlanCache(orgId)
   return { invoice: serialize(invoice) }
