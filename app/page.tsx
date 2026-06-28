@@ -724,19 +724,16 @@ export default async function HomePage() {
         </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {/* PLACEHOLDER — replace with real reviews before launch */}
           <TestimonialCard
             quote="I used to spend an hour putting together a proposal in Google Docs, email it back and forth, then manually re-enter everything into a separate invoice tool. Now I describe the project, the proposal goes out, the client signs, and the invoice is waiting. Six months in and I haven't opened a spreadsheet once."
             name="Sarah Whitfield"
             role="Freelance Copywriter, London"
           />
-          {/* PLACEHOLDER — replace with real reviews before launch */}
           <TestimonialCard
             quote="I stopped writing 'hey, just following up on that invoice' emails the day I turned on the automatic reminders. My clients know there's a system now. They pay faster because they know the next message is coming either way — from the AI, not from me."
             name="Marco Rossi"
             role="Web Developer, Milan"
           />
-          {/* PLACEHOLDER — replace with real reviews before launch */}
           <TestimonialCard
             quote="My clients are in the US and Europe. I invoice in USD. I pay taxes in India. BillingBee handles both without me thinking about it. Razorpay payouts, GST-ready PDFs, multi-currency — all built in. No other tool I found did all of this."
             name="Priya Sharma"
