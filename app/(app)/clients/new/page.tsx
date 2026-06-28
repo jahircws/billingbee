@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
+import prisma from "@/lib/db"
 import { privateMetadata } from "@/lib/metadata"
 import ClientNewWrapper from "./ClientNewWrapper"
 
@@ -14,6 +15,8 @@ export default async function ClientNewPage({ searchParams }: Props) {
   if (!session?.user?.orgId) redirect("/login")
 
   const { onboarding } = await searchParams
+  const org = await prisma.organization.findUnique({ where: { id: session.user.orgId }, select: { currency: true } })
+  const isIndia = org?.currency === "INR"
 
-  return <ClientNewWrapper onboarding={onboarding === "true"} />
+  return <ClientNewWrapper onboarding={onboarding === "true"} isIndia={isIndia} />
 }
