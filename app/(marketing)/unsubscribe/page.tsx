@@ -54,18 +54,9 @@ function UnsubscribeForm() {
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          background: "#1e2330",
-          padding: "16px 24px",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ color: "#10b981", fontSize: "22px", fontWeight: 800, letterSpacing: "-0.5px" }}>
-          Billing<span style={{ color: "#ffffff" }}>Bee</span>
-        </span>
-      </div>
+      <header className="bg-[#1e2330] py-4 flex justify-center items-center">
+        <img src="/logo.png" alt="BillingBee" height={36} style={{ height: '36px' }} />
+      </header>
 
       {/* Body */}
       <div
@@ -204,7 +195,7 @@ function UnsubscribeForm() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.back()}
+                  onClick={() => router.push('/')}
                   style={{
                     width: "100%",
                     padding: "12px 0",
