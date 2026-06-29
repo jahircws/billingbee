@@ -55,7 +55,7 @@ function UnsubscribeForm() {
     >
       {/* Header */}
       <header className="bg-[#1e2330] py-4 flex justify-center items-center">
-        <img src="/logo.png" alt="BillingBee" height={36} style={{ height: '36px' }} />
+        <img src="/logo.png" alt="BillingBee" style={{ height: '36px', filter: 'brightness(0) invert(1)' }} />
       </header>
 
       {/* Body */}

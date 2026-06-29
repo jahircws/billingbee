@@ -110,6 +110,17 @@ function divider(): string {
   return `<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>`
 }
 
+function unsubFooter(email: string): string {
+  return `<div style="text-align:center;margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;">
+  <p style="font-size:12px;color:#9ca3af;margin:0;">
+    BillingBee · <a href="https://www.billingbee.co" style="color:#9ca3af;">billingbee.co</a>
+  </p>
+  <p style="font-size:12px;color:#9ca3af;margin:4px 0 0;">
+    <a href="https://www.billingbee.co/unsubscribe?email=${encodeURIComponent(email)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a> from marketing emails
+  </p>
+</div>`
+}
+
 function fmtAmount(amount: number, currency = "INR"): string {
   try {
     return new Intl.NumberFormat(getCurrencyLocale(currency), { style: "currency", currency, maximumFractionDigits: 2 }).format(amount)
@@ -672,6 +683,7 @@ export async function sendActivationDripEmail({ name, email }: { name: string; e
     ${divider()}
     ${p(`If you ran into any trouble, just reply to this email — I read every reply.`)}
     <p style="margin:0;font-size:15px;color:#374151;">— Amit</p>
+    ${unsubFooter(email)}
   `
   try {
     await sendEmail({
@@ -698,6 +710,7 @@ export async function sendDay0NudgeEmail({ name, email }: { name: string; email:
     ${divider()}
     ${p(`If you hit any snag or have a question, just reply to this email.`)}
     <p style="margin:0;font-size:15px;color:#374151;">— Amit<br>BillingBee</p>
+    ${unsubFooter(email)}
   `
   try {
     await sendEmail({
@@ -753,6 +766,7 @@ export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string)
     ${btn("Upgrade to Pro — $9.99/month →", "https://www.billingbee.co/settings/billing")}
     ${p(`Questions? Just reply to this email.`)}
     <p style="margin:0;font-size:15px;color:#374151;">— Amit, Founder @ BillingBee</p>
+    ${unsubFooter(ownerEmail)}
   `
   try {
     await sendEmail({
@@ -769,7 +783,10 @@ export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string)
 
 // ── sendDay14UpgradePushEmail ──────────────────────────────────────────────
 
-export async function sendDay14UpgradePushEmail(orgName: string, ownerEmail: string): Promise<void> {
+export async function sendDay14UpgradePushEmail(orgName: string, ownerEmail: string, currency?: string): Promise<void> {
+  const isInr = currency === "INR"
+  const proPrice = isInr ? "₹849/month" : "$9.99/month"
+  const upgradeUrl = "https://www.billingbee.co/settings/billing"
   const body = `
     ${h1(`Don't lose your billing momentum`)}
     ${p(`You've been using BillingBee for 2 weeks${orgName ? ` at <strong>${orgName}</strong>` : ""} — that's further than most people get.`)}
@@ -779,9 +796,10 @@ export async function sendDay14UpgradePushEmail(orgName: string, ownerEmail: str
     ${p(`<strong>AI Revenue Forecast</strong> — Pro users can see their predicted revenue for the next 90 days: which clients will pay, which are at risk, and what to expect this quarter. It's the closest thing to a CFO for a one-person business.`)}
     ${divider()}
     ${p(`Freelancers using BillingBee Pro collect payments 3x faster, thanks to AI collections that chase late invoices automatically — no awkward follow-up emails from you.`)}
-    ${btn("Start Pro — $9.99/month →", "https://www.billingbee.co/settings/billing")}
+    ${btn(`Start Pro — ${proPrice} →`, upgradeUrl)}
     ${p(`Lock in your momentum before your invoice count resets.`)}
     <p style="margin:0;font-size:15px;color:#374151;">— Amit, Founder @ BillingBee</p>
+    ${unsubFooter(ownerEmail)}
   `
   try {
     await sendEmail({
