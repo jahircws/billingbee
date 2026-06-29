@@ -919,5 +919,6 @@ model ToolRateLimit {
 model EmailUnsubscribe {
   id        String   @id @default(cuid())
   email     String   @unique
+  reason    String?
   createdAt DateTime @default(now())
 }

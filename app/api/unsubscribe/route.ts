@@ -15,12 +15,12 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-async function recordUnsubscribe(email: string) {
+async function recordUnsubscribe(email: string, reason?: string | null) {
   const normalized = email.trim().toLowerCase()
   await prisma.emailUnsubscribe.upsert({
     where: { email: normalized },
-    create: { id: randomUUID(), email: normalized },
-    update: {},
+    create: { id: randomUUID(), email: normalized, reason: reason ?? null },
+    update: { reason: reason ?? undefined },
   })
   try {
     await sesClient.send(new PutSuppressedDestinationCommand({
@@ -36,10 +36,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const email = body?.email
+    const reason = body?.reason ?? null
     if (!email || !isValidEmail(email)) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 })
     }
-    await recordUnsubscribe(email)
+    await recordUnsubscribe(email, reason)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
