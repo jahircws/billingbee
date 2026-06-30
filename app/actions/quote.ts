@@ -8,7 +8,7 @@ import { computeInvoiceTotals } from "@/lib/invoice-totals"
 import { sendQuoteEmail, sendQuoteRejectedEmail } from "@/lib/email"
 import { fmtCurrency } from "@/lib/currency"
 import { addDays } from "date-fns"
-import { checkInvoiceLimit, invalidatePlanCache } from "@/lib/plan"
+import { checkInvoiceLimit, checkQuoteLimit, invalidatePlanCache } from "@/lib/plan"
 
 interface LineItemInput {
   description: string
@@ -70,6 +70,11 @@ export async function createQuote(input: QuoteInput) {
   const orgId = session?.user?.orgId
   if (!orgId) redirect("/login")
 
+  const qLimit = await checkQuoteLimit(orgId)
+  if (!qLimit.allowed) {
+    return { error: "LIMIT_REACHED", current: qLimit.current, limit: qLimit.limit } as const
+  }
+
   const count = await prisma.quote.count({ where: { orgId } })
   const quoteNumber = `QUO-${String(count + 1).padStart(3, "0")}`
 
@@ -104,6 +109,11 @@ export async function createQuote(input: QuoteInput) {
       terms: input.terms,
       items: { create: lineItems },
     },
+  })
+
+  await prisma.organization.update({
+    where: { id: orgId },
+    data: { quotesThisMonth: { increment: 1 } },
   })
 
   return { quote: serialize(quote) }

@@ -7,16 +7,18 @@ import { Sparkles, X, CheckCircle2 } from "lucide-react"
 interface Props {
   current: number
   limit: number
-  type: "invoice" | "client"
+  type: "invoice" | "client" | "proposal" | "quote"
   onClose: () => void
   isIndia?: boolean
 }
 
 const FEATURES = [
   "Unlimited invoices & clients",
+  "Unlimited proposals & quotes",
   "AI collections & follow-ups",
   "Payment links (Stripe, Razorpay, PayPal)",
-  "PDF without watermark",
+  "PDF without watermark or branding",
+  "Logo on proposals & quotes",
   "Priority support",
 ]
 
@@ -57,12 +59,20 @@ export default function UpgradeModal({ current, limit, type, onClose, isIndia }:
   }
   const heading =
     type === "invoice"
-      ? `You've used all ${limit} free invoices this month`
+      ? `You've used ${limit}/${limit} free invoices this month`
+      : type === "proposal"
+      ? `You've used ${limit}/${limit} proposals this month`
+      : type === "quote"
+      ? `You've used ${limit}/${limit} quotes this month`
       : `You've reached the ${limit} client limit on Free`
 
   const subtext =
     type === "invoice"
       ? "Upgrade to Pro for unlimited invoices, AI collections, and more."
+      : type === "proposal"
+      ? "Upgrade to Pro for unlimited proposals."
+      : type === "quote"
+      ? "Upgrade to Pro for unlimited quotes."
       : "Upgrade to Pro for unlimited clients and more."
 
   return (

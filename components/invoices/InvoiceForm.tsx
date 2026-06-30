@@ -134,7 +134,7 @@ export default function InvoiceForm({
   )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [limitReached, setLimitReached] = useState<{ current: number; limit: number; limitType?: "invoice" | "client" } | null>(null)
+  const [limitReached, setLimitReached] = useState<{ current: number; limit: number; limitType?: "invoice" | "client" | "quote" | "proposal" } | null>(null)
   const [orgStateBannerDismissed, setOrgStateBannerDismissed] = useState(false)
 
   // Upload mode
@@ -384,7 +384,7 @@ export default function InvoiceForm({
     if ("error" in result) {
       const r = result as { error?: unknown; current?: unknown; limit?: unknown }
       if (r.error === "LIMIT_REACHED") {
-        setLimitReached({ current: r.current as number, limit: r.limit as number, limitType: "invoice" })
+        setLimitReached({ current: r.current as number, limit: r.limit as number, limitType: type === "quote" ? "quote" : "invoice" })
         return
       }
       showError(String(r.error ?? "Error"))

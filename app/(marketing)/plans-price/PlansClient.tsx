@@ -19,12 +19,15 @@ const PLANS = [
     features: [
       "5 invoices/month",
       "3 clients",
+      "5 proposals/month",
+      "5 quotes/month",
+      "Contracts (unlimited)",
       "AI invoice generation",
       "PDF export (watermarked)",
       "Basic reports",
       "Client portal (read-only)",
     ],
-    missing: ["Unlimited invoices", "AI follow-ups", "Payment links", "White-label portal", "Cashflow forecast", "API access"],
+    missing: ["Unlimited invoices", "Unlimited proposals & quotes", "AI follow-ups", "Payment links", "White-label portal", "Cashflow forecast", "API access"],
   },
   {
     id: "pro",
@@ -36,6 +39,9 @@ const PLANS = [
     popular: true,
     features: [
       "Unlimited invoices & clients",
+      "Unlimited proposals & quotes",
+      "Logo on proposals & quotes",
+      "No BillingBee branding on documents",
       "AI invoice generation",
       "AI payment follow-ups",
       "Payment links (Stripe, Razorpay, PayPal)",
@@ -53,10 +59,14 @@ const PLANS = [
 const COMPARE_FEATURES = [
   { label: "Invoices/month", free: "5", pro: "Unlimited" },
   { label: "Clients", free: "3", pro: "Unlimited" },
+  { label: "Proposals/month", free: "5", pro: "Unlimited" },
+  { label: "Quotes/month", free: "5", pro: "Unlimited" },
+  { label: "Contracts", free: "Unlimited", pro: "Unlimited" },
   { label: "AI invoice generation", free: true, pro: true },
   { label: "AI payment follow-ups", free: false, pro: true },
   { label: "Payment links", free: false, pro: true },
   { label: "PDF — no watermark", free: false, pro: true },
+  { label: "Logo on proposals & quotes", free: false, pro: true },
   { label: "White-label client portal", free: false, pro: true },
   { label: "Cashflow forecast", free: false, pro: true },
 ]

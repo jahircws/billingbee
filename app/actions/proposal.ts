@@ -7,6 +7,7 @@ import prisma from "@/lib/db"
 import { serialize } from "@/lib/serialize"
 import Anthropic from "@anthropic-ai/sdk"
 import { sendProposalEmail, sendContractEmail, sendEmail } from "@/lib/email"
+import { checkProposalLimit } from "@/lib/plan"
 import { SignJWT } from "jose"
 import { headers } from "next/headers"
 
@@ -62,6 +63,11 @@ export async function generateProposal(clientId: string, prompt: string) {
 
   if (!client) return { error: "Client not found" }
 
+  const limit = await checkProposalLimit(orgId)
+  if (!limit.allowed) {
+    return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
+  }
+
   const history = recentInvoices.map((inv) => {
     const items = inv.items.map((i) => i.description).join(", ")
     return `${inv.invoiceNumber}: ${items} — ₹${Number(inv.total)}`
@@ -116,6 +122,11 @@ Request: ${prompt}`
     },
   })
 
+  await prisma.organization.update({
+    where: { id: orgId },
+    data: { proposalsThisMonth: { increment: 1 } },
+  })
+
   return { proposal: serialize(proposal) }
 }
 
@@ -123,6 +134,11 @@ export async function createProposal(data: ProposalData) {
   const session = await auth()
   const orgId = session?.user?.orgId
   if (!orgId) redirect("/login")
+
+  const limit = await checkProposalLimit(orgId)
+  if (!limit.allowed) {
+    return { error: "LIMIT_REACHED", current: limit.current, limit: limit.limit } as const
+  }
 
   const proposal = await prisma.proposal.create({
     data: {
@@ -135,6 +151,12 @@ export async function createProposal(data: ProposalData) {
       aiPrompt: data.aiPrompt,
     },
   })
+
+  await prisma.organization.update({
+    where: { id: orgId },
+    data: { proposalsThisMonth: { increment: 1 } },
+  })
+
   return { proposal: serialize(proposal) }
 }
 

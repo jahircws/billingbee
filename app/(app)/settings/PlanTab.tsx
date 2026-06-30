@@ -14,10 +14,12 @@ interface Props {
   org: Org
   invoiceCount: number
   clientCount: number
+  proposalCount?: number
+  quoteCount?: number
   isIndia?: boolean
 }
 
-const FREE_LIMITS = { invoices: 5, clients: 3 }
+const FREE_LIMITS = { invoices: 5, clients: 3, proposals: 5, quotes: 5 }
 
 function UsageBar({ label, current, limit }: { label: string; current: number; limit: number | null }) {
   const pct = limit === null ? 0 : Math.min((current / limit) * 100, 100)
@@ -43,7 +45,7 @@ function UsageBar({ label, current, limit }: { label: string; current: number; l
   )
 }
 
-export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Props) {
+export default function PlanTab({ org, invoiceCount, clientCount, proposalCount = 0, quoteCount = 0, isIndia }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const session = useSession()?.data
@@ -222,6 +224,16 @@ export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Pro
           current={clientCount}
           limit={isPro ? null : FREE_LIMITS.clients}
         />
+        <UsageBar
+          label="Proposals"
+          current={proposalCount}
+          limit={isPro ? null : FREE_LIMITS.proposals}
+        />
+        <UsageBar
+          label="Quotes"
+          current={quoteCount}
+          limit={isPro ? null : FREE_LIMITS.quotes}
+        />
       </div>
 
       {/* Error */}
@@ -254,6 +266,9 @@ export default function PlanTab({ org, invoiceCount, clientCount, isIndia }: Pro
           <div className="bg-gray-50 rounded-xl p-4 space-y-2">
             {[
               "Unlimited invoices & clients",
+              "Unlimited proposals & quotes",
+              "Logo on proposals & quotes",
+              "No BillingBee branding on documents",
               "AI collections & follow-ups",
               "Payment links (Stripe, Razorpay, PayPal)",
               "PDF without watermark",

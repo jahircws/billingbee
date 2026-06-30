@@ -30,13 +30,19 @@ export default async function ContractPage({ params }: Props) {
 
   const { id } = await params
 
-  const contract = await prisma.contract.findFirst({
-    where: { id, orgId },
-    include: {
-      client: true,
-      proposal: { select: { id: true, title: true, pricing: true } },
-    },
-  })
+  const [contract, org] = await Promise.all([
+    prisma.contract.findFirst({
+      where: { id, orgId },
+      include: {
+        client: true,
+        proposal: { select: { id: true, title: true, pricing: true } },
+      },
+    }),
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { name: true, address: true, gstin: true, logo: true, currency: true },
+    }),
+  ])
 
   if (!contract) notFound()
 
@@ -86,6 +92,18 @@ export default async function ContractPage({ params }: Props) {
 
         {/* Full contract content — no height cap */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 md:p-8 print:border-0 print:p-0">
+          {/* Print-only org branding header */}
+          <div className="hidden print:block mb-8 pb-6 border-b border-gray-200">
+            {org?.logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={org.logo} alt={org.name ?? ""} className="h-10 object-contain mb-3" />
+            )}
+            <p className="font-bold text-lg text-gray-900">{org?.name}</p>
+            {org?.address && <p className="text-sm text-gray-500">{org.address}</p>}
+            {org?.gstin && org.currency === "INR" && (
+              <p className="text-sm text-gray-500">GSTIN: {org.gstin}</p>
+            )}
+          </div>
           <div className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
             {contract.content}
           </div>

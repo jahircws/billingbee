@@ -1,7 +1,7 @@
 import prisma from "@/lib/db"
 import { cacheGet, cacheSet, cacheDel } from "@/lib/redis-cache"
 
-const FREE_LIMITS = { invoices: 5, clients: 3 }
+const FREE_LIMITS = { invoices: 5, clients: 3, proposals: 5, quotes: 5 }
 
 interface LimitCheck {
   allowed: boolean
@@ -77,6 +77,32 @@ export async function checkClientLimit(orgId: string): Promise<LimitCheck> {
   }
 
   const limit = FREE_LIMITS.clients
+  return { allowed: current < limit, current, limit }
+}
+
+export async function checkProposalLimit(orgId: string): Promise<LimitCheck> {
+  const plan = await getActivePlan(orgId)
+  if (plan === "pro") return { allowed: true, current: 0, limit: null }
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { proposalsThisMonth: true },
+  })
+  const current = org?.proposalsThisMonth ?? 0
+  const limit = FREE_LIMITS.proposals
+  return { allowed: current < limit, current, limit }
+}
+
+export async function checkQuoteLimit(orgId: string): Promise<LimitCheck> {
+  const plan = await getActivePlan(orgId)
+  if (plan === "pro") return { allowed: true, current: 0, limit: null }
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { quotesThisMonth: true },
+  })
+  const current = org?.quotesThisMonth ?? 0
+  const limit = FREE_LIMITS.quotes
   return { allowed: current < limit, current, limit }
 }
 

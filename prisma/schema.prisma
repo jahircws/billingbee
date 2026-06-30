@@ -236,6 +236,9 @@ model Organization {
   day0NudgeSent          Boolean   @default(false)
   day5ProNudgeSentAt    DateTime?
   day14UpgradePushSentAt DateTime?
+  proposalsThisMonth     Int       @default(0)
+  quotesThisMonth        Int       @default(0)
+  limitsResetAt          DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

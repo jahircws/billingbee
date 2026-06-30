@@ -52,9 +52,10 @@ export default async function SettingsPage({ searchParams }: Props) {
   // Usage counts for plan tab
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const [invoiceCount, clientCount] = await Promise.all([
+  const [invoiceCount, clientCount, orgCounts] = await Promise.all([
     prisma.invoice.count({ where: { orgId, createdAt: { gte: startOfMonth } } }),
     prisma.client.count({ where: { orgId } }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { proposalsThisMonth: true, quotesThisMonth: true } }),
   ])
 
   return (
@@ -110,6 +111,8 @@ export default async function SettingsPage({ searchParams }: Props) {
               org={org}
               invoiceCount={invoiceCount}
               clientCount={clientCount}
+              proposalCount={orgCounts?.proposalsThisMonth ?? 0}
+              quoteCount={orgCounts?.quotesThisMonth ?? 0}
               isIndia={isIndia}
             />
           )}
