@@ -167,14 +167,7 @@ export default function ProposalEditor({ proposal }: { proposal: Proposal }) {
   }
 
   function downloadAsPDF() {
-    // Open a print-friendly page in a new window
-    const content = buildPrintHTML()
-    const w = window.open("", "_blank")
-    if (!w) return
-    w.document.write(content)
-    w.document.close()
-    w.focus()
-    setTimeout(() => { w.print() }, 400)
+    window.open(`/api/proposal/${proposal.id}/pdf`, "_blank")
   }
 
   function buildPrintHTML() {
