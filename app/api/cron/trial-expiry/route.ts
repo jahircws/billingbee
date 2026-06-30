@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const checkoutUrl = `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://billingbee.co"}/settings?tab=plan`
 
     try {
-      await sendTrialExpiryEmail(org.name, ownerEmail, daysLeft, checkoutUrl)
+      await sendTrialExpiryEmail(org.name, ownerEmail, daysLeft, checkoutUrl, org.currency ?? undefined)
       results.push({ org: org.name, sent: true })
     } catch {
       results.push({ org: org.name, sent: false })

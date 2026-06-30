@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     select: {
       id: true,
       name: true,
+      currency: true,
       orgUsers: {
         where: { role: "OWNER", isActive: true },
         select: {
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
       skipped.push(org.id)
       continue
     }
-    await sendDay5ProNudgeEmail(org.name, owner.email)
+    await sendDay5ProNudgeEmail(org.name, owner.email, org.currency ?? undefined)
     await db.organization.update({
       where: { id: org.id },
       data: { day5ProNudgeSentAt: now },

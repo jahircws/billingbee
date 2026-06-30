@@ -364,11 +364,14 @@ export async function sendTrialExpiryEmail(
   ownerEmail: string,
   daysLeft: number,
   checkoutUrl: string,
+  currency?: string,
 ) {
+  const isInr = currency === "INR"
+  const proPrice = isInr ? "₹849/month" : "$9.99/month"
   const urgency = daysLeft <= 1 ? "tomorrow" : `in ${daysLeft} days`
   const body = `
     ${h1(`Your free Pro trial ends ${urgency}`)}
-    ${p(`Hi there, your BillingBee Pro trial for <strong>${orgName}</strong> ends ${urgency}. After that, you'll be moved to the free plan (5 invoices/month, 3 clients).`)}
+    ${p(`Hi there, your BillingBee Pro trial for <strong>${orgName}</strong> ends ${urgency}. After that, you'll be moved to the free plan (5 invoices, 5 proposals, and 5 quotes per month).`)}
     ${divider()}
     <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">What you'll keep on Pro</p>
     <ul style="margin:0 0 20px;padding-left:20px;font-size:15px;color:#374151;line-height:1.8;">
@@ -378,13 +381,13 @@ export async function sendTrialExpiryEmail(
       <li>White-label client portal</li>
       <li>Cashflow forecasting</li>
     </ul>
-    ${btn("Keep Pro for $9.99/month →", checkoutUrl)}
+    ${btn(`Keep Pro for ${proPrice} →`, checkoutUrl)}
     ${p(`No pressure — you can always upgrade later from Settings.`)}
   `
   return sendEmail({
     to: ownerEmail,
     subject: `Your free Pro trial ends in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`,
-    html: layout(body, `Pro trial ending ${urgency}. Keep unlimited invoices for $9.99/month.`),
+    html: layout(body, `Pro trial ending ${urgency}. Keep unlimited invoices for ${proPrice}.`),
   })
 }
 
@@ -729,7 +732,9 @@ export async function sendDay0NudgeEmail({ name, email }: { name: string; email:
 
 // ── sendDay5ProNudgeEmail ──────────────────────────────────────────────────
 
-export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string): Promise<void> {
+export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string, currency?: string): Promise<void> {
+  const isInr = currency === "INR"
+  const proPrice = isInr ? "₹849/month" : "$9.99/month"
   const firstName = ownerEmail.split("@")[0]
   const body = `
     ${h1(`You're off to a great start on BillingBee`)}
@@ -739,7 +744,7 @@ export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string)
     <table cellpadding="0" cellspacing="0" width="100%" style="font-size:15px;margin:0 0 20px;">
       <tr>
         <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#374151;">
-          <strong style="color:#059669;">✓</strong>&nbsp; Unlimited invoices <span style="color:#9ca3af;font-size:13px;">(Free = 5/month)</span>
+          <strong style="color:#059669;">✓</strong>&nbsp; Unlimited invoices <span style="color:#9ca3af;font-size:13px;">(Free = 5 invoices, 5 proposals, and 5 quotes per month)</span>
         </td>
       </tr>
       <tr>
@@ -763,7 +768,7 @@ export async function sendDay5ProNudgeEmail(orgName: string, ownerEmail: string)
         </td>
       </tr>
     </table>
-    ${btn("Upgrade to Pro — $9.99/month →", "https://www.billingbee.co/settings/billing")}
+    ${btn(`Upgrade to Pro — ${proPrice} →`, "https://www.billingbee.co/settings/billing")}
     ${p(`Questions? Just reply to this email.`)}
     <p style="margin:0;font-size:15px;color:#374151;">— Amit, Founder @ BillingBee</p>
     ${unsubFooter(ownerEmail)}
