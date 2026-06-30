@@ -138,7 +138,7 @@ export default function PricingPage({ isIndia }: { isIndia: boolean }) {
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-gray-500 max-w-xl mx-auto mb-8">
-            Start free. Upgrade when you need unlimited invoices, AI follow-ups, and payment links.
+            Start free. Upgrade when you need unlimited invoices, proposals, quotes, AI follow-ups, and payment links.
           </p>
 
         </div>
