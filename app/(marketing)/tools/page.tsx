@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
+import type React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { generatePageMetadata } from "@/lib/metadata"
-import { Calculator, Clock, ArrowRight, CalendarClock, TrendingUp } from "lucide-react"
+import { Calculator, Clock, ArrowRight, CalendarClock, TrendingUp, Receipt } from "lucide-react"
 
 type AIBadge = "ai"
 
@@ -53,6 +54,14 @@ export const metadata: Metadata = {
 
 const liveTools = [
   {
+    href: "/tools/tax-calculator",
+    icon: Receipt,
+    title: "Freelancer Tax Calculator",
+    description:
+      "Calculate income tax, GST liability, and advance tax schedule for India 2026. New regime slabs, cess, and quarterly advance tax included.",
+    badge: "new" as const,
+  },
+  {
     href: "/tools/gst-calculator",
     icon: Calculator,
     title: "GST Calculator",
@@ -82,7 +91,7 @@ const liveTools = [
     description: "Calculate invoice due dates from issue date with Net-15, Net-30, Net-60 and custom payment terms.",
     badge: null,
   },
-]
+] satisfies { href: string; icon: React.ComponentType<{ className?: string }>; title: string; description: string; badge: "new" | null }[]
 
 
 export default function ToolsPage() {
@@ -173,6 +182,11 @@ export default function ToolsPage() {
                         <h3 className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">
                           {tool.title}
                         </h3>
+                        {tool.badge === "new" && (
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                            New
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-slate-500 leading-relaxed">{tool.description}</p>
                     </div>
