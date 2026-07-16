@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         take: 1,
         select: {
           user: {
-            select: { name: true, email: true, emailVerified: true },
+            select: { name: true, email: true },
           },
         },
       },
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 
   for (const org of orgs) {
     const user = org.orgUsers[0]?.user
-    if (!user?.emailVerified) {
+    if (!user?.email) {
       skipped.push(org.id)
       continue
     }
