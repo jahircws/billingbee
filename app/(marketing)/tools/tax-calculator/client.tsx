@@ -11,12 +11,16 @@ import FaqSection from "../_components/FaqSection"
 
 const MAX_INCOME = 5_000_000 // ₹50L
 
+// Budget 2025 new regime slabs, effective FY 2025-26
 function calcIncomeTax(income: number): number {
-  if (income <= 300_000) return 0
+  if (income <= 400_000) return 0
   let tax = 0
-  if (income > 300_000) tax += Math.min(income - 300_000, 400_000) * 0.05
-  if (income > 700_000) tax += Math.min(income - 700_000, 300_000) * 0.20
-  if (income > 1_000_000) tax += (income - 1_000_000) * 0.30
+  tax += Math.min(income - 400_000, 400_000) * 0.05          // 4–8L  @ 5%
+  if (income > 800_000)   tax += Math.min(income - 800_000,   400_000) * 0.10  // 8–12L  @ 10%
+  if (income > 1_200_000) tax += Math.min(income - 1_200_000, 400_000) * 0.15  // 12–16L @ 15%
+  if (income > 1_600_000) tax += Math.min(income - 1_600_000, 400_000) * 0.20  // 16–20L @ 20%
+  if (income > 2_000_000) tax += Math.min(income - 2_000_000, 400_000) * 0.25  // 20–24L @ 25%
+  if (income > 2_400_000) tax += (income - 2_400_000) * 0.30                    // 24L+   @ 30%
   return tax
 }
 
@@ -35,9 +39,9 @@ function fmt(n: number) {
 }
 
 function fmtShort(n: number) {
-  if (n >= 10_00_000) return `₹${(n / 10_00_000).toFixed(1)}Cr`
-  if (n >= 1_00_000) return `₹${(n / 1_00_000).toFixed(1)}L`
-  if (n >= 1_000) return `₹${(n / 1_000).toFixed(0)}K`
+  if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(1)}Cr`  // >= 1 crore (10,000,000)
+  if (n >= 1_00_000)    return `₹${(n / 1_00_000).toFixed(1)}L`       // >= 1 lakh  (100,000)
+  if (n >= 1_000)       return `₹${(n / 1_000).toFixed(0)}K`
   return `₹${n}`
 }
 
@@ -48,10 +52,13 @@ type BusinessType = (typeof BUSINESS_TYPES)[number]
 
 function SlabVisualizer({ income }: { income: number }) {
   const slabs = [
-    { from: 0,         to: 300_000,   rate: "0%",  label: "₹0 – ₹3L",    color: "bg-emerald-400" },
-    { from: 300_000,   to: 700_000,   rate: "5%",  label: "₹3L – ₹7L",   color: "bg-blue-400"    },
-    { from: 700_000,   to: 1_000_000, rate: "20%", label: "₹7L – ₹10L",  color: "bg-amber-400"   },
-    { from: 1_000_000, to: MAX_INCOME, rate: "30%", label: "₹10L+",       color: "bg-rose-400"    },
+    { from: 0,          to: 400_000,   rate: "0%",  label: "₹0 – ₹4L",    color: "bg-emerald-400" },
+    { from: 400_000,    to: 800_000,   rate: "5%",  label: "₹4L – ₹8L",   color: "bg-blue-400"    },
+    { from: 800_000,    to: 1_200_000, rate: "10%", label: "₹8L – ₹12L",  color: "bg-cyan-400"    },
+    { from: 1_200_000,  to: 1_600_000, rate: "15%", label: "₹12L – ₹16L", color: "bg-yellow-400"  },
+    { from: 1_600_000,  to: 2_000_000, rate: "20%", label: "₹16L – ₹20L", color: "bg-amber-400"   },
+    { from: 2_000_000,  to: 2_400_000, rate: "25%", label: "₹20L – ₹24L", color: "bg-orange-400"  },
+    { from: 2_400_000,  to: MAX_INCOME, rate: "30%", label: "₹24L+",      color: "bg-rose-400"    },
   ]
 
   return (
@@ -437,9 +444,10 @@ export default function TaxCalculatorClient() {
           </h2>
           <p>
             Freelancers and consultants pay tax under the{" "}
-            <strong>new tax regime (FY 2025–26)</strong> with four progressive slabs: 0% up to ₹3L,
-            5% from ₹3L–7L, 20% from ₹7L–10L, and 30% above ₹10L. A flat 4% education cess
-            applies on the total income tax computed from these slabs.
+            <strong>new tax regime (FY 2025–26, Budget 2025)</strong> with seven progressive slabs:
+            0% up to ₹4L, 5% from ₹4–8L, 10% from ₹8–12L, 15% from ₹12–16L, 20% from ₹16–20L,
+            25% from ₹20–24L, and 30% above ₹24L. A flat 4% education cess applies on the total
+            income tax.
           </p>
           <p>
             Separately, if your annual service income exceeds ₹20 lakhs, GST registration is
