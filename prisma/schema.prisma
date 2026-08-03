@@ -925,3 +925,79 @@ model EmailUnsubscribe {
   reason    String?
   createdAt DateTime @default(now())
 }
+
+
+// ─────────────────────────────────────────────────────────────────────────
+// APPEND THESE MODELS TO YOUR EXISTING prisma/schema.prisma
+// Do not overwrite your existing file — merge these in.
+//
+// Table and column names match the legacy MySQL schema exactly (including
+// the "meta_decription" typo and the "category" JSON-array-of-ids column),
+// so no renaming/remapping is needed anywhere else in the app or import.
+// ─────────────────────────────────────────────────────────────────────────
+
+model BlogCategory {
+  id               Int      @id @default(autoincrement())
+  name             String
+  description      String?  @db.Text
+  slug             String   @unique
+  meta_title       String?
+  meta_description String?
+  meta_key         String?
+  tenant_id        Int?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@map("blog_categories")
+}
+
+model Blog {
+  id              Int      @id @default(autoincrement())
+  old_category    Int?
+  /// JSON-encoded array of BlogCategory ids, exactly as in the legacy table.
+  /// Kept as raw text (not Prisma Json) so malformed/legacy values never
+  /// fail validation on write — parse with JSON.parse() where needed.
+  category        String?  @db.Text
+  user            Int?
+  title           String
+  slug            String   @unique
+  content         String   @db.Text
+  meta_title      String?
+  meta_decription String?
+  meta_key        String?
+  tenant_id       Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@map("blogs")
+}
+
+// ── Only add this if you do NOT already have a Media model. ───────────────
+// Matches your existing Spatie-style table exactly. model_id is
+// intentionally NOT a Prisma relation (it's polymorphic via model_type), so
+// query it manually, e.g.:
+//   prisma.media.findFirst({ where: { model_type: 'Blog', model_id: blog.id, collection_name: 'cover_image' } })
+model Media {
+  id                     Int       @id @default(autoincrement())
+  model_type             String
+  model_id               BigInt
+  uuid                   String?   @unique
+  collection_name        String
+  name                   String
+  file_name              String
+  mime_type              String?
+  disk                   String
+  conversions_disk       String?
+  size                   BigInt
+  manipulations          String    @default("[]") @db.Text
+  custom_properties      String    @default("[]") @db.Text
+  generated_conversions  String    @default("[]") @db.Text
+  responsive_images      String    @default("[]") @db.Text
+  order_column           Int?
+  created_at             DateTime?
+  updated_at             DateTime?
+
+  @@index([model_type, model_id])
+  @@map("media")
+}
