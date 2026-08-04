@@ -944,7 +944,7 @@ model BlogCategory {
   meta_title       String?
   meta_description String?
   meta_key         String?
-  tenant_id        Int?
+  tenant_id        String?
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 
@@ -965,7 +965,7 @@ model Blog {
   meta_title      String?
   meta_decription String?
   meta_key        String?
-  tenant_id       Int?
+  tenant_id       String?
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 

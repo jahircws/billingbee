@@ -257,7 +257,7 @@ export default async function HomePage() {
             <Link href="/tools" className="text-slate-600 hover:text-slate-900 transition-colors">
               Free Tools
             </Link>
-            <Link href="/blog" className="text-slate-600 hover:text-slate-900 transition-colors">
+            <Link href="/blogs" className="text-slate-600 hover:text-slate-900 transition-colors">
               Blog
             </Link>
             <Link href="/faq" className="text-slate-600 hover:text-slate-900 transition-colors">

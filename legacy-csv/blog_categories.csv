@@ -1,0 +1,20 @@
+id,name,description,slug,meta_title,meta_description,meta_key,tenant_id,created_at,updated_at
+1,Business,Business,business,Business,Business,,9ebfa566-7623-4a41-81e3-107abbb7d291,2023-07-21 11:03:31,2023-07-21 11:03:31
+2,Finance,Finance,finance,Finance,Finance,,9ebfa566-7623-4a41-81e3-107abbb7d291,2023-07-21 11:04:29,2023-07-21 11:04:29
+3,Billing,Billing,billing,Billing,Billing,,9ebfa566-7623-4a41-81e3-107abbb7d291,2023-07-21 11:05:15,2023-07-21 11:05:15
+5,e-Invoicing,e-Invoicing,e-invoicing,e-Invoicing,e-invoicing,,9ebfa566-7623-4a41-81e3-107abbb7d291,2023-12-13 14:09:32,2023-12-13 14:11:09
+7,Freelancing,,freelancing,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-05-22 10:16:39,2025-05-22 10:16:48
+8,Small Businesses,,small-biz,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-05-22 10:17:05,2025-05-22 10:17:05
+9,Invoicing software,,invoicing-software,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-06-07 13:18:58,2025-06-07 13:18:58
+10,Billing Software,,billing-software,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-06-07 13:19:27,2025-06-07 13:19:27
+11,Accounting Software,,accounting-software,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-06-07 13:19:50,2025-06-07 13:19:50
+12,Invoice Generator,,invoice-generator,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-06-07 13:20:18,2025-06-07 13:20:18
+13,Online Invoicing,,online-invoicing,,,,9ebfa566-7623-4a41-81e3-107abbb7d291,2025-06-07 13:20:43,2026-03-25 15:00:56
+14,AI Billing Software,AI Billing Software,ai-billing-software,AI Billing Software,AI Billing Software,AI Billing Software,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2025-06-23 16:11:09,2025-07-15 16:04:12
+16,Entrepreneur,,entrepreneur,,,,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2025-08-28 15:34:27,2025-08-28 15:34:27
+17,AI Billing,,ai-billing,,,,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2025-09-15 16:17:03,2025-09-15 16:17:03
+18,Saas billing,saas billing,saas-billing,,,,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2025-09-24 18:04:12,2025-09-24 18:04:12
+19,Online Billing,,online-billing,,,,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2025-10-10 17:22:05,2025-10-10 17:22:05
+20,Free Billing Software,Free Billing Software,free-billing-software,Free Billing Software,Free Billing Software,Free Billing Software,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2026-03-24 15:41:54,2026-03-24 15:41:54
+21,Online Invoice Software,,online-invoice-software,,,,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2026-03-25 15:01:37,2026-03-25 15:01:37
+22,Invoice Template,,invoice-template,,,,b84be31f-4be3-48a8-a8fb-8e2d107c2321,2026-04-21 18:45:07,2026-04-21 18:45:07
