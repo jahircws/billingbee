@@ -68,7 +68,7 @@ npx prisma generate
 #    Put blog_categories.csv, blogs.csv, media.csv in ./legacy-csv (or wherever
 #    CSV_DIR points), then run with --env-file so DATABASE_URL is actually loaded
 #    (plain `tsx` does NOT read .env automatically — see gotcha #5):
-CSV_DIR=./legacy-csv npx tsx --env-file=.env scripts/import-from-csv.ts
+npx tsx --env-file=.env scripts/import-from-csv.ts
 
 # afterwards, safe to remove:
 npm uninstall csv-parse

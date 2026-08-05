@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { generatePageMetadata } from "@/lib/metadata";
 import { getBlogBySlug, getRecentPosts, getCategoriesWithCounts, excerptFromContent } from "@/lib/blog";
 import { formatDateOnly } from "@/lib/format-date";
 import { BlogSidebar } from "../_components/BlogSidebar";
 import { BlogCTA } from "../_components/BlogCTA";
+import { MobileFilterDrawer } from "../_components/MobileFilterDrawer";
 
 export async function generateMetadata({
   params,
@@ -65,7 +67,26 @@ export default async function BlogDetailsPage({
           </div>
         </div>
       </header>
+
       <div className="max-w-6xl mx-auto px-4 py-16">
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            href="/blogs"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Back to blogs
+          </Link>
+
+          <MobileFilterDrawer>
+            <BlogSidebar
+              recentPosts={recentPosts}
+              categories={allCategories}
+              showSearch={false}
+            />
+          </MobileFilterDrawer>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-10">
           <article className="lg:w-[60%]">
             {categories.length > 0 && (
@@ -96,7 +117,7 @@ export default async function BlogDetailsPage({
                   alt={blog.title}
                   fill
                   sizes="(max-width: 1024px) 100vw, 700px"
-                  className="object-cover"
+                  className="object-cover green-filter"
                   priority
                 />
               </div>
@@ -108,7 +129,7 @@ export default async function BlogDetailsPage({
             />
           </article>
 
-          <aside className="lg:w-[40%]">
+          <aside className="hidden lg:block lg:w-[40%]">
             <div className="lg:sticky lg:top-8">
               <BlogSidebar
                 recentPosts={recentPosts}

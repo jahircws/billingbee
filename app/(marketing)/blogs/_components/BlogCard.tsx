@@ -13,7 +13,7 @@ export function BlogCard({ blog }: { blog: BlogCardData }) {
             alt={blog.title}
             fill
             sizes="(max-width: 640px) 100vw, 400px"
-            className="object-cover"
+            className="object-cover green-filter"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-300 text-sm">

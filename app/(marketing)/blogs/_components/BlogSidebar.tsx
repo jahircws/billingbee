@@ -65,7 +65,7 @@ export function BlogSidebar({
                       alt={post.title}
                       fill
                       sizes="64px"
-                      className="object-cover"
+                      className="object-cover green-filter"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-300 text-[10px]">
