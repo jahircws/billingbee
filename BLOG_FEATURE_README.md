@@ -91,8 +91,8 @@ DATABASE_SSL=true                     # only if the target Postgres actually req
 NEXT_PUBLIC_MEDIA_BASE_URL=           # only if media isn't served from this app's own /public
 
 # Blog sync
-BLOG_SYNC_API_URL=https://blogagent.cwsdev1.com/api/widget/3882a144-2ece-4847-85fc-e6fdeb826efd/posts
-BLOG_SYNC_BASE_IMAGE_URL=https://blogagent.cwsdev1.com
+BLOG_SYNC_API_URL=
+BLOG_SYNC_BASE_IMAGE_URL=
 BLOG_SYNC_TENANT_ID=                  # must match a real tenant_id UUID
 BLOG_SYNC_DEFAULT_USER_ID=1
 BLOG_SYNC_SECRET=                     # random string; required in the Authorization header
