@@ -69,7 +69,7 @@ npx prisma db push
 npx prisma generate
 
 # 3. One-time legacy data import (skip if already run)
-CSV_DIR=./legacy-csv npx tsx --env-file=.env scripts/import-from-csv.ts
+npx tsx --env-file=.env scripts/import-from-csv.ts
 npm uninstall csv-parse   # afterwards, safe to remove
 
 # 4. Local test of the blog sync (safe/idempotent to re-run)
