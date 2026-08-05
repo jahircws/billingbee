@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, Building2, Cpu, LogOut, DollarSign, Bug, Users } from "lucide-react"
+import { LayoutDashboard, Building2, Cpu, LogOut, DollarSign, Bug, Users, Newspaper, Tags } from "lucide-react"
 
 const NAV = [
   { href: "/admin", icon: LayoutDashboard, label: "Overview" },
@@ -12,6 +12,8 @@ const NAV = [
   { href: "/admin/revenue", icon: DollarSign, label: "Revenue" },
   { href: "/admin/ai", icon: Cpu, label: "AI Usage" },
   { href: "/admin/bugs", icon: Bug, label: "Bug Reports" },
+  { href: "/admin/blogs", icon: Newspaper, label: "Blog Posts" },
+  { href: "/admin/blog-categories", icon: Tags, label: "Blog Categories" },
 ]
 
 export default function AdminSidebar({ adminName, adminRole }: { adminName: string; adminRole: string }) {
