@@ -21,7 +21,8 @@
     "beta:seed": "ts-node --project tsconfig.scripts.json scripts/create-beta-users.ts",
     "load-test": "k6 run scripts/load-test.js",
     "email:segments": "ts-node --project tsconfig.scripts.json scripts/prepare-email-segments.ts",
-    "email:test": "ts-node --project tsconfig.scripts.json scripts/send-test-emails.ts"
+    "email:test": "ts-node --project tsconfig.scripts.json scripts/send-test-emails.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",

@@ -60,3 +60,5 @@ tsconfig.tsbuildinfo
 scripts/contacts-export.csv
 scripts/**/*.csv
 .github/workflows/
+.vercel
+.env*
