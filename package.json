@@ -54,6 +54,7 @@
     "isomorphic-dompurify": "^3.16.0",
     "jose": "^6.2.3",
     "lucide-react": "^1.17.0",
+    "mysql2": "^3.23.3",
     "next": "16.2.7",
     "next-auth": "^5.0.0-beta.31",
     "next-themes": "^0.4.6",
